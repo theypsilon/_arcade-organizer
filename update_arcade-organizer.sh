@@ -39,7 +39,7 @@ echo ""
 
 echo "Downloading the most recent _arcade-organizer script."
 echo " "
-wget -q -t 3 --output-file=/tmp/wget-log --show-progress -O /tmp/_arcade-organizer.sh https://raw.githubusercontent.com/MAME-GETTER/-------
+wget -q -t 3 --output-file=/tmp/wget-log --show-progress -O /tmp/_arcade-organizer.sh https://github.com/MAME-GETTER/_arcade-organizer/raw/master/_arcade-organizer.sh
 
 chmod +x /tmp/_arcade-organizer.sh
 
