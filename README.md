@@ -10,15 +10,16 @@ These scripts look at what MRA files you have and the information in them to org
 
 if the XLM tags for YEAR, Manufacturer, and Category are included in the MRA file,  this script will create an "\_Organized" Directory in "\_Arcade" and will create the following sub-directories with soft sysmlinks to organize it:
 
-```/media/fat/_Arcade/_Organized# ls -1
-'_1 A-E'
-'_1 F-K'
-'_1 L-Q'
-'_1 R-T'
-'_1 U-Z'
-'_2 Year'
-'_3 Manufacturer'
-'_4 Category'
+```
+_Organized
+├── _1 A-E
+├── _1 F-K
+├── _1 L-Q
+├── _1 R-T
+├── _1 U-Z
+├── _2 Year
+├── _3 Manufacturer
+└── _4 Category
 ```
 These scripts DO NOT DUPLICATE any cores or mra files, only soft symlinks are used.
 
