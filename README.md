@@ -1,14 +1,14 @@
 # _arcade-organizer
 
-Simple scripts to automate organizing MiSTers \_Arcade direcroty based on you MRA files.
+Simple scripts to automate organizing MiSTers \_Arcade directory based on you MRA files.
 
 Instuctions:
 
 Download the update_arcade-organizer.sh to the Scripts directory and run.
 
-These scripts look at what MRA files you have and the information in them to organize MiSTer's \_Arcade directory. 
+This script looks at what MRA files you have and the information in them to organize MiSTer's \_Arcade directory. 
 
-if the XLM tags for Year, Manufacturer, and Category are included in the MRA file,  this script will create an "\_Organized" Directory in "\_Arcade" and will create the following sub-directories with soft sysmlinks to organize it:
+If the XLM tags for Year, Manufacturer, and Category are included in the MRA file, this script will create an "\_Organized" Directory in "\_Arcade" and will create the following sub-directories with soft sysmlinks to organize it:
 
 ```
 _Organized
@@ -25,9 +25,9 @@ These scripts DO NOT DUPLICATE any cores or mra files, only soft symlinks are us
 
 THESE SYMLINKS ONLY WORK ON MISTER! IF YOU MOUNT YOUR SD CARD OUTSIDE OF MISTER THESE SYMLINKS WILL NOT WORK.
 
-Q: Can I set my own custom locations for MRA and Organized Directories?
+Q: Can I set my own custom locations for MRA and \_Organized Directories?
 
-A: A /media/fat/Scripts/update_arcade-organizer.ini file may be used to set custom location for your MRA files (Scans recursivly) and Organized files.
+A: A /media/fat/Scripts/update_arcade-organizer.ini file may be used to set custom location for your MRA files (Scans recursivly) and \_Organized files.
 Add the following line to the ini file to set a directory for MRA files: MRADIR=/top/path/to/mra/files
 Add the following line to the ini file to set a directory for Organized files: ORGDIR=/path/to/organized/files/\_Organized
 
