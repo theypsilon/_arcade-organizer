@@ -39,6 +39,7 @@ Q: How can I set my own custom locations for MRA and \_Organized Directories?
 
 A: A `/media/fat/Scripts/update_arcade-organizer.ini` file may be used to set custom location for your MRA files (Scans recursivly) and \_Organized files.
 Add the following line to the ini file to set a directory for MRA files: `MRADIR=/top/path/to/mra/files/_Arcade`
+
 Add the following line to the ini file to set a directory for Organized files: `ORGDIR=/path/to/organized/files/_Organized`
 
 
