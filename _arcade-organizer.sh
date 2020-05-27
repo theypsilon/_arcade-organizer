@@ -86,8 +86,8 @@ fi
 
 if [ ! -e "$ORGDIR/_2 Year/_$YEAR/$MRB" ] 
    then
-      [ ! -z "$YEAR" ] && mkdir -p "$ORG/_2 Year/_$YEAR"
-      [ ! -z "$YEAR" ] && echo && cd "$ORG/_2 Year/_$YEAR"
+      [ ! -z "$YEAR" ] && mkdir -p "$ORGDIR/_2 Year/_$YEAR"
+      [ ! -z "$YEAR" ] && echo && cd "$ORGDIR/_2 Year/_$YEAR"
       [ ! -z "$YEAR" ] && echo $PWD && ln -v -s "$i" "$MRB"
 fi 
 
@@ -95,8 +95,8 @@ fi
 
 if [ ! -e "$ORGDIR/_3 Manufacturer/_$MANU/$MRB" ]
    then
-      [ ! -z "$MANU" ] && mkdir -p "$ORG/_3 Manufacturer/_$MANU"
-      [ ! -z "$MANU" ] && echo && cd "$ORG/_3 Manufacturer/_$MANU"
+      [ ! -z "$MANU" ] && mkdir -p "$ORGDIR/_3 Manufacturer/_$MANU"
+      [ ! -z "$MANU" ] && echo && cd "$ORGDIR/_3 Manufacturer/_$MANU"
       [ ! -z "$MANU" ] && echo $PWD && ln -v -s "$i" "$MRB"
 fi 
 
@@ -104,8 +104,8 @@ fi
 
 if [ ! -e "$ORGDIR/_4 Category/_$CAT/$MRB" ]
    then
-      [ ! -z "$CAT" ] && mkdir -p "$ORG/_4 Category/_$CAT"
-      [ ! -z "$CAT" ] && echo && cd "$ORG/_4 Category/_$CAT"
+      [ ! -z "$CAT" ] && mkdir -p "$ORGDIR/_4 Category/_$CAT"
+      [ ! -z "$CAT" ] && echo && cd "$ORGDIR/_4 Category/_$CAT"
       [ ! -z "$CAT" ] && echo $PWD && ln -v -s "$i" "$MRB"
 fi 
 
