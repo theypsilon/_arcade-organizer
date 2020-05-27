@@ -57,34 +57,34 @@ echo
 
 if [[ "`basename "$MRA"`" == [A-Ea-e0-9]* ]] 
    then
-        cd "$ORG/_1 A-E"
+        cd "$ORGDIR/_1 A-E"
         [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
 
 elif [[ "`basename "$MRA"`" == [F-Kf-k]* ]] 
    then
-        cd "$ORG/_1 F-K"
+        cd "$ORGDIR/_1 F-K"
         [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
 
 elif [[ `basename "$MRA"` == [L-Ql-q]* ]] 
    then
-        cd "$ORG/_1 L-Q"
+        cd "$ORGDIR/_1 L-Q"
         [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
 
 elif [[ `basename "$MRA"` == [R-Tr-t]* ]] 
    then
-        cd "$ORG/_1 R-T"
+        cd "$ORGDIR/_1 R-T"
         [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
 
 elif [[ `basename "$MRA"` == [U-Zu-z]* ]] 
    then
-        cd "$ORG/_1 U-Z"
+        cd "$ORGDIR/_1 U-Z"
         [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
 fi
 
 
 #####Create symlinks for Year#####
 
-if [ ! -e "$ORG/_2 Year/_$YEAR/$MRB" ] 
+if [ ! -e "$ORGDIR/_2 Year/_$YEAR/$MRB" ] 
    then
       [ ! -z "$YEAR" ] && mkdir -p "$ORG/_2 Year/_$YEAR"
       [ ! -z "$YEAR" ] && echo && cd "$ORG/_2 Year/_$YEAR"
@@ -93,7 +93,7 @@ fi
 
 #####Create symlinks for Manufacturer#####
 
-if [ ! -e "$ORG/_3 Manufacturer/_$MANU/$MRB" ]
+if [ ! -e "$ORGDIR/_3 Manufacturer/_$MANU/$MRB" ]
    then
       [ ! -z "$MANU" ] && mkdir -p "$ORG/_3 Manufacturer/_$MANU"
       [ ! -z "$MANU" ] && echo && cd "$ORG/_3 Manufacturer/_$MANU"
@@ -102,7 +102,7 @@ fi
 
 #####Create symlinks for Category#####
 
-if [ ! -e "$ORG/_4 Category/_$CAT/$MRB" ]
+if [ ! -e "$ORGDIR/_4 Category/_$CAT/$MRB" ]
    then
       [ ! -z "$CAT" ] && mkdir -p "$ORG/_4 Category/_$CAT"
       [ ! -z "$CAT" ] && echo && cd "$ORG/_4 Category/_$CAT"
