@@ -25,6 +25,15 @@ These scripts DO NOT DUPLICATE any cores or mra files, only soft symlinks are us
 
 THESE SYMLINKS ONLY WORK ON MISTER! IF YOU MOUNT YOUR SD CARD OUTSIDE OF MISTER THESE SYMLINKS WILL NOT WORK.
 
+THIS SCRIP USES A DEFAULT for \_Arcade at /media/fat/\_Arcade
+
+AND
+
+A DEFAULT LOCATION FOR \_Organized at media/fat/\_Arcade\_Organized
+
+If your \_Arcade Directory is in a diffrent location you MUST use a /media/fat/Scripts/update_arcade-organizer.ini file 
+
+
 Q: Can I set my own custom locations for MRA and \_Organized Directories?
 
 A: A /media/fat/Scripts/update_arcade-organizer.ini file may be used to set custom location for your MRA files (Scans recursivly) and \_Organized files.
