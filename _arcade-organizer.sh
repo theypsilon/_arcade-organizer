@@ -35,21 +35,25 @@ mkdir -p "$ORGDIR/_1 U-Z"
 
 #####Extract MRA Info######
 
-find $MRADIR -type f -name *.mra | while read i  
+find $MRADIR -type f -name *.mra | grep -v "$ORGDIR" | while read i  
 do
 echo ""  
-echo "path:"${i}"" 
 MRA="$i"
-echo "mra: `basename "$MRA"`"
 MRB="`echo $MRA | sed 's/.*\///'`"
-echo "name:`grep "<name>" "${i}" | sed -ne '/name/{s/.*<name>\(.*\)<\/name>.*/\1/p;q;}'`"
 NAME=`grep "<name>" "${i}" | sed -ne '/name/{s/.*<name>\(.*\)<\/name>.*/\1/p;q;}'`
-echo "year:`grep "<year>" "${i}" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}'`"
+CORE=`grep "<rbf" "${i}" | sed 's/<\/rbf>//' | sed 's/<rbf.*>//' | sed -e 's/^[[:space:]]*//'`
+CORE=`grep "<rbf" "${i}" | sed 's/ alt=.*"//' | sed -ne '/rbf/{s/.*<rbf>\(.*\)<\/rbf>.*/\1/p;q;}'`
 YEAR=`grep "<year>" "${i}" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}'`
-echo "manufacturer:`grep "<manufacturer>" "${i}" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`"
 MANU=`grep "<manufacturer>" "${i}" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
-echo "category:`grep "<category>" "${i}" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}'`"
 CAT=`grep "<category>" "$i" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'` 
+
+echo "path:"${i}"" 
+echo "mra: `basename "$MRA"`"
+echo "Name: $NAME"
+echo "Core: $CORE"
+echo "Year: $YEAR"
+echo "Manufacturer: $MANU"
+echo "Category: $CAT"
 
 echo 
 
@@ -82,33 +86,42 @@ elif [[ `basename "$MRA"` == [U-Zu-z]* ]]
 fi
 
 
+#####Create symlinks for Core#####
+
+if [ ! -e "$ORGDIR/_2 Core/_$CORE/$MRB" ] 
+   then
+      [ ! -z "$YEAR" ] && mkdir -p "$ORGDIR/_2 Core/_$CORE"
+      [ ! -z "$YEAR" ] && echo && cd "$ORGDIR/_2 Core/_$CORE"
+      [ ! -z "$YEAR" ] && echo $PWD && ln -v -s "$i" "$MRB"
+fi 
+
 #####Create symlinks for Year#####
 
-if [ ! -e "$ORGDIR/_2 Year/_$YEAR/$MRB" ] 
+if [ ! -e "$ORGDIR/_3 Year/_$YEAR/$MRB" ] 
    then
-      [ ! -z "$YEAR" ] && mkdir -p "$ORGDIR/_2 Year/_$YEAR"
-      [ ! -z "$YEAR" ] && echo && cd "$ORGDIR/_2 Year/_$YEAR"
+      [ ! -z "$YEAR" ] && mkdir -p "$ORGDIR/_3 Year/_$YEAR"
+      [ ! -z "$YEAR" ] && echo && cd "$ORGDIR/_3 Year/_$YEAR"
       [ ! -z "$YEAR" ] && echo $PWD && ln -v -s "$i" "$MRB"
 fi 
 
 #####Create symlinks for Manufacturer#####
 
-if [ ! -e "$ORGDIR/_3 Manufacturer/_$MANU/$MRB" ]
+if [ ! -e "$ORGDIR/_4 Manufacturer/_$MANU/$MRB" ]
    then
-      [ ! -z "$MANU" ] && mkdir -p "$ORGDIR/_3 Manufacturer/_$MANU"
-      [ ! -z "$MANU" ] && echo && cd "$ORGDIR/_3 Manufacturer/_$MANU"
+      [ ! -z "$MANU" ] && mkdir -p "$ORGDIR/_4 Manufacturer/_$MANU"
+      [ ! -z "$MANU" ] && echo && cd "$ORGDIR/_4 Manufacturer/_$MANU"
       [ ! -z "$MANU" ] && echo $PWD && ln -v -s "$i" "$MRB"
 fi 
 
 #####Create symlinks for Category#####
 
-if [ ! -e "$ORGDIR/_4 Category/_$CAT/$MRB" ]
+if [ ! -e "$ORGDIR/_5 Category/_$CAT/$MRB" ]
    then
-      [ ! -z "$CAT" ] && mkdir -p "$ORGDIR/_4 Category/_$CAT"
-      [ ! -z "$CAT" ] && echo && cd "$ORGDIR/_4 Category/_$CAT"
+      [ ! -z "$CAT" ] && mkdir -p "$ORGDIR/_5 Category/_$CAT"
+      [ ! -z "$CAT" ] && echo && cd "$ORGDIR/_5 Category/_$CAT"
       [ ! -z "$CAT" ] && echo $PWD && ln -v -s "$i" "$MRB"
 fi 
 
 echo "###############################################"
- #sleep 3 
+# sleep 1 
 done
