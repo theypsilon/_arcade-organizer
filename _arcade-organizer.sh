@@ -35,7 +35,7 @@ mkdir -p "$ORGDIR/_1 U-Z"
 
 #####Extract MRA Info######
 
-find $MRADIR -type f -name *.mra | grep -v "$ORGDIR" | while read i  
+find $MRADIR -type f -name *.mra | grep -v _Organized | while read i  
 do
 echo ""  
 MRA="$i"
