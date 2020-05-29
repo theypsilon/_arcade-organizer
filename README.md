@@ -1,6 +1,6 @@
 # _arcade-organizer
 
-A Simple script to automate organizing MiSTers \_Arcade directory based on you MRA files.
+A Simple script to automate organizing MiSTer's \_Arcade directory based on your MRA files.
 
 Instructions:
 
