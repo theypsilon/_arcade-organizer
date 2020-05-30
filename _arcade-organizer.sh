@@ -25,13 +25,9 @@ if [ `grep -c "MRADIR=" "${INIFILE}"` -gt 0 ]
       MRADIR=`grep "MRADIR=" "${INIFILE}" | awk -F "=" '{print$2}'`
 fi 2>/dev/null
 
-#####Create A-Z Directoies#####
+#####Create A-Z Directories#####
 
-mkdir -p "$ORGDIR/_1 A-E"
-mkdir -p "$ORGDIR/_1 F-K"
-mkdir -p "$ORGDIR/_1 L-Q"
-mkdir -p "$ORGDIR/_1 R-T"
-mkdir -p "$ORGDIR/_1 U-Z"
+mkdir -p "$ORGDIR/_1 "{A-E,F-K,L-Q,R-T,U-Z}
 
 #####Extract MRA Info######
 
