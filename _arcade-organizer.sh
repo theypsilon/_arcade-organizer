@@ -14,16 +14,23 @@ ORGDIR="/media/fat/_Arcade/_Organized"
 
 #####INI FILES VARS######
 
-if [ `grep -c "ORGDIR=" "${INIFILE}"` -gt 0 ] 
+INIFILE_FIXED=$(mktemp)
+if [ -f "${INIFILE}" ] ; then
+	dos2unix < "${INIFILE}" 2> /dev/null | grep -v "^exit" > ${INIFILE_FIXED}
+fi
+
+if [ `grep -c "ORGDIR=" "${INIFILE_FIXED}"` -gt 0 ]
    then
-      ORGDIR=`grep "ORGDIR" "${INIFILE}" | awk -F "=" '{print$2}'`
+      ORGDIR=`grep "ORGDIR" "${INIFILE_FIXED}" | awk -F "=" '{print$2}'`
 fi 2>/dev/null 
 
 
-if [ `grep -c "MRADIR=" "${INIFILE}"` -gt 0 ] 
+if [ `grep -c "MRADIR=" "${INIFILE_FIXED}"` -gt 0 ]
    then
-      MRADIR=`grep "MRADIR=" "${INIFILE}" | awk -F "=" '{print$2}'`
+      MRADIR=`grep "MRADIR=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}'`
 fi 2>/dev/null
+
+ rm ${INIFILE_FIXED}
 
 #####Create A-Z Directoies#####
 
