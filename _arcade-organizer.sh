@@ -132,11 +132,23 @@ echo "###############################################"
 # sleep 1
 }
 
-if [ ${#} -ge 1 ] ; then
-   printf '%s\n' "$@" | grep -o ".*\.[mM][rR][aA]" | sort | while read i
+if [ ${#} -eq 2 ] && [ ${1} == "-i" ] ; then
+   MRA_INPUT="${2:-}"
+   if [ ! -f ${MRA_INPUT} ] ; then
+      echo "Option -i selected, but file '${MRA_INPUT}' does not exist."
+      echo "Usage: ./${0} -i file"
+      exit 1
+   fi
+   echo "Organizing $(wc -l ${MRA_INPUT} | awk '{print $1}') MRAs."
+   echo
+   cat ${MRA_INPUT} | while read i
    do
       organize_mra "${i}"
    done
+elif [ ${#} -ge 1 ] ; then
+   echo "Invalid arguments."
+   echo "Usage: ${0} -i file"
+   exit 1
 else
    find $MRADIR -type f -name *.mra -not -path "$ORGDIR"/\* | sort | while read i
    do
