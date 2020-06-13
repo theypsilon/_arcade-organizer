@@ -16,7 +16,7 @@ ORGDIR="/media/fat/_Arcade/_Organized"
 
 INIFILE_FIXED=$(mktemp)
 if [ -f "${INIFILE}" ] ; then
-	dos2unix < "${INIFILE}" 2> /dev/null | grep -v "^exit" > ${INIFILE_FIXED}
+	dos2unix < "${INIFILE}" 2> /dev/null > ${INIFILE_FIXED}
 fi
 
 if [ `grep -c "ORGDIR=" "${INIFILE_FIXED}"` -gt 0 ]
