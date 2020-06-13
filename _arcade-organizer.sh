@@ -21,13 +21,13 @@ fi
 
 if [ `grep -c "ORGDIR=" "${INIFILE_FIXED}"` -gt 0 ]
    then
-      ORGDIR=`grep "ORGDIR" "${INIFILE_FIXED}" | awk -F "=" '{print$2}'`
+      ORGDIR=`grep "ORGDIR" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
 fi 2>/dev/null 
 
 
 if [ `grep -c "MRADIR=" "${INIFILE_FIXED}"` -gt 0 ]
    then
-      MRADIR=`grep "MRADIR=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}'`
+      MRADIR=`grep "MRADIR=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
 fi 2>/dev/null
 
 rm ${INIFILE_FIXED}
