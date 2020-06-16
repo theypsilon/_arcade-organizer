@@ -11,7 +11,7 @@
 INIFILE="/media/fat/Scripts/update_arcade-organizer.ini"
 MRADIR="/media/fat/_Arcade/"
 ORGDIR="/media/fat/_Arcade/_Organized"
-
+SKIPALTS=AAA
 #####INI FILES VARS######
 
 INIFILE_FIXED=$(mktemp)
@@ -30,6 +30,15 @@ if [ `grep -c "MRADIR=" "${INIFILE_FIXED}"` -gt 0 ]
       MRADIR=`grep "MRADIR=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
 fi 2>/dev/null
 
+ 
+if [ `grep -c "SKIPALTS=" "${INIFILE_FIXED}"` -gt 0 ]
+   then
+      SKIPALTS=`grep "SKIPALTS=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
+fi 2>/dev/null
+
+echo $SKIPALTS
+echo ${SKIPALTS^^}
+sleep 10 
 rm ${INIFILE_FIXED}
 
 #####Create A-Z Directoies#####
@@ -153,8 +162,19 @@ elif [ ${#} -ge 1 ] ; then
    echo "Usage: ./${0} --input-file file"
    exit 1
 else
-   find $MRADIR -type f -name *.mra -not -path "$ORGDIR"/\* | sort | while read i
-   do
-      organize_mra "${i}"
-   done
+
+   if [[ ${SKIPALTS^^} == *FALSE* ]] 
+   	then 
+		find $MRADIR -type f -name *.mra -not -path "$ORGDIR"/\* | sort | while read i
+   		do
+      			organize_mra "${i}"
+		done
+		
+   elif [[ ${SKIPALTS^^} != *TRUE* ]] 
+   	then 
+		find $MRADIR -type f -name *.mra -not -ipath \*_Alternatives\* -not -path "$ORGDIR"/\* | sort | while read i
+   		do
+      			organize_mra "${i}"
+		done
+   fi
 fi
