@@ -35,10 +35,7 @@ if [ `grep -c "SKIPALTS=" "${INIFILE_FIXED}"` -gt 0 ]
    then
       SKIPALTS=`grep "SKIPALTS=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
 fi 2>/dev/null
-
-echo $SKIPALTS
-echo ${SKIPALTS^^}
-sleep 10 
+ 
 rm ${INIFILE_FIXED}
 
 #####Create A-Z Directoies#####
