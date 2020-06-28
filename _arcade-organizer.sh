@@ -46,6 +46,22 @@ mkdir -p "$ORGDIR/_1 L-Q"
 mkdir -p "$ORGDIR/_1 R-T"
 mkdir -p "$ORGDIR/_1 U-Z"
 
+#####Build names.txt Dictionary#####
+
+declare -A NAMES_TXT
+if [ -f /media/fat/names.txt ]
+   then
+      IFS=$'\n'
+      for LINE in $(grep ':' /media/fat/names.txt)
+      do
+         if [[ $LINE =~ ^[[:space:]]*([a-zA-Z0-9\_-]+)[[:space:]]*:[[:space:]]*([[:graph:]]+([[:space:]]+[[:graph:]]+)*)[[:space:]]*$ ]]
+            then
+               NAMES_TXT[${BASH_REMATCH[1]}]="${BASH_REMATCH[2]}"
+         fi
+      done
+      unset IFS
+fi
+
 #####Extract MRA Info######
 
 organize_mra() {
@@ -53,11 +69,16 @@ echo ""
 MRA="${1}"
 MRB="`echo $MRA | sed 's/.*\///'`"
 NAME=`grep "<name>" "$MRA" | sed -ne '/name/{s/.*<name>\(.*\)<\/name>.*/\1/p;q;}'`
-CORE=`grep "<rbf" "$MRA" | sed 's/<\/rbf>//' | sed 's/<rbf.*>//' | sed -e 's/^[[:space:]]*//'`
 CORE=`grep "<rbf" "$MRA" | sed 's/ alt=.*"//' | sed -ne '/rbf/{s/.*<rbf>\(.*\)<\/rbf>.*/\1/p;q;}'`
 YEAR=`grep "<year>" "$MRA" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}'`
 MANU=`grep "<manufacturer>" "$MRA" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
 CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'`
+
+local CORE_NAME="${NAMES_TXT[$CORE]}"
+if [[ "${CORE_NAME}" != "" ]]
+   then
+      CORE="${CORE_NAME}"
+fi
 
 echo "path:"$MRA""
 echo "mra: `basename "$MRA"`"
