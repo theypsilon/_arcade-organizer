@@ -22,7 +22,7 @@ fi
 if [ `grep -c "ORGDIR=" "${INIFILE_FIXED}"` -gt 0 ]
    then
       ORGDIR=`grep "ORGDIR" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
-fi 2>/dev/null 
+fi 2>/dev/null
 
 
 if [ `grep -c "MRADIR=" "${INIFILE_FIXED}"` -gt 0 ]
@@ -64,8 +64,17 @@ fi
 
 #####Extract MRA Info######
 
+header() {
+   printf '%-44s' "MRA"
+   printf ' %-10s' "Core"
+   printf ' %-4s' "Year"
+   printf ' %-10s' "Manufactu."
+   printf ' %-8s' "Category"
+   echo
+   echo "################################################################################"
+}
+
 organize_mra() {
-echo ""
 MRA="${1}"
 MRB="`echo $MRA | sed 's/.*\///'`"
 NAME=`grep "<name>" "$MRA" | sed -ne '/name/{s/.*<name>\(.*\)<\/name>.*/\1/p;q;}'`
@@ -74,88 +83,85 @@ YEAR=`grep "<year>" "$MRA" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}
 MANU=`grep "<manufacturer>" "$MRA" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
 CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'`
 
+local BASENAME_MRA="`basename "$MRA"`"
+printf '%-44s' "${BASENAME_MRA:0:44}"
+printf ' %-10s' "${CORE:0:10}"
+printf ' %-4s' "${YEAR:0:4}"
+printf ' %-10s' "${MANU:0:10}"
+printf ' %-8s' "${CAT:0:8}"
+echo
+
 local CORE_NAME="${NAMES_TXT[$CORE]}"
 if [[ "${CORE_NAME}" != "" ]]
    then
       CORE="${CORE_NAME}"
 fi
 
-echo "path:"$MRA""
-echo "mra: `basename "$MRA"`"
-echo "Name: $NAME"
-echo "Core: $CORE"
-echo "Year: $YEAR"
-echo "Manufacturer: $MANU"
-echo "Category: $CAT"
-
-echo 
-
 #####Create symlinks for A-Z######
 
-if [[ "`basename "$MRA"`" == [A-Ea-e0-9]* ]] 
+if [[ ""${BASENAME_MRA}"" == [A-Ea-e0-9]* ]]
    then
         cd "$ORGDIR/_1 A-E"
-        [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
+        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
 
-elif [[ "`basename "$MRA"`" == [F-Kf-k]* ]] 
+elif [[ ""${BASENAME_MRA}"" == [F-Kf-k]* ]]
    then
         cd "$ORGDIR/_1 F-K"
-        [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
+        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
 
-elif [[ `basename "$MRA"` == [L-Ql-q]* ]] 
+elif [[ "${BASENAME_MRA}" == [L-Ql-q]* ]]
    then
         cd "$ORGDIR/_1 L-Q"
-        [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
+        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
 
-elif [[ `basename "$MRA"` == [R-Tr-t]* ]] 
+elif [[ "${BASENAME_MRA}" == [R-Tr-t]* ]]
    then
         cd "$ORGDIR/_1 R-T"
-        [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
+        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
 
-elif [[ `basename "$MRA"` == [U-Zu-z]* ]] 
+elif [[ "${BASENAME_MRA}" == [U-Zu-z]* ]]
    then
         cd "$ORGDIR/_1 U-Z"
-        [ -e ./"$MRB" ] || echo $PWD && ln -sv "$MRA" "`basename "$MRA"`" 2>/dev/null 
+        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
 fi
 
 
 #####Create symlinks for Core#####
 
-if [ ! -e "$ORGDIR/_2 Core/_$CORE/$MRB" ] 
+if [ ! -z "$CORE" ] && [ ! -e "$ORGDIR/_2 Core/_$CORE/$MRB" ] 
    then
-      [ ! -z "$YEAR" ] && mkdir -p "$ORGDIR/_2 Core/_$CORE"
-      [ ! -z "$YEAR" ] && echo && cd "$ORGDIR/_2 Core/_$CORE"
-      [ ! -z "$YEAR" ] && echo $PWD && ln -v -s "$MRA" "$MRB"
+      mkdir -p "$ORGDIR/_2 Core/_${CORE//\?/X}"
+      cd "$ORGDIR/_2 Core/_${CORE//\?/X}"
+      ln -v -s "$MRA" "$MRB" >/dev/null 2>&1
 fi 
 
 #####Create symlinks for Year#####
 
-if [ ! -e "$ORGDIR/_3 Year/_$YEAR/$MRB" ] 
+if [ ! -z "$YEAR" ] && [ ! -e "$ORGDIR/_3 Year/_$YEAR/$MRB" ] 
    then
-      [ ! -z "$YEAR" ] && mkdir -p "$ORGDIR/_3 Year/_$YEAR"
-      [ ! -z "$YEAR" ] && echo && cd "$ORGDIR/_3 Year/_$YEAR"
-      [ ! -z "$YEAR" ] && echo $PWD && ln -v -s "$MRA" "$MRB"
+      mkdir -p "$ORGDIR/_3 Year/_${YEAR//\?/X}"
+      cd "$ORGDIR/_3 Year/_${YEAR//\?/X}"
+      ln -v -s "$MRA" "$MRB" >/dev/null 2>&1
 fi 
 
 #####Create symlinks for Manufacturer#####
 
-if [ ! -e "$ORGDIR/_4 Manufacturer/_$MANU/$MRB" ]
+if [ ! -z "$MANU" ] && [ ! -e "$ORGDIR/_4 Manufacturer/_$MANU/$MRB" ]
    then
-      [ ! -z "$MANU" ] && mkdir -p "$ORGDIR/_4 Manufacturer/_$MANU"
-      [ ! -z "$MANU" ] && echo && cd "$ORGDIR/_4 Manufacturer/_$MANU"
-      [ ! -z "$MANU" ] && echo $PWD && ln -v -s "$MRA" "$MRB"
+      mkdir -p "$ORGDIR/_4 Manufacturer/_${MANU//\?/X}"
+      cd "$ORGDIR/_4 Manufacturer/_${MANU//\?/X}"
+      ln -v -s "$MRA" "$MRB" >/dev/null 2>&1
 fi 
 
 #####Create symlinks for Category#####
 
-if [ ! -e "$ORGDIR/_5 Category/_$CAT/$MRB" ]
+if [ ! -z "$CAT" ] && [ ! -e "$ORGDIR/_5 Category/_$CAT/$MRB" ]
    then
-      [ ! -z "$CAT" ] && mkdir -p "$ORGDIR/_5 Category/_$CAT"
-      [ ! -z "$CAT" ] && echo && cd "$ORGDIR/_5 Category/_$CAT"
-      [ ! -z "$CAT" ] && echo $PWD && ln -v -s "$MRA" "$MRB"
+      mkdir -p "$ORGDIR/_5 Category/_${CAT//\?/X}"
+      cd "$ORGDIR/_5 Category/_${CAT//\?/X}"
+      ln -v -s "$MRA" "$MRB" >/dev/null 2>&1
 fi 
 
-echo "###############################################"
 # sleep 1
 }
 
@@ -171,6 +177,7 @@ if [ ${#} -eq 2 ] && [ ${1} == "--input-file" ] ; then
    IFS=$'\n'
    MRA_FROM_FILE=($(cat ${MRA_INPUT}))
    unset IFS
+   header
    printf '%s\n' "${MRA_FROM_FILE[@]}" | while read i
    do
       organize_mra "${i}"
@@ -180,7 +187,7 @@ elif [ ${#} -ge 1 ] ; then
    echo "Usage: ./${0} --input-file file"
    exit 1
 else
-
+   header
    if [[ ${SKIPALTS^^} == *FALSE* ]] 
    	then 
 		find $MRADIR -type f -name *.mra -not -path "$ORGDIR"/\* | sort | while read i
@@ -196,3 +203,4 @@ else
 		done
    fi
 fi
+echo "################################################################################"
