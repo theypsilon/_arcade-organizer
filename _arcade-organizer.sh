@@ -11,7 +11,7 @@
 INIFILE="/media/fat/Scripts/update_arcade-organizer.ini"
 MRADIR="/media/fat/_Arcade/"
 ORGDIR="/media/fat/_Arcade/_Organized"
-SKIPALTS=AAA
+SKIPALTS="true"
 #####INI FILES VARS######
 
 INIFILE_FIXED=$(mktemp)
@@ -188,14 +188,14 @@ elif [ ${#} -ge 1 ] ; then
    exit 1
 else
    header
-   if [[ ${SKIPALTS^^} == *FALSE* ]] 
+   if [[ "${SKIPALTS^^}" == "FALSE" ]]
    	then 
 		find $MRADIR -type f -name *.mra -not -path "$ORGDIR"/\* | sort | while read i
    		do
       			organize_mra "${i}"
 		done
 		
-   elif [[ ${SKIPALTS^^} != *TRUE* ]] 
+   else
    	then 
 		find $MRADIR -type f -name *.mra -not -ipath \*_Alternatives\* -not -path "$ORGDIR"/\* | sort | while read i
    		do
