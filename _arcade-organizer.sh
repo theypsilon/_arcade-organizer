@@ -196,7 +196,6 @@ else
 		done
 		
    else
-   	then 
 		find $MRADIR -type f -name *.mra -not -ipath \*_Alternatives\* -not -path "$ORGDIR"/\* | sort | while read i
    		do
       			organize_mra "${i}"
