@@ -83,6 +83,14 @@ YEAR=`grep "<year>" "$MRA" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}
 MANU=`grep "<manufacturer>" "$MRA" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
 CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'`
 
+
+local CORE_FIND=
+local CORE_FIND=$(find ${MRADIR}/cores/ -type f -iname ${CORE}_*.rbf -quit | xargs basename -- 2> /dev/null)
+if [[ "${CORE_FIND}" != "" ]] && [ ${#CORE_FIND} -ge 14 ]
+   then
+      CORE="${CORE_FIND:0:-13}"
+fi
+
 local BASENAME_MRA="`basename "$MRA"`"
 printf '%-44s' "${BASENAME_MRA:0:44}"
 printf ' %-10s' "${CORE:0:10}"
