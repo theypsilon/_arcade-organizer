@@ -85,7 +85,7 @@ CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/categ
 
 
 local CORE_FIND=
-local CORE_FIND=$(find ${MRADIR}/cores/ -type f -iname ${CORE}_*.rbf | xargs basename -- 2> /dev/null)
+local CORE_FIND=$(find ${MRADIR}/cores/ -type f -iname ${CORE}_*.rbf -quit | xargs basename -- 2> /dev/null)
 if [[ "${CORE_FIND}" != "" ]] && [ ${#CORE_FIND} -ge 14 ]
    then
       CORE="${CORE_FIND:0:-13}"
