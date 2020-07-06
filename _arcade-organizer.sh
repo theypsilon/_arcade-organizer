@@ -372,6 +372,12 @@ elif [ ${#} -eq 1 ] && [ ${1} == "--print-orgdir-folders" ] ; then
       echo "${dir}"
    done
    exit 0
+elif [ ${#} -eq 1 ] && [ ${1} == "--print-ini-options" ] ; then
+   echo MRADIR=\""${MRADIR}\""
+   echo ORGDIR=\""${ORGDIR}\""
+   echo SKIPALTS=\""${SKIPALTS}\""
+   echo INSTALL=\""${INSTALL}\""
+   exit 0
 elif [ ${#} -ge 1 ] ; then
    echo "Invalid arguments."
    echo "Usage: ./${0} --input-file file"
