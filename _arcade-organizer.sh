@@ -310,7 +310,9 @@ optimized_arcade_organizer() {
    else
       echo "Performing an incremental build."
       echo "NOTE: Remove the Organized folders if you wish to start from scratch."
-      find "${ORGDIR}/" -xtype l -exec rm {} \; || true
+      for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+         find "${dir}/" -xtype l -exec rm {} \; || true
+      done
    fi
    echo
 
