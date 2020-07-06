@@ -230,7 +230,7 @@ organize_mra() {
 
 
 optimized_arcade_organizer() {
-   local WORK_PATH="/media/fat/Scripts/.cache/arcade_organizer"
+   local WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
    mkdir -p "${WORK_PATH}"
 
    echo
