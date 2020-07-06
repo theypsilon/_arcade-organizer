@@ -33,18 +33,25 @@
 #You should back up your _Arcade directory before running this script.
 #USE AT YOUR OWN RISK - THIS COMES WITHOUT WARRANTE AND MAY NEUTER EVERYTHING.
 ###############################################################################
+SSL_SECURITY_OPTION=""
+curl ${CURL_RETRY} "https://github.com" > /dev/null 2>&1
+case $? in
+    0) ;;
+    *) SSL_SECURITY_OPTION="--insecure" ;;
+esac
+export SSL_SECURITY_OPTION
 
 echo "STARTING: _ARCADE-ORGANIZER"
 echo ""
 
 echo "Downloading the most recent _arcade-organizer script."
 echo " "
-wget -q -t 3 --output-file=/tmp/wget-log --show-progress -O /tmp/_arcade-organizer.sh https://github.com/MAME-GETTER/_arcade-organizer/raw/master/_arcade-organizer.sh
+CURL_RETRY="--connect-timeout 15 --max-time 60 --retry 3 --retry-delay 5 --show-error"
+curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o /tmp/_arcade-organizer.sh https://github.com/MAME-GETTER/_arcade-organizer/raw/master/_arcade-organizer.sh
+echo
 
 chmod +x /tmp/_arcade-organizer.sh
-
 /tmp/_arcade-organizer.sh
-
 rm /tmp/_arcade-organizer.sh
 
 echo "FINISHED: _ARCADE-ORGANIZER"

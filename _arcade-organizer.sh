@@ -5,18 +5,19 @@
 #Add the following line to the ini file to set a directory for Organized files: ORGDIR=/path/to/_Organized 
 ###############################################################################
 #set -x
-
+set -euo pipefail
 ######VARS#####
 
 INIFILE="/media/fat/Scripts/update_arcade-organizer.ini"
 MRADIR="/media/fat/_Arcade/"
 ORGDIR="/media/fat/_Arcade/_Organized"
 SKIPALTS="true"
+INSTALL="false"
 #####INI FILES VARS######
 
 INIFILE_FIXED=$(mktemp)
 if [ -f "${INIFILE}" ] ; then
-	dos2unix < "${INIFILE}" 2> /dev/null > ${INIFILE_FIXED}
+	dos2unix < "${INIFILE}" 2> /dev/null > ${INIFILE_FIXED} || true
 fi
 
 if [ `grep -c "ORGDIR=" "${INIFILE_FIXED}"` -gt 0 ]
@@ -35,17 +36,54 @@ if [ `grep -c "SKIPALTS=" "${INIFILE_FIXED}"` -gt 0 ]
    then
       SKIPALTS=`grep "SKIPALTS=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
 fi 2>/dev/null
+
+if [ `grep -c "INSTALL=" "${INIFILE_FIXED}"` -gt 0 ]
+   then
+      INSTALL=`grep "INSTALL=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
+fi 2>/dev/null
  
 rm ${INIFILE_FIXED}
 
-#####Create A-Z Directoies#####
+###############################
+ARCADE_ORGANIZER_VERSION="1.0"
+#########Auto Install##########
+if [[ "${INSTALL^^}" == "TRUE" ]] && [ ! -e "/media/fat/Scripts/update_arcade-organizer.sh" ]
+   then
+      SSL_SECURITY_OPTION="${SSL_SECURITY_OPTION:---insecure}"
+      CURL_RETRY="--connect-timeout 15 --max-time 120 --retry 3 --retry-delay 5 --show-error"
+      echo "Downloading update_arcade-organizer.sh to /media/fat/Scripts"
+      echo ""
+      curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o "/media/fat/Scripts/update_arcade-organizer.sh" https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/update_arcade-organizer.sh || true
+      echo
+fi
 
-mkdir -p "$ORGDIR/_1 A-E"
-mkdir -p "$ORGDIR/_1 F-K"
-mkdir -p "$ORGDIR/_1 L-Q"
-mkdir -p "$ORGDIR/_1 R-T"
-mkdir -p "$ORGDIR/_1 U-Z"
+#####Organized Directories#####
+ORGDIR_1AE="$ORGDIR/_1 A-E"
+ORGDIR_1FK="$ORGDIR/_1 F-K"
+ORGDIR_1LQ="$ORGDIR/_1 L-Q"
+ORGDIR_1RT="$ORGDIR/_1 R-T"
+ORGDIR_1UZ="$ORGDIR/_1 U-Z"
+ORGDIR_2Core="${ORGDIR}/_2 Core"
+ORGDIR_3Year="${ORGDIR}/_3 Year"
+ORGDIR_4Manufacturer="${ORGDIR}/_4 Manufacturer"
+ORGDIR_5Category="${ORGDIR}/_5 Category"
 
+ORGDIR_DIRECTORIES=( \
+   "${ORGDIR_1AE}" \
+   "${ORGDIR_1FK}" \
+   "${ORGDIR_1LQ}" \
+   "${ORGDIR_1RT}" \
+   "${ORGDIR_1UZ}" \
+   "${ORGDIR_2Core}" \
+   "${ORGDIR_3Year}" \
+   "${ORGDIR_4Manufacturer}" \
+   "${ORGDIR_5Category}" \
+)
+create_organized_directories() {
+   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+      mkdir -p "${dir}"
+   done
+}
 #####Build names.txt Dictionary#####
 
 declare -A NAMES_TXT
@@ -68,7 +106,7 @@ CORE=
 declare -A CORE_NAMES_CACHE
 fix_core() {
    local CORE_CACHE_KEY="${CORE^^}"
-   local CORE_CACHE_VALUE="${CORE_NAMES_CACHE[${CORE_CACHE_KEY}]}"
+   local CORE_CACHE_VALUE="${CORE_NAMES_CACHE[${CORE_CACHE_KEY}]:-}"
    if [[ "${CORE_CACHE_VALUE}" != "" ]] ; then
       CORE="${CORE_CACHE_VALUE}"
    elif [[ "${CORE_CACHE_VALUE}" != "#" ]] ; then
@@ -97,98 +135,220 @@ header() {
 }
 
 organize_mra() {
-MRA="${1}"
-MRB="`echo $MRA | sed 's/.*\///'`"
-NAME=`grep "<name>" "$MRA" | sed -ne '/name/{s/.*<name>\(.*\)<\/name>.*/\1/p;q;}'`
-CORE=`grep "<rbf" "$MRA" | sed 's/ alt=.*"//' | sed -ne '/rbf/{s/.*<rbf>\(.*\)<\/rbf>.*/\1/p;q;}'`
-YEAR=`grep "<year>" "$MRA" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}'`
-MANU=`grep "<manufacturer>" "$MRA" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
-CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'`
+   local MRA="${1}"
 
-fix_core
+   set +e
+   local MRB="`echo $MRA | sed 's/.*\///'`"
+   local NAME=`grep "<name>" "$MRA" | sed -ne '/name/{s/.*<name>\(.*\)<\/name>.*/\1/p;q;}'`
+   CORE=`grep "<rbf" "$MRA" | sed 's/ alt=.*"//' | sed -ne '/rbf/{s/.*<rbf>\(.*\)<\/rbf>.*/\1/p;q;}'`
+   local YEAR=`grep "<year>" "$MRA" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}'`
+   local MANU=`grep "<manufacturer>" "$MRA" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
+   local CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'`
+   set -e
 
-local BASENAME_MRA="`basename "$MRA"`"
-printf '%-44s' "${BASENAME_MRA:0:44}"
-printf ' %-10s' "${CORE:0:10}"
-printf ' %-4s' "${YEAR:0:4}"
-printf ' %-10s' "${MANU:0:10}"
-printf ' %-8s' "${CAT:0:8}"
-echo
+   fix_core
 
-local CORE_NAME="${NAMES_TXT[$CORE]}"
-if [[ "${CORE_NAME}" != "" ]]
-   then
-      CORE="${CORE_NAME}"
-fi
+   local BASENAME_MRA="`basename "$MRA"`"
+   printf '%-44s' "${BASENAME_MRA:0:44}"
+   printf ' %-10s' "${CORE:0:10}"
+   printf ' %-4s' "${YEAR:0:4}"
+   printf ' %-10s' "${MANU:0:10}"
+   printf ' %-8s' "${CAT:0:8}"
+   echo
 
-#####Create symlinks for A-Z######
+   local CORE_NAME="${NAMES_TXT[$CORE]:-}"
+   if [[ "${CORE_NAME}" != "" ]]
+      then
+         CORE="${CORE_NAME}"
+   fi
 
-if [[ ""${BASENAME_MRA}"" == [A-Ea-e0-9]* ]]
-   then
-        cd "$ORGDIR/_1 A-E"
-        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
+   #####Create symlinks for A-Z######
 
-elif [[ ""${BASENAME_MRA}"" == [F-Kf-k]* ]]
-   then
-        cd "$ORGDIR/_1 F-K"
-        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
+   if [[ "${BASENAME_MRA}" == [A-Ea-e0-9]* ]]
+      then
+         cd "${ORGDIR_1AE}"
+         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
 
-elif [[ "${BASENAME_MRA}" == [L-Ql-q]* ]]
-   then
-        cd "$ORGDIR/_1 L-Q"
-        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
+   elif [[ "${BASENAME_MRA}" == [F-Kf-k]* ]]
+      then
+         cd "${ORGDIR_1FK}"
+         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
 
-elif [[ "${BASENAME_MRA}" == [R-Tr-t]* ]]
-   then
-        cd "$ORGDIR/_1 R-T"
-        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
+   elif [[ "${BASENAME_MRA}" == [L-Ql-q]* ]]
+      then
+         cd "${ORGDIR_1LQ}"
+         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
 
-elif [[ "${BASENAME_MRA}" == [U-Zu-z]* ]]
-   then
-        cd "$ORGDIR/_1 U-Z"
-        [ -e ./"$MRB" ] || ln -sv "$MRA" ""${BASENAME_MRA}"" >/dev/null 2>&1
-fi
+   elif [[ "${BASENAME_MRA}" == [R-Tr-t]* ]]
+      then
+         cd "${ORGDIR_1RT}"
+         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
+
+   elif [[ "${BASENAME_MRA}" == [U-Zu-z]* ]]
+      then
+         cd "${ORGDIR_1UZ}"
+         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
+   fi
 
 
-#####Create symlinks for Core#####
+   #####Create symlinks for Core#####
 
-if [ ! -z "$CORE" ] && [ ! -e "$ORGDIR/_2 Core/_$CORE/$MRB" ] 
-   then
-      mkdir -p "$ORGDIR/_2 Core/_${CORE//\?/X}"
-      cd "$ORGDIR/_2 Core/_${CORE//\?/X}"
-      ln -v -s "$MRA" "$MRB" >/dev/null 2>&1
-fi 
+   if [ ! -z "$CORE" ] && [ ! -e "${ORGDIR_2Core}/_$CORE/$MRB" ]
+      then
+         mkdir -p "${ORGDIR_2Core}/_${CORE//\?/X}"
+         cd "${ORGDIR_2Core}/_${CORE//\?/X}"
+         ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
+   fi
 
-#####Create symlinks for Year#####
+   #####Create symlinks for Year#####
 
-if [ ! -z "$YEAR" ] && [ ! -e "$ORGDIR/_3 Year/_$YEAR/$MRB" ] 
-   then
-      mkdir -p "$ORGDIR/_3 Year/_${YEAR//\?/X}"
-      cd "$ORGDIR/_3 Year/_${YEAR//\?/X}"
-      ln -v -s "$MRA" "$MRB" >/dev/null 2>&1
-fi 
+   if [ ! -z "$YEAR" ] && [ ! -e "${ORGDIR_3Year}/_$YEAR/$MRB" ]
+      then
+         mkdir -p "${ORGDIR_3Year}/_${YEAR//\?/X}"
+         cd "${ORGDIR_3Year}/_${YEAR//\?/X}"
+         ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
+   fi
 
-#####Create symlinks for Manufacturer#####
+   #####Create symlinks for Manufacturer#####
 
-if [ ! -z "$MANU" ] && [ ! -e "$ORGDIR/_4 Manufacturer/_$MANU/$MRB" ]
-   then
-      mkdir -p "$ORGDIR/_4 Manufacturer/_${MANU//\?/X}"
-      cd "$ORGDIR/_4 Manufacturer/_${MANU//\?/X}"
-      ln -v -s "$MRA" "$MRB" >/dev/null 2>&1
-fi 
+   if [ ! -z "$MANU" ] && [ ! -e "${ORGDIR_4Manufacturer}/_$MANU/$MRB" ]
+      then
+         mkdir -p "${ORGDIR_4Manufacturer}/_${MANU//\?/X}"
+         cd "${ORGDIR_4Manufacturer}/_${MANU//\?/X}"
+         ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
+   fi
 
-#####Create symlinks for Category#####
+   #####Create symlinks for Category#####
 
-if [ ! -z "$CAT" ] && [ ! -e "$ORGDIR/_5 Category/_$CAT/$MRB" ]
-   then
-      mkdir -p "$ORGDIR/_5 Category/_${CAT//\?/X}"
-      cd "$ORGDIR/_5 Category/_${CAT//\?/X}"
-      ln -v -s "$MRA" "$MRB" >/dev/null 2>&1
-fi 
-
-# sleep 1
+   if [ ! -z "$CAT" ] && [ ! -e "${ORGDIR_5Category}/_$CAT/$MRB" ]
+      then
+         mkdir -p "${ORGDIR_5Category}/_${CAT//\?/X}"
+         cd "${ORGDIR_5Category}/_${CAT//\?/X}"
+         ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
+   fi
 }
 
+
+optimized_arcade_organizer() {
+   local WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
+   mkdir -p "${WORK_PATH}"
+
+   echo
+   echo "Reading INI ($(basename ${INIFILE})):"
+   local INI_DATE=
+   if [ -f "${INIFILE}" ] ; then
+      INI_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ" -d "$(stat -c %y "${INIFILE}" 2> /dev/null)")
+      echo "OK"
+   else
+      echo "Not found."
+   fi
+   echo
+
+   local LAST_RUN_PATH="${WORK_PATH}/last_run"
+
+   local LAST_INI_DATE=
+   local LAST_MRA_DATE=
+   if [ -f "${LAST_RUN_PATH}" ] ; then
+      LAST_INI_DATE=$(cat "${LAST_RUN_PATH}" | sed '2q;d')
+      LAST_MRA_DATE=$(cat "${LAST_RUN_PATH}" | sed '3q;d')
+   fi
+
+   local FROM_SCRATCH="false"
+   if [ ! -d "${ORGDIR_1AE}/" ] || \
+      [ ! -d "${ORGDIR_1FK}/" ] || \
+      [ ! -d "${ORGDIR_1LQ}/" ] || \
+      [ ! -d "${ORGDIR_1RT}/" ] || \
+      [ ! -d "${ORGDIR_1UZ}/" ] || \
+      [[ "${LAST_MRA_DATE}" =~ ^[[:space:]]*$ ]] || \
+      ! date -d "${LAST_MRA_DATE}" > /dev/null 2>&1
+   then
+      FROM_SCRATCH="true"
+      echo "No previous runs detected."
+      echo
+   fi
+
+   local CACHED_NAMES="${WORK_PATH}/installed_names.txt"
+   local REAL_NAMES="/media/fat/names.txt"
+   if [ -f "${REAL_NAMES}" ] && ! diff "${REAL_NAMES}" "${CACHED_NAMES}" > /dev/null 2>&1 ; then
+      FROM_SCRATCH="true"
+      echo "The installed names.txt is new for the Arcade Organizer."
+      echo
+   fi
+
+   if [[ "${INI_DATE}" != "${LAST_INI_DATE}" ]] ; then
+      FROM_SCRATCH="true"
+      echo "INI file has been modified."
+      echo
+   fi
+
+   # Not sure is this is needed anymore, it was in UA
+   #local N_MRA_LINKED=$(find "${ORGDIR}/" -type f -print0 | xargs -r0 readlink -f | sort | uniq | wc -l)
+   #local N_MRA_DEPTH1=$(find "${MRADIR}/" -maxdepth 1 -type f -iname "*.mra" | wc -l)
+   #if [[ "${N_MRA_DEPTH1}" > "${N_MRA_LINKED}" ]] ; then
+   #   FROM_SCRATCH="true"
+   #   echo "N_MRA_LINKED > N_MRA_DEPTH1: ${N_MRA_LINKED} > ${N_MRA_DEPTH1}"
+   #fi
+
+   local FIND_ALTS=
+   if [[ "${SKIPALTS^^}" != "FALSE" ]] ; then
+      FIND_ALTS="-not -ipath "\*_Alternatives\*
+   fi
+
+   local FIND_NEWERCT=
+   if [[ "${FROM_SCRATCH}" == "false" ]] ; then
+      FIND_NEWERCT="-newerct ${LAST_MRA_DATE}"
+   fi
+
+   local UPDATED_MRAS=$(mktemp)
+   local MRA_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+   if [[ "${FROM_SCRATCH}" == "true" ]] ; then
+      echo "Performing a build from scratch."
+      for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+         rm -rf "${dir}"
+      done
+   else
+      echo "Performing an incremental build."
+      echo "NOTE: Remove the Organized folders if you wish to start from scratch."
+      for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+         find "${dir}/" -xtype l -exec rm {} \; || true
+      done
+   fi
+   echo
+
+   find "${MRADIR}" -type f -name *.mra ${FIND_ALTS} -not -path "${ORGDIR}"/\* ${FIND_NEWERCT} > ${UPDATED_MRAS}
+
+   local TOTAL_MRAS="$(wc -l ${UPDATED_MRAS} | awk '{print $1}')"
+   if [ ${TOTAL_MRAS} -eq 0 ] ; then
+      echo "No new MRAs detected"
+      echo
+      echo "Skipping Arcade Organizer..."
+      echo
+      exit 0
+   fi
+   echo "Organizing $(wc -l ${UPDATED_MRAS} | awk '{print $1}') MRAs."
+   sleep 4
+   echo
+
+   IFS=$'\n'
+   local MRA_FROM_FILE=($(cat ${UPDATED_MRAS} | sort))
+   unset IFS
+   rm "${UPDATED_MRAS}"
+
+   create_organized_directories
+   header
+
+   for i in "${MRA_FROM_FILE[@]}" ; do
+      organize_mra "${i}"
+   done
+
+   echo "${ARCADE_ORGANIZER_VERSION}" > "${LAST_RUN_PATH}"
+   echo "${INI_DATE}" >> "${LAST_RUN_PATH}"
+   echo "${MRA_DATE}" >> "${LAST_RUN_PATH}"
+   if [ -f "${REAL_NAMES}" ] ; then
+      cp "${REAL_NAMES}" "${CACHED_NAMES}"
+   fi
+}
 if [ ${#} -eq 2 ] && [ ${1} == "--input-file" ] ; then
    MRA_INPUT="${2:-}"
    if [ ! -f ${MRA_INPUT} ] ; then
@@ -201,16 +361,31 @@ if [ ${#} -eq 2 ] && [ ${1} == "--input-file" ] ; then
    IFS=$'\n'
    MRA_FROM_FILE=($(cat ${MRA_INPUT}))
    unset IFS
+   create_organized_directories
    header
    printf '%s\n' "${MRA_FROM_FILE[@]}" | while read i
    do
       organize_mra "${i}"
    done
+elif [ ${#} -eq 1 ] && [ ${1} == "--optimized" ] ; then
+   optimized_arcade_organizer
+elif [ ${#} -eq 1 ] && [ ${1} == "--print-orgdir-folders" ] ; then
+   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+      echo "${dir}"
+   done
+   exit 0
+elif [ ${#} -eq 1 ] && [ ${1} == "--print-ini-options" ] ; then
+   echo MRADIR=\""${MRADIR}\""
+   echo ORGDIR=\""${ORGDIR}\""
+   echo SKIPALTS=\""${SKIPALTS}\""
+   echo INSTALL=\""${INSTALL}\""
+   exit 0
 elif [ ${#} -ge 1 ] ; then
    echo "Invalid arguments."
    echo "Usage: ./${0} --input-file file"
    exit 1
 else
+   create_organized_directories
    header
    if [[ "${SKIPALTS^^}" == "FALSE" ]]
    	then 
