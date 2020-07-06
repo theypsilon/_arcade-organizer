@@ -49,10 +49,9 @@ echo " "
 CURL_RETRY="--connect-timeout 15 --max-time 60 --retry 3 --retry-delay 5 --show-error"
 curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o /tmp/_arcade-organizer.sh https://github.com/MAME-GETTER/_arcade-organizer/raw/master/_arcade-organizer.sh
 echo
+
 chmod +x /tmp/_arcade-organizer.sh
-
 /tmp/_arcade-organizer.sh
-
 rm /tmp/_arcade-organizer.sh
 
 echo "FINISHED: _ARCADE-ORGANIZER"
