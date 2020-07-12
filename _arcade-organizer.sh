@@ -94,27 +94,39 @@ if [ -f /media/fat/names.txt ]
       do
          if [[ $LINE =~ ^[[:space:]]*([a-zA-Z0-9\_-]+)[[:space:]]*:[[:space:]]*([[:graph:]]+([[:space:]]+[[:graph:]]+)*)[[:space:]]*$ ]]
             then
-               NAMES_TXT[${BASH_REMATCH[1]}]="${BASH_REMATCH[2]}"
+               NAMES_TXT[${BASH_REMATCH[1]^^}]="${BASH_REMATCH[2]}"
          fi
       done
       unset IFS
 fi
 
+BETTER_CORE_NAME_RET=
+better_core_name() {
+   BETTER_CORE_NAME_RET="${1}"
+   local CORE_NAME="${NAMES_TXT[${BETTER_CORE_NAME_RET^^}]:-}"
+   if [[ "${CORE_NAME}" != "" ]]
+      then
+         BETTER_CORE_NAME_RET="${CORE_NAME}"
+   fi
+}
+
 #####Core name fix optimized#####
 
-CORE=
 declare -A CORE_NAMES_CACHE
+FIX_CORE_RET=
 fix_core() {
+   FIX_CORE_RET="${1}"
+
    local CORE_CACHE_KEY="${CORE^^}"
    local CORE_CACHE_VALUE="${CORE_NAMES_CACHE[${CORE_CACHE_KEY}]:-}"
    if [[ "${CORE_CACHE_VALUE}" != "" ]] ; then
-      CORE="${CORE_CACHE_VALUE}"
+      FIX_CORE_RET="${CORE_CACHE_VALUE}"
    elif [[ "${CORE_CACHE_VALUE}" != "#" ]] ; then
       local CORE_FIND=
       local CORE_FIND=$(find ${MRADIR}/cores/ -type f -iname ${CORE}_*.rbf | xargs basename -- 2> /dev/null)
       if [[ "${CORE_FIND}" != "" ]] && [ ${#CORE_FIND} -ge 14 ]
          then
-            CORE="$(echo $CORE_FIND | sed 's/_\([0-9]\{8\}[a-z]\?\).rbf$//g')"
+            FIX_CORE_RET="$(echo $CORE_FIND | sed 's/_\([0-9]\{8\}[a-z]\?\).rbf$//g')"
             CORE_NAMES_CACHE[${CORE_CACHE_KEY}]="${CORE}"
       else
          CORE_NAMES_CACHE[${CORE_CACHE_KEY}]="#"
@@ -140,13 +152,15 @@ organize_mra() {
    set +e
    local MRB="`echo $MRA | sed 's/.*\///'`"
    local NAME=`grep "<name>" "$MRA" | sed -ne '/name/{s/.*<name>\(.*\)<\/name>.*/\1/p;q;}'`
-   CORE=`grep "<rbf" "$MRA" | sed 's/ alt=.*"//' | sed -ne '/rbf/{s/.*<rbf>\(.*\)<\/rbf>.*/\1/p;q;}'`
+   local CORE=`grep "<rbf" "$MRA" | sed 's/ alt=.*"//' | sed -ne '/rbf/{s/.*<rbf>\(.*\)<\/rbf>.*/\1/p;q;}'`
    local YEAR=`grep "<year>" "$MRA" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}'`
    local MANU=`grep "<manufacturer>" "$MRA" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
    local CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'`
    set -e
 
-   fix_core
+   if fix_core "${CORE}" ; then
+      CORE="${FIX_CORE_RET}"
+   fi
 
    local BASENAME_MRA="`basename "$MRA"`"
    printf '%-44s' "${BASENAME_MRA:0:44}"
@@ -156,10 +170,8 @@ organize_mra() {
    printf ' %-8s' "${CAT:0:8}"
    echo
 
-   local CORE_NAME="${NAMES_TXT[$CORE]:-}"
-   if [[ "${CORE_NAME}" != "" ]]
-      then
-         CORE="${CORE_NAME}"
+   if better_core_name "${CORE}" ; then
+      CORE="${BETTER_CORE_NAME_RET}"
    fi
 
    #####Create symlinks for A-Z######
