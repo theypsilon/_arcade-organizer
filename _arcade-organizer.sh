@@ -163,7 +163,7 @@ organize_mra() {
    local CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'`
    set -e
 
-   if [[ "${CORE}" == "" ] ; then
+   if [[ "${CORE}" == "" ]] ; then
       echo "${MRA} is ill-formed, please delete and download it again."
       return
    fi
