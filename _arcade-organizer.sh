@@ -116,18 +116,20 @@ declare -A CORE_NAMES_CACHE
 FIX_CORE_RET=
 fix_core() {
    FIX_CORE_RET="${1}"
-
-   local CORE_CACHE_KEY="${CORE^^}"
+   local CORE_CACHE_KEY="${FIX_CORE_RET^^}"
+   if [[ "${CORE_CACHE_KEY}" == "" ]] ; then
+      return
+   fi
    local CORE_CACHE_VALUE="${CORE_NAMES_CACHE[${CORE_CACHE_KEY}]:-}"
    if [[ "${CORE_CACHE_VALUE}" != "" ]] ; then
       FIX_CORE_RET="${CORE_CACHE_VALUE}"
    elif [[ "${CORE_CACHE_VALUE}" != "#" ]] ; then
       local CORE_FIND=
-      local CORE_FIND=$(find ${MRADIR}/cores/ -type f -iname ${CORE}_*.rbf | xargs basename -- 2> /dev/null)
+      local CORE_FIND=$(find ${MRADIR}/cores/ -type f -iname ${FIX_CORE_RET}_*.rbf | xargs basename -- 2> /dev/null)
       if [[ "${CORE_FIND}" != "" ]] && [ ${#CORE_FIND} -ge 14 ]
          then
             FIX_CORE_RET="$(echo $CORE_FIND | sed 's/_\([0-9]\{8\}[a-z]\?\).rbf$//g')"
-            CORE_NAMES_CACHE[${CORE_CACHE_KEY}]="${CORE}"
+            CORE_NAMES_CACHE[${CORE_CACHE_KEY}]="${FIX_CORE_RET}"
       else
          CORE_NAMES_CACHE[${CORE_CACHE_KEY}]="#"
       fi
