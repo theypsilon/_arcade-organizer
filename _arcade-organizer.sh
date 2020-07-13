@@ -103,6 +103,9 @@ fi
 BETTER_CORE_NAME_RET=
 better_core_name() {
    BETTER_CORE_NAME_RET="${1}"
+   if [[ "${BETTER_CORE_NAME_RET}" == "" ]] ; then
+      return
+   fi
    local CORE_NAME="${NAMES_TXT[${BETTER_CORE_NAME_RET^^}]:-}"
    if [[ "${CORE_NAME}" != "" ]]
       then
@@ -159,6 +162,11 @@ organize_mra() {
    local MANU=`grep "<manufacturer>" "$MRA" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
    local CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'`
    set -e
+
+   if [[ "${CORE}" == "" ] ; then
+      echo "${MRA} is ill-formed, please delete and download it again."
+      return
+   fi
 
    if fix_core "${CORE}" ; then
       CORE="${FIX_CORE_RET}"
