@@ -84,6 +84,11 @@ create_organized_directories() {
       mkdir -p "${dir}"
    done
 }
+echo_organized_directories() {
+   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+      echo "${dir}"
+   done
+}
 #####Build names.txt Dictionary#####
 
 declare -A NAMES_TXT
@@ -250,10 +255,11 @@ organize_mra() {
    fi
 }
 
-
 optimized_arcade_organizer() {
    local WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
    mkdir -p "${WORK_PATH}"
+
+   echo_organized_directories > "${WORK_PATH}/orgdir-folders"
 
    echo
    echo "Reading INI ($(basename ${INIFILE})):"
@@ -371,30 +377,10 @@ optimized_arcade_organizer() {
       cp "${REAL_NAMES}" "${CACHED_NAMES}"
    fi
 }
-if [ ${#} -eq 2 ] && [ ${1} == "--input-file" ] ; then
-   MRA_INPUT="${2:-}"
-   if [ ! -f ${MRA_INPUT} ] ; then
-      echo "Option --input-file selected, but file '${MRA_INPUT}' does not exist."
-      echo "Usage: ./${0} --input-file file"
-      exit 1
-   fi
-   echo "Organizing $(wc -l ${MRA_INPUT} | awk '{print $1}') MRAs."
-   echo
-   IFS=$'\n'
-   MRA_FROM_FILE=($(cat ${MRA_INPUT}))
-   unset IFS
-   create_organized_directories
-   header
-   printf '%s\n' "${MRA_FROM_FILE[@]}" | while read i
-   do
-      organize_mra "${i}"
-   done
-elif [ ${#} -eq 1 ] && [ ${1} == "--optimized" ] ; then
+if [ ${#} -eq 1 ] && [ ${1} == "--optimized" ] ; then
    optimized_arcade_organizer
 elif [ ${#} -eq 1 ] && [ ${1} == "--print-orgdir-folders" ] ; then
-   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
-      echo "${dir}"
-   done
+   echo_organized_directories
    exit 0
 elif [ ${#} -eq 1 ] && [ ${1} == "--print-ini-options" ] ; then
    echo MRADIR=\""${MRADIR}\""
@@ -404,23 +390,11 @@ elif [ ${#} -eq 1 ] && [ ${1} == "--print-ini-options" ] ; then
    exit 0
 elif [ ${#} -ge 1 ] ; then
    echo "Invalid arguments."
-   echo "Usage: ./${0} --input-file file"
+   echo "Usage: ./${0} --print-orgdir-folders"
+   echo "       ./${0} --print-ini-options"
+   echo "       ./${0}"
    exit 1
 else
-   create_organized_directories
-   header
-   if [[ "${SKIPALTS^^}" == "FALSE" ]]
-   	then 
-		find $MRADIR -type f -name *.mra -not -path "$ORGDIR"/\* | sort | while read i
-   		do
-      			organize_mra "${i}"
-		done
-		
-   else
-		find $MRADIR -type f -name *.mra -not -ipath \*_Alternatives\* -not -path "$ORGDIR"/\* | sort | while read i
-   		do
-      			organize_mra "${i}"
-		done
-   fi
+   optimized_arcade_organizer
 fi
 echo "################################################################################"
