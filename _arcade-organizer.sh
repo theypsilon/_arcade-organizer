@@ -8,7 +8,7 @@
 set -euo pipefail
 ######VARS#####
 
-INIFILE="/media/fat/Scripts/update_arcade-organizer.ini"
+INIFILE="$(pwd)/update_arcade-organizer.ini"
 MRADIR="/media/fat/_Arcade/"
 ORGDIR="/media/fat/_Arcade/_Organized"
 SKIPALTS="true"
@@ -82,11 +82,6 @@ ORGDIR_DIRECTORIES=( \
 create_organized_directories() {
    for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
       mkdir -p "${dir}"
-   done
-}
-echo_organized_directories() {
-   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
-      echo "${dir}"
    done
 }
 #####Build names.txt Dictionary#####
@@ -259,7 +254,7 @@ optimized_arcade_organizer() {
    local WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
    mkdir -p "${WORK_PATH}"
 
-   echo_organized_directories > "${WORK_PATH}/orgdir-folders"
+   local ORGDIR_FOLDERS_FILE="${WORK_PATH}/orgdir-folders"
 
    echo
    echo "Reading INI ($(basename ${INIFILE})):"
@@ -317,34 +312,54 @@ optimized_arcade_organizer() {
    #   echo "N_MRA_LINKED > N_MRA_DEPTH1: ${N_MRA_LINKED} > ${N_MRA_DEPTH1}"
    #fi
 
-   local FIND_ALTS=
+   local FIND_ARGS=()
+   FIND_ARGS+=("${MRADIR}" -type f -name *.mra)
    if [[ "${SKIPALTS^^}" != "FALSE" ]] ; then
-      FIND_ALTS="-not -ipath "\*_Alternatives\*
+      FIND_ARGS+=(-not -ipath \*_Alternatives\*)
    fi
 
-   local FIND_NEWERCT=
+   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+      FIND_ARGS+=(-not -path "${dir}"/\*)
+   done
+
    if [[ "${FROM_SCRATCH}" == "false" ]] ; then
-      FIND_NEWERCT="-newerct ${LAST_MRA_DATE}"
+      FIND_ARGS+=(-newerct ${LAST_MRA_DATE})
    fi
 
    local UPDATED_MRAS=$(mktemp)
    local MRA_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
    if [[ "${FROM_SCRATCH}" == "true" ]] ; then
-      echo "Performing a build from scratch."
+      echo "Performing a full build."
+      if [ -f "${ORGDIR_FOLDERS_FILE}" ] ; then
+         while IFS="" read -r dir || [ -n "${dir}" ] ; do
+            remove_dir "${dir}"
+         done < "${ORGDIR_FOLDERS_FILE}"
+         rm "${ORGDIR_FOLDERS_FILE}"
+      fi
       for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
-         rm -rf "${dir}"
+         remove_dir "${dir}"
       done
-   else
+   fi
+
+   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+      if ! grep -q "${dir}" "${ORGDIR_FOLDERS_FILE}" 2> /dev/null ; then
+         echo "${dir}" >> "${ORGDIR_FOLDERS_FILE}"
+      fi
+   done
+
+   if [[ "${FROM_SCRATCH}" != "true" ]] ; then
       echo "Performing an incremental build."
       echo "NOTE: Remove the Organized folders if you wish to start from scratch."
-      for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
-         find "${dir}/" -xtype l -exec rm {} \; || true
-      done
+      if [ -f "${ORGDIR_FOLDERS_FILE}" ] ; then
+         while IFS="" read -r dir || [ -n "${dir}" ] ; do
+            remove_broken_symlinks "${dir}"
+         done < "${ORGDIR_FOLDERS_FILE}"
+      fi
    fi
    echo
 
-   find "${MRADIR}" -type f -name *.mra ${FIND_ALTS} -not -path "${ORGDIR}"/\* ${FIND_NEWERCT} > ${UPDATED_MRAS}
+   find "${FIND_ARGS[@]}" > ${UPDATED_MRAS}
 
    local TOTAL_MRAS="$(wc -l ${UPDATED_MRAS} | awk '{print $1}')"
    if [ ${TOTAL_MRAS} -eq 0 ] ; then
@@ -377,10 +392,27 @@ optimized_arcade_organizer() {
       cp "${REAL_NAMES}" "${CACHED_NAMES}"
    fi
 }
+
+remove_dir() {
+   local dir="${1}"
+   if [ -d "${dir}" ] ; then
+      rm -rf "${dir}"
+   fi
+}
+
+remove_broken_symlinks() {
+   local dir="${1}"
+   if [ -d "${dir}" ] ; then
+      find "${dir}/" -xtype l -exec rm {} \; || true
+   fi
+}
+
 if [ ${#} -eq 1 ] && [ ${1} == "--optimized" ] ; then
    optimized_arcade_organizer
 elif [ ${#} -eq 1 ] && [ ${1} == "--print-orgdir-folders" ] ; then
-   echo_organized_directories
+   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+      echo "${dir}"
+   done
    exit 0
 elif [ ${#} -eq 1 ] && [ ${1} == "--print-ini-options" ] ; then
    echo MRADIR=\""${MRADIR}\""
