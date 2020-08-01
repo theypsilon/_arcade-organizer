@@ -46,6 +46,8 @@ rm ${INIFILE_FIXED}
 
 ###############################
 ARCADE_ORGANIZER_VERSION="1.0"
+WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
+ORGDIR_FOLDERS_FILE="${WORK_PATH}/orgdir-folders"
 #########Auto Install##########
 if [[ "${INSTALL^^}" == "TRUE" ]] && [ ! -e "/media/fat/Scripts/update_arcade-organizer.sh" ]
    then
@@ -251,10 +253,7 @@ organize_mra() {
 }
 
 optimized_arcade_organizer() {
-   local WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
    mkdir -p "${WORK_PATH}"
-
-   local ORGDIR_FOLDERS_FILE="${WORK_PATH}/orgdir-folders"
 
    echo
    echo "Reading INI ($(basename ${INIFILE})):"
@@ -348,6 +347,17 @@ optimized_arcade_organizer() {
       fi
    done
 
+   (
+      local ORG_RP=$(realpath "${ORGDIR}")
+      local MRA_RP=$(realpath "${MRADIR}")
+      if [[ "${ORG_RP}" != "${MRA_RP}" ]] && [[ "${ORG_RP}" != "${MRA_RP}"* ]] && \
+         [ ! -e "${ORG_RP}/cores" ] && [ -d "${MRA_RP}/cores" ]
+      then
+         ln -s "${MRA_RP}/cores" "${ORG_RP}/cores"
+         echo "${ORG_RP}/cores" >> "${ORGDIR_FOLDERS_FILE}"
+      fi
+   )
+
    if [[ "${FROM_SCRATCH}" != "true" ]] ; then
       echo "Performing an incremental build."
       echo "NOTE: Remove the Organized folders if you wish to start from scratch."
@@ -410,7 +420,20 @@ remove_broken_symlinks() {
 if [ ${#} -eq 1 ] && [ ${1} == "--optimized" ] ; then
    optimized_arcade_organizer
 elif [ ${#} -eq 1 ] && [ ${1} == "--print-orgdir-folders" ] ; then
+   declare -A DIR_SET
    for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
+      if [ -e "${dir}" ] ; then
+         DIR_SET["${dir}"]="true"
+      fi
+   done
+   if [ -f "${ORGDIR_FOLDERS_FILE}" ] ; then
+      while IFS="" read -r dir || [ -n "${dir}" ] ; do
+         if [ -e "${dir}" ] ; then
+            DIR_SET["${dir}"]="true"
+         fi
+      done < "${ORGDIR_FOLDERS_FILE}"
+   fi
+   for dir in "${!DIR_SET[@]}" ; do
       echo "${dir}"
    done
    exit 0
