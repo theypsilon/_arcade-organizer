@@ -59,6 +59,14 @@ if [[ "${INSTALL^^}" == "TRUE" ]] && [ ! -e "/media/fat/Scripts/update_arcade-or
       echo
 fi
 
+if [ ! -e "${WORK_PATH}/mame-rotations.txt" ]
+   then
+      echo "Downloading mame-rotations.txt to ${WORK_PATH}"
+      echo ""
+      curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o "${WORK_PATH}/mame-rotations.txt" https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/mame-rotations.txt || true
+      echo
+fi
+
 #####Organized Directories#####
 ORGDIR_1AE="$ORGDIR/_1 A-E"
 ORGDIR_1FK="$ORGDIR/_1 F-K"
@@ -69,6 +77,7 @@ ORGDIR_2Core="${ORGDIR}/_2 Core"
 ORGDIR_3Year="${ORGDIR}/_3 Year"
 ORGDIR_4Manufacturer="${ORGDIR}/_4 Manufacturer"
 ORGDIR_5Category="${ORGDIR}/_5 Category"
+ORGDIR_6Rotation="${ORGDIR}/_6 Rotation"
 
 ORGDIR_DIRECTORIES=( \
    "${ORGDIR_1AE}" \
@@ -80,6 +89,7 @@ ORGDIR_DIRECTORIES=( \
    "${ORGDIR_3Year}" \
    "${ORGDIR_4Manufacturer}" \
    "${ORGDIR_5Category}" \
+   "${ORGDIR_6Rotation}" \
 )
 create_organized_directories() {
    for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
@@ -159,6 +169,7 @@ organize_mra() {
    set +e
    local MRB="`echo $MRA | sed 's/.*\///'`"
    local NAME=`grep "<name>" "$MRA" | sed -ne '/name/{s/.*<name>\(.*\)<\/name>.*/\1/p;q;}'`
+   local SETNAME=`grep "<setname>" "$MRA" | sed -ne '/setname/{s/.*<setname>\(.*\)<\/setname>.*/\1/p;q;}'`
    local CORE=`grep "<rbf" "$MRA" | sed 's/ alt=.*"//' | sed -ne '/rbf/{s/.*<rbf>\(.*\)<\/rbf>.*/\1/p;q;}'`
    local YEAR=`grep "<year>" "$MRA" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}'`
    local MANU=`grep "<manufacturer>" "$MRA" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
@@ -249,6 +260,35 @@ organize_mra() {
          mkdir -p "${ORGDIR_5Category}/_${CAT//\?/X}"
          cd "${ORGDIR_5Category}/_${CAT//\?/X}"
          ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
+   fi
+
+   #####Create symlinks for Rotation#####
+   if [ ! -z "$SETNAME" ]
+      then
+         local ROTVAL=`grep "^${SETNAME}," ${WORK_PATH}/mame-rotations.txt |grep -o ROT[0-9]*`
+         case "$ROTVAL" in
+            ROT0)
+               ROTDESC="Horizontal_ROT0"
+               ;;
+            ROT90)
+               ROTDESC="Vertical-With-Left-Side-At-Top_ROT90"
+               ;;
+            ROT180)
+               ROTDESC="Horizontal-Upside-Down_ROT180"
+               ;;
+            ROT270)
+               ROTDESC="Vertical-With-Right-Side-At-Top_ROT270"
+               ;;
+            *)
+               ROTDESC="Unknown-Rotation"
+               ;;
+         esac
+         if [ ! -z "$ROTDESC" ] && [ ! -e "${ORGDIR_6Rotation}/_$ROTDESC/$MRB" ]
+            then
+               mkdir -p "${ORGDIR_6Rotation}/_${ROTDESC//\?/X}"
+               cd "${ORGDIR_6Rotation}/_${ROTDESC//\?/X}"
+               ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
+         fi
    fi
 }
 

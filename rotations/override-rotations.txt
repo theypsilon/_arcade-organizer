@@ -1,0 +1,16 @@
+darkplnt,ROT0
+bagman,ROT90
+bigkong,ROT90
+birdiy,ROT90
+brubber,ROT90
+btime,ROT90
+ckongo,ROT90
+ckongpt2,ROT90
+dkong,ROT90
+dkongjr,ROT90
+dremshpr,ROT90
+pickin,ROT90
+sbagman,ROT90
+travrusa,ROT90
+vanvan,ROT90
+crbaloon,ROT270
