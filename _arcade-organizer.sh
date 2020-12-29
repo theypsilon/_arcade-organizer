@@ -48,11 +48,11 @@ rm ${INIFILE_FIXED}
 ARCADE_ORGANIZER_VERSION="1.0"
 WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
 ORGDIR_FOLDERS_FILE="${WORK_PATH}/orgdir-folders"
+SSL_SECURITY_OPTION="${SSL_SECURITY_OPTION:---insecure}"
+CURL_RETRY="--connect-timeout 15 --max-time 120 --retry 3 --retry-delay 5 --show-error"
 #########Auto Install##########
 if [[ "${INSTALL^^}" == "TRUE" ]] && [ ! -e "/media/fat/Scripts/update_arcade-organizer.sh" ]
    then
-      SSL_SECURITY_OPTION="${SSL_SECURITY_OPTION:---insecure}"
-      CURL_RETRY="--connect-timeout 15 --max-time 120 --retry 3 --retry-delay 5 --show-error"
       echo "Downloading update_arcade-organizer.sh to /media/fat/Scripts"
       echo ""
       curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o "/media/fat/Scripts/update_arcade-organizer.sh" https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/update_arcade-organizer.sh || true
