@@ -50,6 +50,7 @@ WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
 ORGDIR_FOLDERS_FILE="${WORK_PATH}/orgdir-folders"
 SSL_SECURITY_OPTION="${SSL_SECURITY_OPTION:---insecure}"
 CURL_RETRY="--connect-timeout 15 --max-time 120 --retry 3 --retry-delay 5 --show-error"
+TMP_ROTATIONS="/tmp/mame-rotations.txt"
 #########Auto Install##########
 if [[ "${INSTALL^^}" == "TRUE" ]] && [ ! -e "/media/fat/Scripts/update_arcade-organizer.sh" ]
    then
@@ -59,12 +60,18 @@ if [[ "${INSTALL^^}" == "TRUE" ]] && [ ! -e "/media/fat/Scripts/update_arcade-or
       echo
 fi
 
-if [ ! -e "${WORK_PATH}/mame-rotations.txt" ]
-   then
-      echo "Downloading mame-rotations.txt to ${WORK_PATH}"
-      echo ""
-      curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o "${WORK_PATH}/mame-rotations.txt" https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/mame-rotations.txt || true
-      echo
+# check for any previous rotation files in tmp folder
+if [ -e "${TMP_ROTATIONS}" ] ; then
+   rm "${TMP_ROTATIONS}"
+fi
+echo "Downloading ${TMP_ROTATIONS}"
+echo ""
+curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --fail --location -o "${TMP_ROTATIONS}" "https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/mame-rotations.txt" || true
+RET_CURL=$?
+if [ ${RET_CURL} -ne 0 ] ; then
+   echo "Couldn't download ${TMP_ROTATIONS} : Network Problem"
+   # allow rest script to carry on
+   # and use non-existence of mame-rotations.txt to prevent rotation subfolder creation
 fi
 
 #####Organized Directories#####
@@ -263,7 +270,7 @@ organize_mra() {
    fi
 
    #####Create symlinks for Rotation#####
-   if [ ! -z "$SETNAME" ]
+   if [ ! -z "$SETNAME" ] && [ -e "${WORK_PATH}/mame-rotations.txt" ]
       then
          local ROTVAL=`grep "^${SETNAME}," ${WORK_PATH}/mame-rotations.txt |grep -o ROT[0-9]*`
          case "$ROTVAL" in
@@ -343,6 +350,20 @@ optimized_arcade_organizer() {
       echo
    fi
 
+   if [ -e "${TMP_ROTATIONS}" ] ; then
+      if ! diff "${TMP_ROTATIONS}" "${WORK_PATH}/mame-rotations.txt" > /dev/null 2>&1 ; then
+         cp "${TMP_ROTATIONS}" "${WORK_PATH}/mame-rotations.txt"
+         echo "The mame-rotations.txt is new for the Arcade Organizer"
+         echo
+         FROM_SCRATCH="true"
+      else
+         echo "No changes detected in mame-rotations.txt"
+         echo
+         echo "Skipping mame-rotations.txt..."
+         echo
+      fi
+      rm "${TMP_ROTATIONS}"
+   fi
    # Not sure is this is needed anymore, it was in UA
    #local N_MRA_LINKED=$(find "${ORGDIR}/" -type f -print0 | xargs -r0 readlink -f | sort | uniq | wc -l)
    #local N_MRA_DEPTH1=$(find "${MRADIR}/" -maxdepth 1 -type f -iname "*.mra" | wc -l)
