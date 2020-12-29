@@ -66,8 +66,10 @@ if [ -e "${TMP_ROTATIONS}" ] ; then
 fi
 echo "Downloading ${TMP_ROTATIONS}"
 echo ""
-curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --fail --location -o "${TMP_ROTATIONS}" "https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/mame-rotations.txt" || true
+set +e
+curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --fail --location -o "${TMP_ROTATIONS}" "https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/mame-rotations.txt"
 RET_CURL=$?
+set -e
 if [ ${RET_CURL} -ne 0 ] ; then
    echo "Couldn't download ${TMP_ROTATIONS} : Network Problem"
    # allow rest script to carry on
