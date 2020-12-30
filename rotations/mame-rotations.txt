@@ -3084,6 +3084,7 @@ crimec,ROT0
 crimecu,ROT0
 crimep2_11,ROT0
 crimep2,ROT0
+crimepat_10,ROT0
 crimepat_12,ROT0
 crimepat_14,ROT0
 crimepat,ROT0
@@ -3850,7 +3851,7 @@ dkong3abl,ROT90
 dkong3b,ROT270
 dkong3hs,ROT270
 dkong3j,ROT270
-dkong3,ROT270
+dkong3,ROT90
 dkongddk,ROT270
 dkongf,ROT270
 dkonghrd,ROT270

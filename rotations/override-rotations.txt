@@ -7,6 +7,7 @@ btime,ROT90
 ckongo,ROT90
 ckongpt2,ROT90
 dkong,ROT90
+dkong3,ROT90
 dkongjr,ROT90
 dremshpr,ROT90
 pickin,ROT90
