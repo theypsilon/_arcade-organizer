@@ -1,0 +1,8 @@
+Clean Sweep,ROT90
+crater,ROT0
+dotron,ROT0
+kick,ROT90
+kickman,ROT90
+sfzch,ROT0
+shtrider,ROT90
+solarfox,ROT90
