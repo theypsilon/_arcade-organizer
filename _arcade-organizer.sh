@@ -277,19 +277,19 @@ organize_mra() {
          local ROTVAL=`grep "^${SETNAME}," ${WORK_PATH}/mame-rotations.txt |grep -o ROT[0-9]*`
          case "$ROTVAL" in
             ROT0)
-               ROTDESC="Horizontal_ROT0"
+               ROTDESC="Horizontal"
                ;;
             ROT90)
-               ROTDESC="Vertical-With-Left-Side-At-Top_ROT90"
+               ROTDESC="Vertical CW 90 Deg"
                ;;
             ROT180)
-               ROTDESC="Horizontal-Upside-Down_ROT180"
+               ROTDESC="Horizontal 180 Deg"
                ;;
             ROT270)
-               ROTDESC="Vertical-With-Right-Side-At-Top_ROT270"
+               ROTDESC="Vertical CCW 90 Deg"
                ;;
             *)
-               ROTDESC="Unknown-Rotation"
+               ROTDESC="Unknown Rotation"
                ;;
          esac
          if [ ! -z "$ROTDESC" ] && [ ! -e "${ORGDIR_6Rotation}/_$ROTDESC/$MRB" ]
