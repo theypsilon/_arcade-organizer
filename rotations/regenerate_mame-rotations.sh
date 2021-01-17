@@ -38,6 +38,7 @@ while read line; do sed -i "s/^`echo ${line}|cut -d, -f1`,.*/${line}/g" mame-rot
 echo " "
 echo "Adding additional rotations"
 cat additional-rotations.txt >> mame-rotations.txt
+sort -o mame-rotations.txt mame-rotations.txt
 
 echo "Done. The new mame-rotations.txt file should be ready for committing to the repo. "
 echo " "
