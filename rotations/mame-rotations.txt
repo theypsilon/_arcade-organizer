@@ -27562,7 +27562,6 @@ zombraidpj,ROT0
 zombrvn,ROT0
 zombrvne,ROT0
 zombrvno,ROT0
-zoo,ROT0
 zoofari,ROT0
 zookeep,ROT0
 zookeep2,ROT0
@@ -27574,6 +27573,7 @@ zorroa6,ROT0
 zorroa6u,ROT0
 zortonbr,ROT0
 zortonbr_100,ROT0
+zulu,ROT0
 zunkyou,ROT0
 zunou,ROT0
 zupapa,ROT0
