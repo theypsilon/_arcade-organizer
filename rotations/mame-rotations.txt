@@ -6412,6 +6412,7 @@ gepoker,ROT0
 gepoker1,ROT0
 gepoker2,ROT0
 gepoker3,ROT0
+getaway,ROT270
 getbass,ROT0
 getbassdx,ROT0
 getbassur,ROT0
@@ -8243,7 +8244,6 @@ j6arcadeb,ROT0
 j6arcadec,ROT0
 j6arcaded,ROT0
 j6arcadee,ROT0
-j6arcadef,ROT0
 j6arcadeg,ROT0
 j6arcadeh,ROT0
 j6arcadei,ROT0
@@ -9911,6 +9911,7 @@ kovshp100,ROT0
 kovshxas,ROT0
 kovytzy,ROT0
 kozure,ROT0
+kpontoon,ROT0
 kpv106,ROT0
 kpython,ROT0
 kram,ROT0
