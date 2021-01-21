@@ -536,6 +536,7 @@ adonisa6,ROT0
 adonisce,ROT0
 adonisu,ROT0
 adults,ROT0
+adultsa,ROT0
 aduskcm,ROT0
 aerfboo2,ROT270
 aerfboot,ROT270
@@ -1842,11 +1843,16 @@ bloodstm21,ROT0
 bloodstm22,ROT0
 bloodwar,ROT0
 bloto,ROT0
+blotoa,ROT0
 bloxeed,ROT0
 bloxeedc,ROT0
 bloxeedd,ROT0
 bloxeedu,ROT0
 blpearl,ROT0
+blpearla,ROT0
+blpearlb,ROT0
+blpearlc,ROT0
+blpearld,ROT0
 blstroid,ROT0
 blstroid2,ROT0
 blstroid3,ROT0
@@ -5335,6 +5341,9 @@ exprraid,ROT0
 exprraidi,ROT0
 exprraidu,ROT0
 exsafar,ROT0
+exsafara,ROT0
+exsafarb,ROT0
+exsafarc,ROT0
 extdwnhl,ROT0
 exterm,ROT0
 extrmatn,ROT270
@@ -5342,6 +5351,7 @@ extrmatnj,ROT270
 extrmatnu,ROT270
 extrmatnur,ROT270
 extrmth,ROT0
+extrmtha,ROT0
 extrmti,ROT0
 exvania,ROT0
 exvaniaj,ROT0
@@ -5825,8 +5835,8 @@ formula1,ROT0
 fort2b,ROT0
 fort2ba,ROT0
 fortath,ROT0
-fortecar,ROT0
 fortecrd,ROT0
+fortecrde,ROT0
 fortellr,ROT0
 fortfvr,ROT0
 fortune1,ROT0
@@ -6753,6 +6763,9 @@ grainbowk,ROT0
 grally,ROT0
 gram2000,ROT0
 grancan,ROT0
+grancana,ROT0
+grancanb,ROT0
+grancanc,ROT0
 grancapi,ROT0
 grand8,ROT0
 grand_l3,ROT0
@@ -10309,6 +10322,7 @@ luckboomh,ROT0
 luckfoun,ROT0
 luckgrln,ROT0
 luckshel,ROT0
+luckshela,ROT0
 lucky21,ROT0
 lucky21d,ROT0
 lucky25,ROT0
@@ -13207,6 +13221,9 @@ marvlandj,ROT0
 marywu,ROT0
 masao,ROT0
 maski,ROT0
+maskia,ROT0
+maskib,ROT0
+maskic,ROT0
 masmario,ROT0
 masmario2,ROT0
 masmarios,ROT0
@@ -24672,6 +24689,7 @@ strknew,ROT0
 strkzn,ROT0
 strkzone,ROT0
 strlink,ROT0
+strlinka,ROT0
 strlt_l1,ROT0
 strngsci,ROT0
 strngscia,ROT0
