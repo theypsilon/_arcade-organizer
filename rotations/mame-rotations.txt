@@ -17090,6 +17090,7 @@ redhawke,ROT270
 redhawkg,ROT0
 redhawki,ROT0
 redhawkk,ROT270
+redhawks,ROT0
 redlin2p,ROT270
 redrobin,ROT90
 redufo,ROT270
