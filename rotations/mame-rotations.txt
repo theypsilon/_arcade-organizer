@@ -25285,6 +25285,7 @@ theglobp,ROT90
 thegrid,ROT0
 thegrida,ROT0
 thehand,ROT270
+thehole,ROT90
 thehustl,ROT90
 thehustlj,ROT90
 themj,ROT0
@@ -25295,6 +25296,7 @@ thepitj,ROT90
 thepitm,ROT90
 thepitu1,ROT90
 thepitu2,ROT90
+theportr,ROT90
 theraid,ROT0
 theraida,ROT0
 theroes,ROT0
