@@ -16516,6 +16516,7 @@ pturn,ROT90
 pubtimed,ROT0
 puchicar,ROT0
 puchicarj,ROT0
+puchicaru,ROT0
 puckman,ROT90
 puckmanb,ROT90
 puckmanf,ROT90
