@@ -26,6 +26,12 @@ echo ""
 echo "Cloning the MAME repo."
 echo " "
 git clone https://github.com/mamedev/mame.git
+pushd mame
+git fetch origin
+LATEST_TAG="$(git describe --abbrev=0)"
+echo "Version: ${LATEST_TAG}"
+git checkout "${LATEST_TAG}"
+popd
 
 echo " "
 echo "Extracting simple rotation information from the MAME driver files..."
