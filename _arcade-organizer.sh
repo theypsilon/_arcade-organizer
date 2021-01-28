@@ -7,8 +7,12 @@
 #set -x
 set -euo pipefail
 ######VARS#####
-
-INIFILE="$(pwd)/update_arcade-organizer.ini"
+ORIGINAL_SCRIPT_PATH="$0"
+if [ "$ORIGINAL_SCRIPT_PATH" == "bash" ]
+then
+	ORIGINAL_SCRIPT_PATH=$(ps | grep "^ *$PPID " | grep -o "[^ ]*$")
+fi
+INIFILE=${ORIGINAL_SCRIPT_PATH%.*}.ini
 MRADIR="/media/fat/_Arcade/"
 ORGDIR="/media/fat/_Arcade/_Organized"
 SKIPALTS="true"
@@ -49,7 +53,7 @@ ARCADE_ORGANIZER_VERSION="1.0"
 WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
 ORGDIR_FOLDERS_FILE="${WORK_PATH}/orgdir-folders"
 SSL_SECURITY_OPTION="${SSL_SECURITY_OPTION:---insecure}"
-CURL_RETRY="--connect-timeout 15 --max-time 120 --retry 3 --retry-delay 5 --show-error"
+CURL_RETRY="${CURL_RETRY:---connect-timeout 15 --max-time 120 --retry 3 --retry-delay 5 --show-error}"
 TMP_ROTATIONS="/tmp/mame-rotations.txt"
 #########Auto Install##########
 if [[ "${INSTALL^^}" == "TRUE" ]] && [ ! -e "/media/fat/Scripts/update_arcade-organizer.sh" ]

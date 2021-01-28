@@ -33,20 +33,69 @@
 #You should back up your _Arcade directory before running this script.
 #USE AT YOUR OWN RISK - THIS COMES WITHOUT WARRANTE AND MAY NEUTER EVERYTHING.
 ###############################################################################
+# ========= OPTIONS ==================
+ALLOW_INSECURE_SSL="true"
+CURL_RETRY="--connect-timeout 15 --max-time 60 --retry 3 --retry-delay 5 --show-error"
+# ========= CODE STARTS HERE =========
+
+ORIGINAL_SCRIPT_PATH="${0}"
+[[ "${ORIGINAL_SCRIPT_PATH}" == "bash" ]] && \
+	ORIGINAL_SCRIPT_PATH="$(ps -o comm,pid | awk -v PPID=${PPID} '$2 == PPID {print $1}')"
+
+INI_PATH="${ORIGINAL_SCRIPT_PATH%.*}.ini"
+if [ -f "${INI_PATH}" ] ; then
+    TMP=$(mktemp)
+    dos2unix < "${INI_PATH}" 2> /dev/null | grep -v "^exit" > ${TMP} || true
+
+    if [ $(grep -c "ALLOW_INSECURE_SSL=" "${TMP}") -gt 0 ] ; then
+        ALLOW_INSECURE_SSL=$(grep "ALLOW_INSECURE_SSL=" "${TMP}" | awk -F "=" '{print$2}' | sed -e 's/^ *// ; s/ *$// ; s/^"// ; s/"$//')
+    fi 2> /dev/null
+
+    if [ $(grep -c "CURL_RETRY=" "${TMP}") -gt 0 ] ; then
+        CURL_RETRY=$(grep "CURL_RETRY=" "${TMP}" | awk -F "=" '{print$2}' | sed -e 's/^ *// ; s/ *$// ; s/^"// ; s/"$//')
+    fi 2> /dev/null
+
+    rm ${TMP}
+fi
+
 SSL_SECURITY_OPTION=""
+
+set +e
 curl ${CURL_RETRY} "https://github.com" > /dev/null 2>&1
-case $? in
-    0) ;;
-    *) SSL_SECURITY_OPTION="--insecure" ;;
+RET_CURL=$?
+set -e
+
+case ${RET_CURL} in
+    0)
+        ;;
+    *)
+        if [[ "${ALLOW_INSECURE_SSL}" == "true" ]]
+        then
+            SSL_SECURITY_OPTION="--insecure"
+        else
+            echo "CA certificates need"
+            echo "to be fixed for"
+            echo "using SSL certificate"
+            echo "verification."
+            echo "Please fix them i.e."
+            echo "using security_fixes.sh"
+            exit 2
+        fi
+        ;;
+    *)
+        echo "No Internet connection"
+        exit 1
+        ;;
 esac
+
 export SSL_SECURITY_OPTION
+export CURL_RETRY
 
 echo "STARTING: _ARCADE-ORGANIZER"
 echo ""
 
 echo "Downloading the most recent _arcade-organizer script."
 echo " "
-CURL_RETRY="--connect-timeout 15 --max-time 60 --retry 3 --retry-delay 5 --show-error"
 curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o /tmp/_arcade-organizer.sh https://github.com/MAME-GETTER/_arcade-organizer/raw/master/_arcade-organizer.sh
 echo
 
