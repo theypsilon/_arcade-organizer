@@ -96,7 +96,7 @@ echo ""
 
 echo "Downloading the most recent _arcade-organizer script."
 echo " "
-curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o /tmp/_arcade-organizer.sh https://github.com/MAME-GETTER/_arcade-organizer/raw/master/_arcade-organizer.sh
+curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o /tmp/_arcade-organizer.sh https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/_arcade-organizer.sh
 echo
 
 chmod +x /tmp/_arcade-organizer.sh
