@@ -12,6 +12,7 @@ if [ "$ORIGINAL_SCRIPT_PATH" == "bash" ]
 then
 	ORIGINAL_SCRIPT_PATH=$(ps | grep "^ *$PPID " | grep -o "[^ ]*$")
 fi
+
 INIFILE=${ORIGINAL_SCRIPT_PATH%.*}.ini
 MRADIR="/media/fat/_Arcade/"
 ORGDIR="/media/fat/_Arcade/_Organized"
