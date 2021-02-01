@@ -1405,6 +1405,7 @@ bankp,ROT0
 bankrob,ROT0
 bankroba,ROT0
 bankrobb,ROT0
+baracuda,ROT90
 baraduke,ROT0
 barata,ROT0
 barbball,ROT0
@@ -1940,7 +1941,7 @@ bobdolly,ROT0
 boblbobl,ROT0
 boblcave,ROT0
 bodyslam,ROT0
-bogeyman,ROT0
+bogeyman,ROT180
 boggy84,ROT90
 boggy84b,ROT90
 boggy84b2,ROT90
@@ -4112,6 +4113,7 @@ driblingbr,ROT0
 driblingo,ROT0
 drifto94,ROT0
 driftout,ROT270
+driftoutct,ROT270
 driftoutj,ROT270
 drivedge,ROT0
 driveout,ROT270
@@ -6565,6 +6567,7 @@ gluck2,ROT0
 glxplay,ROT0
 glxplay2,ROT0
 gmahou,ROT270
+gmfamily,ROT0
 gmgalax,ROT90
 gmine_l2,ROT0
 gmissile,ROT0
@@ -6639,6 +6642,7 @@ goldcue,ROT0
 goldenc,ROT0
 goldenra,ROT0
 goldfish,ROT0
+goldfrts,ROT0
 goldfrui,ROT0
 goldgame,ROT0
 goldgkit1,ROT0
@@ -13202,6 +13206,7 @@ marmagic,ROT0
 marmagicu,ROT0
 marmagicua,ROT0
 mars,ROT90
+marsarf,ROT90
 marsp,ROT0
 marspf,ROT0
 marspp,ROT0
@@ -14694,6 +14699,7 @@ oligam,ROT0
 ollie,ROT0
 olmandingc,ROT90
 olmandingo,ROT90
+olymp,ROT0
 olympic,ROT0
 olympus,ROT0
 olysoc92,ROT0
@@ -16513,6 +16519,7 @@ ptblanka,ROT0
 ptrain,ROT0
 ptrmj,ROT0
 pturn,ROT90
+pubball,ROT0
 pubtimed,ROT0
 puchicar,ROT0
 puchicarj,ROT0
@@ -17385,6 +17392,7 @@ rolcrusha,ROT0
 roldfrog,ROT0
 roldfroga,ROT0
 roldisco,ROT0
+rolla,ROT0
 rollace,ROT270
 rollace2,ROT90
 rollerg,ROT0
@@ -22561,6 +22569,7 @@ scobrase,ROT90
 scontra,ROT90
 scontraa,ROT90
 scontraj,ROT90
+score5,ROT0
 scorpion,ROT90
 scorpiona,ROT90
 scorpionb,ROT90
@@ -23072,9 +23081,9 @@ shootaw2,ROT0
 shootbul,ROT90
 shootgal,ROT0
 shootopl,ROT0
-shootout,ROT0
-shootoutb,ROT0
-shootoutj,ROT0
+shootout,ROT180
+shootoutb,ROT180
+shootoutj,ROT180
 shootpl,ROT0
 shootplm,ROT0
 shootplmp,ROT0
@@ -24638,6 +24647,7 @@ stonebal2,ROT0
 stonebal2o,ROT0
 storm,ROT0
 storming,ROT270
+storminga,ROT270
 strahl,ROT0
 strahlj,ROT0
 strahlja,ROT0
@@ -24783,6 +24793,7 @@ super972,ROT0
 super98,ROT0
 superabc,ROT90
 superabco,ROT90
+superb2k,ROT0
 superbar,ROT270
 superbik,ROT90
 superbon,ROT90
