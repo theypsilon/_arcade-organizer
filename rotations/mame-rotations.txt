@@ -1170,7 +1170,8 @@ asterockv,ROT0
 asteroid,ROT0
 asteroid1,ROT0
 asteroid2,ROT0
-asteroidb,ROT0
+asteroidb1,ROT0
+asteroidb2,ROT0
 astinvad,ROT270
 astoneag,ROT0
 astorm,ROT0
@@ -1782,7 +1783,6 @@ bldyror2a,ROT0
 bldyror2j,ROT0
 bldyror2u,ROT0
 blitz,ROT0
-blitz11,ROT0
 blitz2k,ROT0
 blitz99,ROT0
 blitz99a,ROT0
@@ -1818,6 +1818,7 @@ blockade,ROT0
 blockbl,ROT270
 blockcar,ROT90
 blockcarb,ROT90
+blockch,ROT270
 blocken,ROT0
 blockgal,ROT90
 blockgalb,ROT90
@@ -1874,6 +1875,7 @@ blzntrnd,ROT0
 bm1stmix,ROT0
 bm2ndmix,ROT0
 bm2ndmxa,ROT0
+bm3,ROT0
 bm36th,ROT0
 bm37th,ROT0
 bm3core,ROT0
@@ -1997,6 +1999,7 @@ borench,ROT0
 borencha,ROT0
 borenchj,ROT0
 borntofi,ROT0
+borntofiv,ROT0
 bosco,ROT0
 boscomd,ROT0
 boscomdo,ROT0
@@ -3690,6 +3693,7 @@ defenderg,ROT0
 defenderj,ROT0
 defenderw,ROT0
 defense,ROT0
+defenseb,ROT0
 defndjeu,ROT0
 deltabel,ROT0
 deltaqn,ROT0
@@ -6069,6 +6073,7 @@ galaxiana,ROT90
 galaxianbl,ROT90
 galaxianbl2,ROT90
 galaxianbl3,ROT90
+galaxianem,ROT90
 galaxiani,ROT90
 galaxianm,ROT90
 galaxianmo,ROT90
@@ -6097,6 +6102,7 @@ galivan,ROT270
 galivan2,ROT270
 galivan3,ROT270
 galkaika,ROT180
+galkamika,ROT90
 galkoku,ROT180
 gallag,ROT90
 gallag50,ROT0
@@ -7519,6 +7525,7 @@ hotmemry11,ROT0
 hotmind,ROT0
 hotminda,ROT0
 hotmindff,ROT0
+hotnight,ROT90
 hotpinbl,ROT90
 hotrod,ROT0
 hotroda,ROT0
@@ -7576,6 +7583,7 @@ humlan,ROT0
 hummerxt,ROT0
 hunchbak,ROT90
 hunchbaka,ROT90
+hunchbgb,ROT90
 hunchbkd,ROT270
 hunchbkg,ROT90
 hunchbks,ROT90
@@ -13008,6 +13016,7 @@ mace,ROT0
 macea,ROT0
 macgalxy,ROT0
 mach2,ROT0
+mach2a,ROT0
 mach3,ROT0
 mach3a,ROT0
 mach3b,ROT0
@@ -14076,6 +14085,7 @@ mspacmbmc,ROT90
 mspacmbn,ROT90
 mspacmnf,ROT90
 mspacpls,ROT90
+mspactwin,ROT90
 mspuzzle,ROT90
 mspuzzlea,ROT90
 mspuzzleb,ROT90
@@ -14695,6 +14705,7 @@ olds103t,ROT0
 oldsplus,ROT0
 oldsplus203,ROT0
 olibochu,ROT270
+olibug,ROT90
 oligam,ROT0
 ollie,ROT0
 olmandingc,ROT90
@@ -15338,6 +15349,7 @@ pepp0103a,ROT0
 pepp0103b,ROT0
 pepp0103c,ROT0
 pepp0104,ROT0
+pepp0104a,ROT0
 pepp0116,ROT0
 pepp0116a,ROT0
 pepp0118,ROT0
@@ -15809,6 +15821,7 @@ phoenxp2,ROT270
 photof,ROT0
 photoply2k,ROT0
 photoply2k1it,ROT0
+photoply2k1sp,ROT0
 photoply2k4,ROT0
 photoply2ksp,ROT0
 photoply98sp,ROT0
@@ -16048,6 +16061,7 @@ pltkids,ROT0
 pltkidsa,ROT0
 plumppop,ROT0
 plusalph,ROT270
+plycntrchtr,ROT0
 plygonet,ROT90
 pma,ROT0
 pmpoker,ROT0
@@ -16186,7 +16200,10 @@ popn6,ROT0
 popn7,ROT0
 popn8,ROT0
 popn9,ROT0
+popnanm,ROT0
 popnanm2,ROT0
+popnmt,ROT0
+popnmt2,ROT0
 popnpop,ROT0
 popnpopj,ROT0
 popnpopu,ROT0
@@ -16286,6 +16303,7 @@ ppp,ROT0
 ppp11,ROT0
 ppp1mp,ROT0
 ppp2nd,ROT0
+ppp2nda,ROT0
 pprobe,ROT90
 ppsatan,ROT0
 ppspeed,ROT0
@@ -16831,6 +16849,7 @@ rackemup,ROT90
 racknrol,ROT0
 radarscp,ROT270
 radarscp1,ROT270
+radarscpc,ROT270
 radarzon,ROT90
 radarzon1,ROT90
 radarzont,ROT90
@@ -17539,6 +17558,7 @@ rungund,ROT0
 rungunua,ROT0
 rungunuad,ROT0
 rungunud,ROT0
+runpuppy,ROT0
 ruprup,ROT0
 rushatck,ROT0
 rushbets,ROT0
@@ -22789,6 +22809,7 @@ sf2m9,ROT0
 sf2mdt,ROT0
 sf2mdta,ROT0
 sf2mdtb,ROT0
+sf2mkot,ROT0
 sf2qp1,ROT0
 sf2qp2,ROT0
 sf2rb,ROT0
@@ -23342,6 +23363,11 @@ slrassltj1,ROT0
 slspirit,ROT270
 sltpcycl,ROT0
 sltpstep,ROT0
+slvrball632,ROT0
+slvrball720,ROT0
+slvrball806,ROT0
+slvrballbu409,ROT0
+slvrballbu409b,ROT0
 slvrwolf,ROT0
 slyspy,ROT0
 slyspy2,ROT0
@@ -26920,6 +26946,7 @@ wbdeluxe,ROT0
 wbeachvl,ROT0
 wbeachvl2,ROT0
 wbeachvl3,ROT0
+wbeachvla,ROT0
 wbingo06,ROT0
 wbml,ROT0
 wbmlb,ROT0
@@ -27023,6 +27050,7 @@ wexpressb3,ROT0
 wfortune,ROT0
 wfortunea,ROT0
 wg3dh,ROT0
+wg3dhfe,ROT0
 wgorilla,ROT0
 wgp,ROT0
 wgp2,ROT0
