@@ -12,11 +12,11 @@ echo
 git config --global user.email "theypsilon@gmail.com"
 git config --global user.name "The CI/CD Bot"
 
-ROTATIONS_FILE="rotations/mame-rotations.txt"
-git add "${ROTATIONS_FILE}"
+ROTATIONS_FILES="rotations/mame-rotations.txt rotations/data.zip rotations/data.zip.md5"
+git add ${ROTATIONS_FILES}
 
 if ! git diff --staged --quiet --exit-code ; then
-    git commit -m "BOT: ${ROTATIONS_FILE} updated."
+    git commit -m "BOT: ${ROTATIONS_FILES} updated."
     git push origin master
 else
     echo "Nothing to be done."
