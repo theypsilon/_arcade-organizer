@@ -46,7 +46,13 @@ echo "Adding additional rotations"
 cat additional-rotations.txt >> mame-rotations.txt
 sort -o mame-rotations.txt mame-rotations.txt
 
-echo "Done. The new mame-rotations.txt file should be ready for committing to the repo. "
+echo " "
+echo "Zipping data"
+./generate_data_json.py mame-rotations.txt data.json
+zip -q -9 -r data.zip data.json
+md5sum data.zip | awk '{print $1}' > data.zip.md5
+
+echo "Done. The new mame-rotations.txt and data.zip files should be ready for committing to the repo. "
 echo " "
 echo "Summary..."
 cut -d"," -f2 mame-rotations.txt |sort|uniq -c
