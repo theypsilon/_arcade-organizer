@@ -1,523 +1,522 @@
-#!/bin/bash
-#USE AT YOUR OWN RISK - THIS COMES WITHOUT WARRANTE AND MAY NEUTER EVERYTHING.
-#A /media/fat/Scripts/update_arcade-organizer.ini file may be used to set custom location for your MRA files (Scans recursivly) and Organized files.
-#Add the following line to the ini file to set a directory for MRA files: MRADIR=/top/path/to/mra/files
-#Add the following line to the ini file to set a directory for Organized files: ORGDIR=/path/to/_Organized 
-###############################################################################
-#set -x
-set -euo pipefail
-######VARS#####
-ORIGINAL_SCRIPT_PATH="$0"
-if [ "$ORIGINAL_SCRIPT_PATH" == "bash" ]
-then
-	ORIGINAL_SCRIPT_PATH=$(ps | grep "^ *$PPID " | grep -o "[^ ]*$")
-fi
+#!/usr/bin/env python3
+# Copyright (C) 2020, 2021 Andrew Moore "amoore2600", José Manuel Barroso Galindo "theypsilon"
+# This file is part of the Arcade Organizer
+#
+# Arcade Organizer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Arcade Organizer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
 
-INIFILE=${ORIGINAL_SCRIPT_PATH%.*}.ini
-MRADIR="/media/fat/_Arcade/"
-ORGDIR="/media/fat/_Arcade/_Organized"
-SKIPALTS="true"
-INSTALL="false"
-#####INI FILES VARS######
+import sys
+import subprocess
+from pathlib import Path
+import configparser
+import itertools
+import os
+import io
+import hashlib
+import distutils.util
+import datetime
+import difflib
+import shutil
+import time
+import json
+import xml.etree.cElementTree as ET
 
-INIFILE_FIXED=$(mktemp)
-if [ -f "${INIFILE}" ] ; then
-	dos2unix < "${INIFILE}" 2> /dev/null > ${INIFILE_FIXED} || true
-fi
+INIFILE=Path(sys.argv[0]).with_suffix('.ini').absolute()
+ini_file_path = Path(INIFILE)
 
-if [ `grep -c "ORGDIR=" "${INIFILE_FIXED}"` -gt 0 ]
-   then
-      ORGDIR=`grep "ORGDIR" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
-fi 2>/dev/null
+config = configparser.ConfigParser()
+if ini_file_path.is_file():
+    try:
+        config.read(ini_file_path)
+    except:
+        with ini_file_path.open() as fp:
+            config.read_file(itertools.chain(['[DEFAULT]'], fp), source=ini_file_path)
 
-
-if [ `grep -c "MRADIR=" "${INIFILE_FIXED}"` -gt 0 ]
-   then
-      MRADIR=`grep "MRADIR=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
-fi 2>/dev/null
-
- 
-if [ `grep -c "SKIPALTS=" "${INIFILE_FIXED}"` -gt 0 ]
-   then
-      SKIPALTS=`grep "SKIPALTS=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
-fi 2>/dev/null
-
-if [ `grep -c "INSTALL=" "${INIFILE_FIXED}"` -gt 0 ]
-   then
-      INSTALL=`grep "INSTALL=" "${INIFILE_FIXED}" | awk -F "=" '{print$2}' | sed -e 's/^ *//' -e 's/ *$//' -e 's/^ *"//' -e 's/" *$//'`
-fi 2>/dev/null
- 
-rm ${INIFILE_FIXED}
+ini_args = config['DEFAULT']
+MRADIR = ini_args.get('MRADIR', "/media/fat/_Arcade/").strip('"\'')
+ORGDIR = ini_args.get('ORGDIR', "/media/fat/_Arcade/_Organized").strip('"\'')
+SKIPALTS = bool(distutils.util.strtobool(ini_args.get('SKIPALTS', 'true').strip('"\'')))
+INSTALL = bool(distutils.util.strtobool(ini_args.get('INSTALL', 'false').strip('"\'')))
 
 ###############################
-ARCADE_ORGANIZER_VERSION="1.0"
-WORK_PATH="/media/fat/Scripts/.cache/arcade-organizer"
-ORGDIR_FOLDERS_FILE="${WORK_PATH}/orgdir-folders"
-SSL_SECURITY_OPTION="${SSL_SECURITY_OPTION:---insecure}"
-CURL_RETRY="${CURL_RETRY:---connect-timeout 15 --max-time 120 --retry 3 --retry-delay 5 --show-error}"
-TMP_ROTATIONS="/tmp/mame-rotations.txt"
-#########Auto Install##########
-if [[ "${INSTALL^^}" == "TRUE" ]] && [ ! -e "/media/fat/Scripts/update_arcade-organizer.sh" ]
-   then
-      echo "Downloading update_arcade-organizer.sh to /media/fat/Scripts"
-      echo ""
-      curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --location -o "/media/fat/Scripts/update_arcade-organizer.sh" https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/update_arcade-organizer.sh || true
-      echo
-fi
-
-# check for any previous rotation files in tmp folder
-if [ -e "${TMP_ROTATIONS}" ] ; then
-   rm "${TMP_ROTATIONS}"
-fi
-echo "Downloading ${TMP_ROTATIONS}"
-echo ""
-set +e
-curl ${CURL_RETRY} ${SSL_SECURITY_OPTION} --fail --location -o "${TMP_ROTATIONS}" "https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/mame-rotations.txt"
-RET_CURL=$?
-set -e
-if [ ${RET_CURL} -ne 0 ] ; then
-   echo "Couldn't download ${TMP_ROTATIONS} : Network Problem"
-   # allow rest script to carry on
-   # and use non-existence of mame-rotations.txt to prevent rotation subfolder creation
-fi
+ARCADE_ORGANIZER_VERSION = "1.0"
+ARCADE_ORGANIZER_WORK_PATH = os.getenv('ARCADE_ORGANIZER_WORK_PATH', "/media/fat/Scripts/.cache/arcade-organizer")
+ARCADE_ORGANIZER_NAMES_TXT = os.getenv('ARCADE_ORGANIZER_NAMES_TXT', "/media/fat/names.txt")
+CACHED_DATA_ZIP = Path("%s/data.zip" % ARCADE_ORGANIZER_WORK_PATH)
+ORGDIR_FOLDERS_FILE = Path("%s/orgdir-folders" % ARCADE_ORGANIZER_WORK_PATH)
+SSL_SECURITY_OPTION = os.getenv('SSL_SECURITY_OPTION', '--insecure')
+CURL_RETRY =  '--max-time 30 --show-error'
+TMP_DATA_ZIP = "/tmp/data.zip"
 
 #####Organized Directories#####
-ORGDIR_1AE="$ORGDIR/_1 A-E"
-ORGDIR_1FK="$ORGDIR/_1 F-K"
-ORGDIR_1LQ="$ORGDIR/_1 L-Q"
-ORGDIR_1RT="$ORGDIR/_1 R-T"
-ORGDIR_1UZ="$ORGDIR/_1 U-Z"
-ORGDIR_2Core="${ORGDIR}/_2 Core"
-ORGDIR_3Year="${ORGDIR}/_3 Year"
-ORGDIR_4Manufacturer="${ORGDIR}/_4 Manufacturer"
-ORGDIR_5Category="${ORGDIR}/_5 Category"
-ORGDIR_6Rotation="${ORGDIR}/_6 Rotation"
+ORGDIR_1AE="%s/_1 A-E" % ORGDIR
+ORGDIR_1FK="%s/_1 F-K" % ORGDIR
+ORGDIR_1LQ="%s/_1 L-Q" % ORGDIR
+ORGDIR_1RT="%s/_1 R-T" % ORGDIR
+ORGDIR_1UZ="%s/_1 U-Z" % ORGDIR
+ORGDIR_2Core="%s/_2 Core" % ORGDIR
+ORGDIR_3Year="%s/_3 Year" % ORGDIR
+ORGDIR_4Manufacturer="%s/_4 Manufacturer" % ORGDIR
+ORGDIR_5Category="%s/_5 Category" % ORGDIR
+ORGDIR_6Rotation="%s/_6 Rotation" % ORGDIR
+ORGDIR_7Region="%s/_7 Region" % ORGDIR
 
-ORGDIR_DIRECTORIES=( \
-   "${ORGDIR_1AE}" \
-   "${ORGDIR_1FK}" \
-   "${ORGDIR_1LQ}" \
-   "${ORGDIR_1RT}" \
-   "${ORGDIR_1UZ}" \
-   "${ORGDIR_2Core}" \
-   "${ORGDIR_3Year}" \
-   "${ORGDIR_4Manufacturer}" \
-   "${ORGDIR_5Category}" \
-   "${ORGDIR_6Rotation}" \
-)
-create_organized_directories() {
-   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
-      mkdir -p "${dir}"
-   done
+ORGDIR_DIRECTORIES = [
+   ORGDIR_1AE,
+   ORGDIR_1FK,
+   ORGDIR_1LQ,
+   ORGDIR_1RT,
+   ORGDIR_1UZ,
+   ORGDIR_2Core,
+   ORGDIR_3Year,
+   ORGDIR_4Manufacturer,
+   ORGDIR_5Category,
+   ORGDIR_6Rotation,
+   ORGDIR_7Region,
+]
+
+ROTATION_DIRECTORIES = {
+      0: "Horizontal",
+     90: "Vertical CW 90 Deg",
+    180: "Horizontal 180 Deg",
+    270: "Vertical CCW 90 Deg"
 }
+
 #####Build names.txt Dictionary#####
 
-declare -A NAMES_TXT
-if [ -f /media/fat/names.txt ]
-   then
-      IFS=$'\n'
-      for LINE in $(grep ':' /media/fat/names.txt)
-      do
-         if [[ $LINE =~ ^[[:space:]]*([a-zA-Z0-9\_-]+)[[:space:]]*:[[:space:]]*([[:graph:]]+([[:space:]]+[[:graph:]]+)*)[[:space:]]*$ ]]
-            then
-               NAMES_TXT[${BASH_REMATCH[1]^^}]="${BASH_REMATCH[2]}"
-         fi
-      done
-      unset IFS
-fi
+NAMES_TXT=dict()
+arcade_organizer_names_txt = Path(ARCADE_ORGANIZER_NAMES_TXT)
+if arcade_organizer_names_txt.is_file():
+    with arcade_organizer_names_txt.open() as f:
+        for line in f:
+            if ":" not in line:
+                continue
+            splits = line.split(':', 1)
+            NAMES_TXT[splits[0].upper()] = splits[1].strip()
 
-BETTER_CORE_NAME_RET=
-better_core_name() {
-   BETTER_CORE_NAME_RET="${1}"
-   if [[ "${BETTER_CORE_NAME_RET}" == "" ]] ; then
-      return
-   fi
-   local CORE_NAME="${NAMES_TXT[${BETTER_CORE_NAME_RET^^}]:-}"
-   if [[ "${CORE_NAME}" != "" ]]
-      then
-         BETTER_CORE_NAME_RET="${CORE_NAME}"
-   fi
-}
+def better_core_name(core_name):
+    if core_name == "":
+        return ""
+
+    upper_core = core_name.upper()
+    if upper_core in NAMES_TXT:
+        return NAMES_TXT[upper_core]
+
+    return core_name
 
 #####Core name fix optimized#####
+CORES_DIR = Path("%s/cores/" % MRADIR)
+CORES_DICT = dict()
+if CORES_DIR.is_dir():
+    for core_path in CORES_DIR.iterdir():
+        core_name = core_path.name.rsplit('_', 1)[0]
+        CORES_DICT[core_name.upper()] = core_name
 
-declare -A CORE_NAMES_CACHE
-FIX_CORE_RET=
-fix_core() {
-   FIX_CORE_RET="${1}"
-   local CORE_CACHE_KEY="${FIX_CORE_RET^^}"
-   if [[ "${CORE_CACHE_KEY}" == "" ]] ; then
-      return
-   fi
-   local CORE_CACHE_VALUE="${CORE_NAMES_CACHE[${CORE_CACHE_KEY}]:-}"
-   if [[ "${CORE_CACHE_VALUE}" != "" ]] ; then
-      FIX_CORE_RET="${CORE_CACHE_VALUE}"
-   elif [[ "${CORE_CACHE_VALUE}" != "#" ]] ; then
-      local CORE_FIND=
-      local CORE_FIND=$(find ${MRADIR}/cores/ -type f -iname ${FIX_CORE_RET}_*.rbf | xargs basename -- 2> /dev/null)
-      if [[ "${CORE_FIND}" != "" ]] && [ ${#CORE_FIND} -ge 14 ]
-         then
-            FIX_CORE_RET="$(echo $CORE_FIND | sed 's/_\([0-9]\{8\}[a-z]\?\).rbf$//g')"
-            CORE_NAMES_CACHE[${CORE_CACHE_KEY}]="${FIX_CORE_RET}"
-      else
-         CORE_NAMES_CACHE[${CORE_CACHE_KEY}]="#"
-      fi
-   fi
-}
+def fix_core(core_name):
+    if core_name == "":
+        return ""
+    return CORES_DICT.get(core_name.upper().strip(".RBF"), core_name)
 
 #####Extract MRA Info######
+def header():
+   print('%-44s' % "MRA", end='')
+   print(' %-10s' % "Core", end='')
+   print(' %-4s' % "Year", end='')
+   print(' %-10s' % "Manufactu.", end='')
+   print(' %-8s' % "Category", end='')
+   print()
+   print("################################################################################")
 
-header() {
-   printf '%-44s' "MRA"
-   printf ' %-10s' "Core"
-   printf ' %-4s' "Year"
-   printf ' %-10s' "Manufactu."
-   printf ' %-8s' "Category"
-   echo
-   echo "################################################################################"
-}
+def between_chars(char, left, right):
+    return char >= ord(left) and char <= ord(right)
 
-organize_mra() {
-   local MRA="${1}"
+def make_symlink(mra_path, basename_mra, directory):
+    target = Path("%s/%s" % (directory, basename_mra))
+    if target.is_file() or target.is_symlink():
+        return
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+    except:
+        return
+    target.symlink_to(mra_path.absolute())
 
-   set +e
-   local MRB="`echo $MRA | sed 's/.*\///'`"
-   local NAME=`grep "<name>" "$MRA" | sed -ne '/name/{s/.*<name>\(.*\)<\/name>.*/\1/p;q;}'`
-   local SETNAME=`grep "<setname>" "$MRA" | sed -ne '/setname/{s/.*<setname>\(.*\)<\/setname>.*/\1/p;q;}'`
-   local CORE=`grep "<rbf" "$MRA" | sed 's/ alt=.*"//' | sed -ne '/rbf/{s/.*<rbf>\(.*\)<\/rbf>.*/\1/p;q;}'`
-   local YEAR=`grep "<year>" "$MRA" | sed -ne '/year/{s/.*<year>\(.*\)<\/year>.*/\1/p;q;}'`
-   local MANU=`grep "<manufacturer>" "$MRA" | sed -ne '/manufacturer/{s/.*<manufacturer>\(.*\)<\/manufacturer>.*/\1/p;q;}'`
-   local CAT=`grep "<category>" "$MRA" | sed -ne '/category/{s/.*<category>\(.*\)<\/category>.*/\1/p;q;}' | tr -d '[:punct:]'`
-   set -e
+def read_orgdir_file_folders():
+    result = list()
+    orgdir_folders_file = Path(ORGDIR_FOLDERS_FILE)
+    if orgdir_folders_file.is_file():
+        with orgdir_folders_file.open() as f:
+            for line in f:
+                directory = line.strip()
+                path = Path(directory)
+                if path.is_dir():
+                    result.append(directory)
+    return result
 
-   if [[ "${CORE}" == "" ]] ; then
-      echo "${MRA} is ill-formed, please delete and download it again."
-      return
-   fi
+def read_rotations():
+    if CACHED_DATA_ZIP.is_file():
+        output = subprocess.run("unzip -p %s" % CACHED_DATA_ZIP, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+        if output.returncode == 0:
+            return json.loads(output.stdout.decode())
 
-   if fix_core "${CORE}" ; then
-      CORE="${FIX_CORE_RET}"
-   fi
+        print("Error while reading rotations from %s" % CACHED_DATA_ZIP)
 
-   local BASENAME_MRA="`basename "$MRA"`"
-   printf '%-44s' "${BASENAME_MRA:0:44}"
-   printf ' %-10s' "${CORE:0:10}"
-   printf ' %-4s' "${YEAR:0:4}"
-   printf ' %-10s' "${MANU:0:10}"
-   printf ' %-8s' "${CAT:0:8}"
-   echo
+    return {}
 
-   if better_core_name "${CORE}" ; then
-      CORE="${BETTER_CORE_NAME_RET}"
-   fi
+def search_rotation(setname, ao_db):
+    mame_rotation = ao_db.get(setname, {}).get('rot')
+    return ROTATION_DIRECTORIES.get(mame_rotation, '')
 
-   #####Create symlinks for A-Z######
+def is_alternative(mra_path):
+    return any(p.name.lower() == '_alternatives' for p in mra_path.parents)
 
-   if [[ "${BASENAME_MRA}" == [A-Ea-e0-9]* ]]
-      then
-         cd "${ORGDIR_1AE}"
-         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
+def organize_mra(mra_path, ao_db):
+    tags = ['name', 'setname', 'rbf', 'year', 'manufacturer', 'category', 'region']
+    fields = { i : '' for i in tags }
 
-   elif [[ "${BASENAME_MRA}" == [F-Kf-k]* ]]
-      then
-         cd "${ORGDIR_1FK}"
-         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
+    try:
+        context = ET.iterparse(str(mra_path), events=("start",))
+        for event, elem in context:
+            elem_tag = elem.tag.lower()
+            if elem_tag in tags:
+                tags.remove(elem_tag)
+                fields[elem_tag] = elem.text
+                if len(tags) == 0:
+                    break
+    except:
+        pass
 
-   elif [[ "${BASENAME_MRA}" == [L-Ql-q]* ]]
-      then
-         cd "${ORGDIR_1LQ}"
-         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
+    skipping_alt = SKIPALTS and is_alternative(mra_path)
 
-   elif [[ "${BASENAME_MRA}" == [R-Tr-t]* ]]
-      then
-         cd "${ORGDIR_1RT}"
-         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
+    if skipping_alt and fields['region'] == '':
+        return
 
-   elif [[ "${BASENAME_MRA}" == [U-Zu-z]* ]]
-      then
-         cd "${ORGDIR_1UZ}"
-         [ -e ./"$MRB" ] || ln -sv "$MRA" "${BASENAME_MRA}" >/dev/null 2>&1 || true
-   fi
+    if 'rbf' not in fields:
+        print("%s is ill-formed, please delete and download it again." % mra)
+        return
+
+    fields['rbf'] = fix_core(fields['rbf'])
+
+    basename_mra = mra_path.name
+
+    print('%-44s' % basename_mra[0:44], end='')
+    print(' %-10s' % fields['rbf'][0:10], end='')
+    print(' %-4s' % fields['year'][0:4], end='')
+    print(' %-10s' % fields['manufacturer'][0:10], end='')
+    print(' %-8s' % fields['category'].replace('/', '')[0:8], end='')
+    print()
+
+    fields['rbf'] = better_core_name(fields['rbf'])
+
+    #####Create symlinks for Region#####
+    if fields['region'] != '':
+        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_7Region, fields['region']))
+
+    if skipping_alt:
+        return
+
+    #####Create symlinks for A-Z######
+    first_letter_char = ord(basename_mra.upper()[0])
+    if between_chars(first_letter_char, '0', '9') or between_chars(first_letter_char, 'A', 'E'):
+        make_symlink(mra_path, basename_mra, ORGDIR_1AE)
+    elif between_chars(first_letter_char, 'F', 'K'):
+        make_symlink(mra_path, basename_mra, ORGDIR_1FK)
+    elif between_chars(first_letter_char, 'L', 'Q'):
+        make_symlink(mra_path, basename_mra, ORGDIR_1LQ)
+    elif between_chars(first_letter_char, 'R', 'T'):
+        make_symlink(mra_path, basename_mra, ORGDIR_1RT)
+    elif between_chars(first_letter_char, 'U', 'Z'):
+        make_symlink(mra_path, basename_mra, ORGDIR_1UZ)
+
+    #####Create symlinks for Core#####
+    if fields['rbf'] != '':
+        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_2Core, fields['rbf']))
+
+    #####Create symlinks for Year#####
+    if fields['year'] != '':
+        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_3Year, fields['year']))
+
+    #####Create symlinks for Manufacturer#####
+    if fields['manufacturer'] != '':
+        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_4Manufacturer, fields['manufacturer']))
+
+    #####Create symlinks for Category#####
+    if fields['category'] != '':
+        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_5Category, fields['category']))
+
+    #####Create symlinks for Rotation#####
+    if fields['setname'] != '' and CACHED_DATA_ZIP.is_file():
+        rotation = search_rotation(fields['setname'], ao_db)
+        if rotation != '':
+            make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_6Rotation, rotation))
 
 
-   #####Create symlinks for Core#####
+def is_date(date_text):
+    try:
+        datetime.datetime.strptime(date_text, '%Y-%m-%dT%H:%M:%SZ')
+        return True
+    except:
+        return False
 
-   if [ ! -z "$CORE" ] && [ ! -e "${ORGDIR_2Core}/_$CORE/$MRB" ]
-      then
-         mkdir -p "${ORGDIR_2Core}/_${CORE//\?/X}"
-         cd "${ORGDIR_2Core}/_${CORE//\?/X}"
-         ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
-   fi
+def are_files_different(file1, file2):
+    with file1.open() as f1:
+        with file2.open() as f2:
+            diffs = list(difflib.unified_diff(f1.readlines(), f2.readlines()))
+            return len(diffs) > 0
 
-   #####Create symlinks for Year#####
+def are_files_md5_different(path1, path2):
+    return hashlib.md5(path1.open('rb').read()).hexdigest() != hashlib.md5(path2.open('rb').read()).hexdigest()
 
-   if [ ! -z "$YEAR" ] && [ ! -e "${ORGDIR_3Year}/_$YEAR/$MRB" ]
-      then
-         mkdir -p "${ORGDIR_3Year}/_${YEAR//\?/X}"
-         cd "${ORGDIR_3Year}/_${YEAR//\?/X}"
-         ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
-   fi
+def download_data_zip():
+    print("Downloading rotations data.zip")
 
-   #####Create symlinks for Manufacturer#####
+    zip_output = subprocess.run('curl %s %s -o %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/data.zip' % (CURL_RETRY, SSL_SECURITY_OPTION, TMP_DATA_ZIP), shell=True, stderr=subprocess.DEVNULL)
 
-   if [ ! -z "$MANU" ] && [ ! -e "${ORGDIR_4Manufacturer}/_$MANU/$MRB" ]
-      then
-         mkdir -p "${ORGDIR_4Manufacturer}/_${MANU//\?/X}"
-         cd "${ORGDIR_4Manufacturer}/_${MANU//\?/X}"
-         ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
-   fi
+    tmp_data_zip = Path(TMP_DATA_ZIP)
+    if zip_output.returncode != 0 or not tmp_data_zip.is_file():
+        print("Couldn't download rotations data.zip : Network Problem")
+        print()
+        return
+    
+    md5_output = subprocess.run('curl %s %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/data.zip.md5' % (CURL_RETRY, SSL_SECURITY_OPTION), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+    if md5_output.returncode != 0:
+        print("Couldn't download rotations data.zip.md5 : Network Problem")
+        print()
+        tmp_data_zip.unlink()
+        return
 
-   #####Create symlinks for Category#####
+    md5hash = md5_output.stdout.splitlines()[0].decode()
+    print("MD5 Hash: %s" % md5hash)
+    print()
+    if hashlib.md5(open(TMP_DATA_ZIP,'rb').read()).hexdigest() != md5hash:
+        print("Corrupted rotations data.zip : Network Problem")
+        print()
+        tmp_data_zip.unlink()
 
-   if [ ! -z "$CAT" ] && [ ! -e "${ORGDIR_5Category}/_$CAT/$MRB" ]
-      then
-         mkdir -p "${ORGDIR_5Category}/_${CAT//\?/X}"
-         cd "${ORGDIR_5Category}/_${CAT//\?/X}"
-         ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
-   fi
+def optimized_arcade_organizer():
+    Path(ARCADE_ORGANIZER_WORK_PATH).mkdir(parents=True, exist_ok=True)
 
-   #####Create symlinks for Rotation#####
-   if [ ! -z "$SETNAME" ] && [ -e "${WORK_PATH}/mame-rotations.txt" ]
-      then
-         local ROTVAL=`grep "^${SETNAME}," ${WORK_PATH}/mame-rotations.txt |grep -o ROT[0-9]*`
-         case "$ROTVAL" in
-            ROT0)
-               ROTDESC="Horizontal"
-               ;;
-            ROT90)
-               ROTDESC="Vertical CW 90 Deg"
-               ;;
-            ROT180)
-               ROTDESC="Horizontal 180 Deg"
-               ;;
-            ROT270)
-               ROTDESC="Vertical CCW 90 Deg"
-               ;;
-            *)
-               ROTDESC="Unknown Rotation"
-               ;;
-         esac
-         if [ ! -z "$ROTDESC" ] && [ ! -e "${ORGDIR_6Rotation}/_$ROTDESC/$MRB" ]
-            then
-               mkdir -p "${ORGDIR_6Rotation}/_${ROTDESC//\?/X}"
-               cd "${ORGDIR_6Rotation}/_${ROTDESC//\?/X}"
-               ln -v -s "$MRA" "$MRB" >/dev/null 2>&1 || true
-         fi
-   fi
-}
+    print("Reading INI (%s):" % ini_file_path.name)
 
-optimized_arcade_organizer() {
-   mkdir -p "${WORK_PATH}"
+    INI_DATE = ''
+    if ini_file_path.is_file():
+        ctime = datetime.datetime.fromtimestamp(ini_file_path.stat().st_ctime)
+        INI_DATE = ctime.strftime('%Y-%m-%dT%H:%M:%SZ')
+        print("OK")
+    else:
+        print("Not found.")
 
-   echo
-   echo "Reading INI ($(basename ${INIFILE})):"
-   local INI_DATE=
-   if [ -f "${INIFILE}" ] ; then
-      INI_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ" -d "$(stat -c %y "${INIFILE}" 2> /dev/null)")
-      echo "OK"
-   else
-      echo "Not found."
-   fi
-   echo
+    print()
+    print('Arguments:')
+    for key, value in calculate_ini_options().items():
+        print("%s=%s" % (key, value))
+    print()
 
-   local LAST_RUN_PATH="${WORK_PATH}/last_run"
+    #########Auto Install##########
+    INSTALL_PATH="/media/fat/Scripts/update_arcade-organizer.sh"
+    if INSTALL and not Path(INSTALL_PATH).is_file():
+        print("Installing update_arcade-organizer.sh at /media/fat/Scripts")
+        output = subprocess.run('curl %s %s --location -o %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/update_arcade-organizer.sh' % (CURL_RETRY, SSL_SECURITY_OPTION, INSTALL_PATH), shell=True)
+        if output.returncode == 0:
+            print("Installed.")
+        else:
+            print("Couldn't install it : Network Problem")
+        time.sleep(10)
+        print()
 
-   local LAST_INI_DATE=
-   local LAST_MRA_DATE=
-   if [ -f "${LAST_RUN_PATH}" ] ; then
-      LAST_INI_DATE=$(cat "${LAST_RUN_PATH}" | sed '2q;d')
-      LAST_MRA_DATE=$(cat "${LAST_RUN_PATH}" | sed '3q;d')
-   fi
+    # check for any previous rotation files in tmp folder
+    tmp_data_zip = Path(TMP_DATA_ZIP)
+    if tmp_data_zip.is_file():
+        tmp_data_zip.unlink()
 
-   local FROM_SCRATCH="false"
-   if [ ! -d "${ORGDIR_1AE}/" ] || \
-      [ ! -d "${ORGDIR_1FK}/" ] || \
-      [ ! -d "${ORGDIR_1LQ}/" ] || \
-      [ ! -d "${ORGDIR_1RT}/" ] || \
-      [ ! -d "${ORGDIR_1UZ}/" ] || \
-      [[ "${LAST_MRA_DATE}" =~ ^[[:space:]]*$ ]] || \
-      ! date -d "${LAST_MRA_DATE}" > /dev/null 2>&1
-   then
-      FROM_SCRATCH="true"
-      echo "No previous runs detected."
-      echo
-   fi
+    download_data_zip()
 
-   local CACHED_NAMES="${WORK_PATH}/installed_names.txt"
-   local REAL_NAMES="/media/fat/names.txt"
-   if [ -f "${REAL_NAMES}" ] && ! diff "${REAL_NAMES}" "${CACHED_NAMES}" > /dev/null 2>&1 ; then
-      FROM_SCRATCH="true"
-      echo "The installed names.txt is new for the Arcade Organizer."
-      echo
-   fi
+    last_run_path = Path("%s/last_run" % ARCADE_ORGANIZER_WORK_PATH)
 
-   if [[ "${INI_DATE}" != "${LAST_INI_DATE}" ]] ; then
-      FROM_SCRATCH="true"
-      echo "INI file has been modified."
-      echo
-   fi
+    LAST_INI_DATE = ''
+    LAST_MRA_DATE = ''
+    if last_run_path.is_file():
+        with last_run_path.open() as f:
+            content = f.readlines()
+            content = [x.strip() for x in content]
+            if len(content) > 1:
+                LAST_INI_DATE = content[1]
+            if len(content) > 2:
+                LAST_MRA_DATE = content[2]
 
-   if [ -e "${TMP_ROTATIONS}" ] ; then
-      if ! diff "${TMP_ROTATIONS}" "${WORK_PATH}/mame-rotations.txt" > /dev/null 2>&1 ; then
-         cp "${TMP_ROTATIONS}" "${WORK_PATH}/mame-rotations.txt"
-         echo "The mame-rotations.txt is new for the Arcade Organizer"
-         echo
-         FROM_SCRATCH="true"
-      else
-         echo "No changes detected in mame-rotations.txt"
-         echo
-         echo "Skipping mame-rotations.txt..."
-         echo
-      fi
-      rm "${TMP_ROTATIONS}"
-   fi
-   # Not sure is this is needed anymore, it was in UA
-   #local N_MRA_LINKED=$(find "${ORGDIR}/" -type f -print0 | xargs -r0 readlink -f | sort | uniq | wc -l)
-   #local N_MRA_DEPTH1=$(find "${MRADIR}/" -maxdepth 1 -type f -iname "*.mra" | wc -l)
-   #if [[ "${N_MRA_DEPTH1}" > "${N_MRA_LINKED}" ]] ; then
-   #   FROM_SCRATCH="true"
-   #   echo "N_MRA_LINKED > N_MRA_DEPTH1: ${N_MRA_LINKED} > ${N_MRA_DEPTH1}"
-   #fi
+    FROM_SCRATCH = False
 
-   local FIND_ARGS=()
-   FIND_ARGS+=("${MRADIR}" -type f -name *.mra)
-   if [[ "${SKIPALTS^^}" != "FALSE" ]] ; then
-      FIND_ARGS+=(-not -ipath \*_Alternatives\*)
-   fi
+    if not Path(ORGDIR_1AE).is_dir() or \
+       not Path(ORGDIR_1FK).is_dir() or \
+       not Path(ORGDIR_1LQ).is_dir() or \
+       not Path(ORGDIR_1RT).is_dir() or \
+       not Path(ORGDIR_1UZ).is_dir() or \
+       not is_date(LAST_MRA_DATE):
+        FROM_SCRATCH = True
+        print("Fresh run required.")
+        print()
 
-   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
-      FIND_ARGS+=(-not -path "${dir}"/\*)
-   done
+    cached_names = Path("%s/installed_names.txt" % ARCADE_ORGANIZER_WORK_PATH)
+    real_names = Path(ARCADE_ORGANIZER_NAMES_TXT)
+    if real_names.is_file() and (not cached_names.is_file() or are_files_different(real_names, cached_names)):
+        FROM_SCRATCH = True
+        print("The installed names.txt is new for the Arcade Organizer.")
+        print()
 
-   if [[ "${FROM_SCRATCH}" == "false" ]] ; then
-      FIND_ARGS+=(-newerct ${LAST_MRA_DATE})
-   fi
+    if INI_DATE != LAST_INI_DATE:
+        FROM_SCRATCH = True
+        if LAST_INI_DATE != '':
+            print("INI file has been modified.")
+            print()
 
-   local UPDATED_MRAS=$(mktemp)
-   local MRA_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    if tmp_data_zip.is_file():
+        cached_data_zip = CACHED_DATA_ZIP
+        if not cached_data_zip.is_file() or are_files_md5_different(tmp_data_zip, cached_data_zip):
+            shutil.copy(str(tmp_data_zip), str(cached_data_zip))
+            FROM_SCRATCH = True
+            print("The rotations data.zip is new for the Arcade Organizer")
+            print()
+        else:
+            print("No changes detected in rotations data.zip")
+            print("Skipping rotations data.zip...")
+            print()
+        tmp_data_zip.unlink()
 
-   if [[ "${FROM_SCRATCH}" == "true" ]] ; then
-      echo "Performing a full build."
-      if [ -f "${ORGDIR_FOLDERS_FILE}" ] ; then
-         while IFS="" read -r dir || [ -n "${dir}" ] ; do
-            remove_dir "${dir}"
-         done < "${ORGDIR_FOLDERS_FILE}"
-         rm "${ORGDIR_FOLDERS_FILE}"
-      fi
-      for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
-         remove_dir "${dir}"
-      done
-   fi
+    find_args=""
+    for directory in ORGDIR_DIRECTORIES:
+        find_args = "%s -not -path \"%s\"/\*" % (find_args, directory)
 
-   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
-      if ! grep -q "${dir}" "${ORGDIR_FOLDERS_FILE}" 2> /dev/null ; then
-         echo "${dir}" >> "${ORGDIR_FOLDERS_FILE}"
-      fi
-   done
+    if not FROM_SCRATCH:
+        find_args = "%s -newerct %s" % (find_args, LAST_MRA_DATE)
 
-   (
-      local ORG_RP=$(realpath "${ORGDIR}")
-      local MRA_RP=$(realpath "${MRADIR}")
-      if [[ "${ORG_RP}" != "${MRA_RP}" ]] && [[ "${ORG_RP}" != "${MRA_RP}"* ]] && \
-         [ ! -e "${ORG_RP}/cores" ] && [ -d "${MRA_RP}/cores" ]
-      then
-         ln -s "${MRA_RP}/cores" "${ORG_RP}/cores"
-         echo "${ORG_RP}/cores" >> "${ORGDIR_FOLDERS_FILE}"
-      fi
-   )
+    orgdir_folders_file = ORGDIR_FOLDERS_FILE
+    MRA_DATE = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    if FROM_SCRATCH:
+        print("Performing a full build.")
+        if orgdir_folders_file.is_file():
+            for directory in read_orgdir_file_folders():
+                remove_dir(directory)
+            orgdir_folders_file.unlink()
+        for directory in ORGDIR_DIRECTORIES:
+            remove_dir(directory)
 
-   if [[ "${FROM_SCRATCH}" != "true" ]] ; then
-      echo "Performing an incremental build."
-      echo "NOTE: Remove the Organized folders if you wish to start from scratch."
-      if [ -f "${ORGDIR_FOLDERS_FILE}" ] ; then
-         while IFS="" read -r dir || [ -n "${dir}" ] ; do
-            remove_broken_symlinks "${dir}"
-         done < "${ORGDIR_FOLDERS_FILE}"
-      fi
-   fi
-   echo
+    if not FROM_SCRATCH:
+        print("Performing an incremental build.")
+        print("NOTE: Remove the Organized folders if you wish to start from scratch.")
+        for directory in read_orgdir_file_folders():
+            remove_broken_symlinks(directory)
 
-   find "${FIND_ARGS[@]}" > ${UPDATED_MRAS}
+    print()
 
-   local TOTAL_MRAS="$(wc -l ${UPDATED_MRAS} | awk '{print $1}')"
-   if [ ${TOTAL_MRAS} -eq 0 ] ; then
-      echo "No new MRAs detected"
-      echo
-      echo "Skipping Arcade Organizer..."
-      echo
-      exit 0
-   fi
-   echo "Organizing $(wc -l ${UPDATED_MRAS} | awk '{print $1}') MRAs."
-   sleep 4
-   echo
+    find_command = 'find %s -type f -name *.mra %s' % (MRADIR, find_args)
+    updated_mras = subprocess.run(find_command, shell=True, stdout=subprocess.PIPE).stdout.splitlines()
+    updated_mras = map(lambda byteline: Path(byteline.decode()), updated_mras)
+    updated_mras = sorted(updated_mras, key=lambda mra: mra.name.lower())
 
-   IFS=$'\n'
-   local MRA_FROM_FILE=($(cat ${UPDATED_MRAS} | sort))
-   unset IFS
-   rm "${UPDATED_MRAS}"
+    if len(updated_mras) == 0:
+        print("No new MRAs detected")
+        print()
+        print("Skipping Arcade Organizer...")
+        print()
+        exit(0)
+    
+    print("Organizing %s MRAs." % len(updated_mras))
+    print()
 
-   create_organized_directories
-   header
+    ao_db = read_rotations()
+    header()
 
-   for i in "${MRA_FROM_FILE[@]}" ; do
-      organize_mra "${i}"
-   done
+    for mra in updated_mras:
+        organize_mra(mra, ao_db)
 
-   echo "${ARCADE_ORGANIZER_VERSION}" > "${LAST_RUN_PATH}"
-   echo "${INI_DATE}" >> "${LAST_RUN_PATH}"
-   echo "${MRA_DATE}" >> "${LAST_RUN_PATH}"
-   if [ -f "${REAL_NAMES}" ] ; then
-      cp "${REAL_NAMES}" "${CACHED_NAMES}"
-   fi
-}
+    with orgdir_folders_file.open("a") as f:
+        orgdir_lines = read_orgdir_file_folders()
+        for directory in ORGDIR_DIRECTORIES:
+            if Path(directory).is_dir():
+                if not os.listdir(directory):
+                    remove_dir(directory)
+                elif directory not in orgdir_lines:
+                    f.write(directory + "\n")
 
-remove_dir() {
-   local dir="${1}"
-   if [ -d "${dir}" ] ; then
-      rm -rf "${dir}"
-   fi
-}
+    org_rp = Path(os.path.realpath(ORGDIR))
+    mra_rp = Path(os.path.realpath(MRADIR))
 
-remove_broken_symlinks() {
-   local dir="${1}"
-   if [ -d "${dir}" ] ; then
-      find "${dir}/" -xtype l -exec rm {} \; || true
-   fi
-}
+    org_cores = Path("%s/cores" % ORGDIR)
+    mra_cores = Path("%s/cores" % MRADIR)
+    if mra_rp not in org_rp.parents and not org_cores.is_dir() and mra_cores.is_dir():
+        org_cores.symlink_to(mra_cores)
+        with orgdir_folders_file.open("a") as f:
+            f.write(str(org_cores) + "\n")
 
-if [ ${#} -eq 1 ] && [ ${1} == "--optimized" ] ; then
-   optimized_arcade_organizer
-elif [ ${#} -eq 1 ] && [ ${1} == "--print-orgdir-folders" ] ; then
-   declare -A DIR_SET
-   for dir in "${ORGDIR_DIRECTORIES[@]}" ; do
-      if [ -e "${dir}" ] ; then
-         DIR_SET["${dir}"]="true"
-      fi
-   done
-   if [ -f "${ORGDIR_FOLDERS_FILE}" ] ; then
-      while IFS="" read -r dir || [ -n "${dir}" ] ; do
-         if [ -e "${dir}" ] ; then
-            DIR_SET["${dir}"]="true"
-         fi
-      done < "${ORGDIR_FOLDERS_FILE}"
-   fi
-   for dir in "${!DIR_SET[@]}" ; do
-      echo "${dir}"
-   done
-   exit 0
-elif [ ${#} -eq 1 ] && [ ${1} == "--print-ini-options" ] ; then
-   echo MRADIR=\""${MRADIR}\""
-   echo ORGDIR=\""${ORGDIR}\""
-   echo SKIPALTS=\""${SKIPALTS}\""
-   echo INSTALL=\""${INSTALL}\""
-   exit 0
-elif [ ${#} -ge 1 ] ; then
-   echo "Invalid arguments."
-   echo "Usage: ./${0} --print-orgdir-folders"
-   echo "       ./${0} --print-ini-options"
-   echo "       ./${0}"
-   exit 1
-else
-   optimized_arcade_organizer
-fi
-echo "################################################################################"
+    with last_run_path.open("w") as f:
+        f.write(ARCADE_ORGANIZER_VERSION + "\n")
+        f.write(INI_DATE + "\n")
+        f.write(MRA_DATE + "\n")
+    
+    if real_names.is_file():
+        shutil.copy(str(real_names), str(cached_names))
+
+    print("################################################################################")
+
+def remove_dir(directory):
+    path = Path(directory)
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(directory)
+    elif path.is_symlink():
+        path.unlink()
+    else:
+        return
+    parent = str(path.parent)
+    if not os.listdir(parent):
+        shutil.rmtree(parent)
+
+def remove_broken_symlinks(directory):
+    output = subprocess.run('find "%s/" -xtype l -exec rm \{\} \;' % directory, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if output.returncode != 0:
+        print("Couldn't clean broken symlinks at " + directory)
+
+def calculate_orgdir_folders():
+    dir_set=set()
+    for directory in ORGDIR_DIRECTORIES:
+        if Path(directory).is_dir():
+            dir_set.add(directory)
+    
+    for directory in read_orgdir_file_folders():
+        dir_set.add(directory)
+
+    return sorted(dir_set)
+
+def calculate_ini_options():
+    return {
+        'MRADIR' : MRADIR,
+        'ORGDIR' : ORGDIR,
+        'SKIPALTS' : "true" if SKIPALTS else "false",
+        'INSTALL' : "true" if INSTALL else "false",
+    }
+
+if __name__ == '__main__':
+    if len(sys.argv) == 2 and sys.argv[1] == "--print-orgdir-folders":
+        for directory in calculate_orgdir_folders():
+            print(directory)
+
+    elif len(sys.argv) == 2 and sys.argv[1] == "--print-ini-options":
+        for key, value in calculate_ini_options().items():
+            print("%s=%s" % (key, value))
+
+    elif len(sys.argv) != 1:
+        print("Invalid arguments.")
+        print("Usage: %s --print-orgdir-folders" % sys.argv[0])
+        print("       %s --print-ini-options" % sys.argv[0])
+        print("       %s" % sys.argv[0])
+        exit(1)
+
+    else:
+        optimized_arcade_organizer()
