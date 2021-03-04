@@ -188,7 +188,9 @@ def organize_mra(mra_path, ao_db):
             elem_tag = elem.tag.lower()
             if elem_tag in tags:
                 tags.remove(elem_tag)
-                fields[elem_tag] = elem.text
+                elem_value = elem.text
+                if isinstance(elem_value, str):
+                    fields[elem_tag] = elem_value
                 if len(tags) == 0:
                     break
     except:
