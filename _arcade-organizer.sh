@@ -147,7 +147,7 @@ def make_symlink(mra_path, basename_mra, directory):
         target.parent.mkdir(parents=True, exist_ok=True)
     except:
         return
-    target.symlink_to(mra_path.absolute())
+    os.symlink(str(mra_path.absolute()), str(target.absolute()))
 
 def read_orgdir_file_folders():
     result = list()
