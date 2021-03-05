@@ -454,7 +454,7 @@ def optimized_arcade_organizer():
     org_cores = Path("%s/cores" % ORGDIR)
     mra_cores = Path("%s/cores" % MRADIR)
     if mra_rp not in org_rp.parents and not org_cores.is_dir() and mra_cores.is_dir():
-        org_cores.symlink_to(mra_cores)
+        os.symlink(str(mra_cores.absolute()), str(org_cores.absolute()))
         with orgdir_folders_file.open("a") as f:
             f.write(str(org_cores) + "\n")
 
