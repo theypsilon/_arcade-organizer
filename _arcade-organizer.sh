@@ -418,7 +418,7 @@ def optimized_arcade_organizer():
 
     print()
 
-    find_command = 'find %s -type f -name *.mra %s' % (MRADIR, find_args)
+    find_command = 'find %s -type f -name "*.mra" %s' % (MRADIR, find_args)
     updated_mras = subprocess.run(find_command, shell=True, stdout=subprocess.PIPE).stdout.splitlines()
     updated_mras = map(lambda byteline: Path(byteline.decode()), updated_mras)
     updated_mras = sorted(updated_mras, key=lambda mra: mra.name.lower())
