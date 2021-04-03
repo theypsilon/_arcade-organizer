@@ -30,7 +30,11 @@ import time
 import json
 import xml.etree.cElementTree as ET
 
-INIFILE=Path(sys.argv[0]).with_suffix('.ini').absolute()
+ORIGINAL_SCRIPT_PATH=subprocess.run('ps | grep "^ *%s " | grep -o "[^ ]*$"' % os.getppid(), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout.decode().strip()
+if ORIGINAL_SCRIPT_PATH == '-bash':
+    ORIGINAL_SCRIPT_PATH=sys.argv[0]
+
+INIFILE=Path(ORIGINAL_SCRIPT_PATH).with_suffix('.ini').absolute()
 ini_file_path = Path(INIFILE)
 
 config = configparser.ConfigParser()
