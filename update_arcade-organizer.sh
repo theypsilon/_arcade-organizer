@@ -39,8 +39,9 @@ CURL_RETRY="--connect-timeout 15 --max-time 60 --retry 3 --retry-delay 5 --show-
 # ========= CODE STARTS HERE =========
 
 ORIGINAL_SCRIPT_PATH="${0}"
-[[ "${ORIGINAL_SCRIPT_PATH}" == "bash" ]] && \
-	ORIGINAL_SCRIPT_PATH="$(ps -o comm,pid | awk -v PPID=${PPID} '$2 == PPID {print $1}')"
+if [[ "${ORIGINAL_SCRIPT_PATH}" == "bash" ]] || [[ "${ORIGINAL_SCRIPT_PATH}" =~ ^/tmp/.*  ]]; then
+    ORIGINAL_SCRIPT_PATH=$(ps | grep "^ *$PPID " | grep -o "[^ ]*$")
+fi
 
 INI_PATH="${ORIGINAL_SCRIPT_PATH%.*}.ini"
 if [ -f "${INI_PATH}" ] ; then
