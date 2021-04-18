@@ -43,7 +43,7 @@ def make_config():
     if original_script_path == '-bash':
         original_script_path = sys.argv[0]
 
-    inifile = Path(original_script_path).with_suffix('.ini').absolute()
+    INIFILE=Path(original_script_path).with_suffix('.ini').absolute()
     ini_parser = configparser.ConfigParser()
     config["ini_file_path"] = Path(inifile)
     if config['ini_file_path'].is_file():
