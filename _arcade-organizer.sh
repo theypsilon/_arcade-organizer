@@ -301,6 +301,7 @@ class Infrastructure:
         mra_cores = Path("%s/cores" % self._config['MRADIR'])
         if mra_rp not in org_rp.parents and not org_cores.is_dir() and mra_cores.is_dir():
             os.symlink(str(mra_cores.absolute()), str(org_cores.absolute()))
+            orgdir_folders_file = self._config['ORGDIR_FOLDERS_FILE']
             with orgdir_folders_file.open("a") as f:
                 f.write(str(org_cores) + "\n")
 
@@ -318,7 +319,7 @@ class Infrastructure:
 
     def read_orgdir_file_folders(self):
         result = list()
-        orgdir_folders_file = Path(self._config['ORGDIR_FOLDERS_FILE'])
+        orgdir_folders_file = self._config['ORGDIR_FOLDERS_FILE']
         if orgdir_folders_file.is_file():
             with orgdir_folders_file.open() as f:
                 for line in f:
