@@ -18,6 +18,7 @@ import sys
 import subprocess
 from pathlib import Path
 import configparser
+from inspect import currentframe, getframeinfo
 import itertools
 import os
 import io
@@ -30,499 +31,694 @@ import time
 import json
 import xml.etree.cElementTree as ET
 
-ORIGINAL_SCRIPT_PATH=subprocess.run('ps | grep "^ *%s " | grep -o "[^ ]*$"' % os.getppid(), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout.decode().strip()
-if ORIGINAL_SCRIPT_PATH == '-bash':
-    ORIGINAL_SCRIPT_PATH=sys.argv[0]
+def make_config():
+    config = dict()
+    config['PRINT_SYMLINKS'] = os.getenv('PRINT_SYMLINKS', 'false') == 'true'
 
-INIFILE=Path(ORIGINAL_SCRIPT_PATH).with_suffix('.ini').absolute()
-ini_file_path = Path(INIFILE)
+    fake_data = os.getenv('FAKE_DATA')
+    if fake_data is not None:
+        config['FAKE_DATA'] = fake_data
 
-config = configparser.ConfigParser()
-if ini_file_path.is_file():
-    try:
-        config.read(ini_file_path)
-    except:
-        with ini_file_path.open() as fp:
-            config.read_file(itertools.chain(['[DEFAULT]'], fp), source=ini_file_path)
+    original_script_path = subprocess.run('ps | grep "^ *%s " | grep -o "[^ ]*$"' % os.getppid(), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout.decode().strip()
+    if original_script_path == '-bash':
+        original_script_path = sys.argv[0]
 
-ini_args = config['DEFAULT']
-MRADIR = ini_args.get('MRADIR', "/media/fat/_Arcade/").strip('"\'')
-ORGDIR = ini_args.get('ORGDIR', "/media/fat/_Arcade/_Organized").strip('"\'')
-SKIPALTS = bool(distutils.util.strtobool(ini_args.get('SKIPALTS', 'true').strip('"\'')))
-INSTALL = bool(distutils.util.strtobool(ini_args.get('INSTALL', 'false').strip('"\'')))
+    inifile = Path(original_script_path).with_suffix('.ini').absolute()
+    ini_parser = configparser.ConfigParser()
+    config["ini_file_path"] = Path(inifile)
+    if config['ini_file_path'].is_file():
+        try:
+            ini_parser.read(config['ini_file_path'])
+        except:
+            with config['ini_file_path'].open() as fp:
+                ini_parser.read_file(itertools.chain(['[DEFAULT]'], fp), source=config['ini_file_path'])
 
-###############################
-ARCADE_ORGANIZER_VERSION = "1.0"
-ARCADE_ORGANIZER_WORK_PATH = os.getenv('ARCADE_ORGANIZER_WORK_PATH', "/media/fat/Scripts/.cache/arcade-organizer")
-ARCADE_ORGANIZER_NAMES_TXT = os.getenv('ARCADE_ORGANIZER_NAMES_TXT', "/media/fat/names.txt")
-CACHED_DATA_ZIP = Path("%s/data.zip" % ARCADE_ORGANIZER_WORK_PATH)
-ORGDIR_FOLDERS_FILE = Path("%s/orgdir-folders" % ARCADE_ORGANIZER_WORK_PATH)
-SSL_SECURITY_OPTION = os.getenv('SSL_SECURITY_OPTION', '--insecure')
-CURL_RETRY =  '--max-time 30 --show-error'
-TMP_DATA_ZIP = "/tmp/data.zip"
+    ini_args = ini_parser['DEFAULT']
+    config['MRADIR'] = ini_args.get('MRADIR', "/media/fat/_Arcade/").strip('"\'')
+    config['ORGDIR'] = ini_args.get('ORGDIR', "/media/fat/_Arcade/_Organized").strip('"\'')
+    config['SKIPALTS'] = bool(distutils.util.strtobool(ini_args.get('SKIPALTS', 'true').strip('"\'')))
+    config['INSTALL'] = bool(distutils.util.strtobool(ini_args.get('INSTALL', 'false').strip('"\'')))
 
-#####Organized Directories#####
-ORGDIR_1AE="%s/_1 A-E" % ORGDIR
-ORGDIR_1FK="%s/_1 F-K" % ORGDIR
-ORGDIR_1LQ="%s/_1 L-Q" % ORGDIR
-ORGDIR_1RT="%s/_1 R-T" % ORGDIR
-ORGDIR_1UZ="%s/_1 U-Z" % ORGDIR
-ORGDIR_2Core="%s/_2 Core" % ORGDIR
-ORGDIR_3Year="%s/_3 Year" % ORGDIR
-ORGDIR_4Manufacturer="%s/_4 Manufacturer" % ORGDIR
-ORGDIR_5Category="%s/_5 Category" % ORGDIR
-ORGDIR_6Rotation="%s/_6 Rotation" % ORGDIR
-ORGDIR_7Region="%s/_7 Region" % ORGDIR
+    ###############################
+    config['ARCADE_ORGANIZER_VERSION'] = "1.0"
+    config['ARCADE_ORGANIZER_WORK_PATH'] = os.getenv('ARCADE_ORGANIZER_WORK_PATH', "/media/fat/Scripts/.cache/arcade-organizer")
+    config['ARCADE_ORGANIZER_NAMES_TXT'] = Path(os.getenv('ARCADE_ORGANIZER_NAMES_TXT', "/media/fat/names.txt"))
+    config['CACHED_DATA_ZIP'] = Path("%s/data.zip" % config['ARCADE_ORGANIZER_WORK_PATH'])
+    config['ORGDIR_FOLDERS_FILE'] = Path("%s/orgdir-folders" % config['ARCADE_ORGANIZER_WORK_PATH'])
+    config['SSL_SECURITY_OPTION'] = os.getenv('SSL_SECURITY_OPTION', '--insecure')
+    config['CURL_RETRY'] =  '--max-time 30 --show-error'
+    config['TMP_DATA_ZIP'] = "/tmp/data.zip"
 
-ORGDIR_DIRECTORIES = [
-   ORGDIR_1AE,
-   ORGDIR_1FK,
-   ORGDIR_1LQ,
-   ORGDIR_1RT,
-   ORGDIR_1UZ,
-   ORGDIR_2Core,
-   ORGDIR_3Year,
-   ORGDIR_4Manufacturer,
-   ORGDIR_5Category,
-   ORGDIR_6Rotation,
-   ORGDIR_7Region,
-]
+    #####Organized Directories#####
+    config['ORGDIR_1AE'] = "%s/_1 A-E" % config['ORGDIR']
+    config['ORGDIR_1FK'] = "%s/_1 F-K" % config['ORGDIR']
+    config['ORGDIR_1LQ'] = "%s/_1 L-Q" % config['ORGDIR']
+    config['ORGDIR_1RT'] = "%s/_1 R-T" % config['ORGDIR']
+    config['ORGDIR_1UZ'] = "%s/_1 U-Z" % config['ORGDIR']
+    config['ORGDIR_2Core'] = "%s/_2 Core" % config['ORGDIR']
+    config['ORGDIR_3Year'] = "%s/_3 Year" % config['ORGDIR']
+    config['ORGDIR_4Manufacturer'] = "%s/_4 Manufacturer" % config['ORGDIR']
+    config['ORGDIR_5Category'] = "%s/_5 Category" % config['ORGDIR']
+    config['ORGDIR_6Rotation'] = "%s/_6 Rotation" % config['ORGDIR']
+    config['ORGDIR_7Region'] = "%s/_7 Region" % config['ORGDIR']
 
-ROTATION_DIRECTORIES = {
-      0: "Horizontal",
-     90: "Vertical CW 90 Deg",
-    180: "Horizontal 180 Deg",
-    270: "Vertical CCW 90 Deg"
-}
+    config['ORGDIR_DIRECTORIES'] = [
+        config['ORGDIR_1AE'],
+        config['ORGDIR_1FK'],
+        config['ORGDIR_1LQ'],
+        config['ORGDIR_1RT'],
+        config['ORGDIR_1UZ'],
+        config['ORGDIR_2Core'],
+        config['ORGDIR_3Year'],
+        config['ORGDIR_4Manufacturer'],
+        config['ORGDIR_5Category'],
+        config['ORGDIR_6Rotation'],
+        config['ORGDIR_7Region'],
+    ]
 
-#####Build names.txt Dictionary#####
+    config['ROTATION_DIRECTORIES'] = {
+        0: "Horizontal",
+        90: "Vertical CW 90 Deg",
+        180: "Horizontal 180 Deg",
+        270: "Vertical CCW 90 Deg"
+    }
 
-NAMES_TXT=dict()
-arcade_organizer_names_txt = Path(ARCADE_ORGANIZER_NAMES_TXT)
-if arcade_organizer_names_txt.is_file():
-    with arcade_organizer_names_txt.open() as f:
-        for line in f:
-            if ":" not in line:
-                continue
-            splits = line.split(':', 1)
-            NAMES_TXT[splits[0].upper()] = splits[1].strip()
+    return config
 
-def better_core_name(core_name):
-    if core_name == "":
-        return ""
+def lineno():
+    return getframeinfo(currentframe().f_back).lineno
 
-    upper_core = core_name.upper()
-    if upper_core in NAMES_TXT:
-        return NAMES_TXT[upper_core]
+class Printer:
+    def __init__(self, config):
+        self._config = config
 
-    return core_name
+    def __enter__(self):
+        self._logfile = open(self._config['ARCADE_ORGANIZER_WORK_PATH'] + "/issues.log", "w")
+        return self
 
-#####Core name fix optimized#####
-CORES_DIR = Path("%s/cores/" % MRADIR)
-CORES_DICT = dict()
-if CORES_DIR.is_dir():
-    for core_path in CORES_DIR.iterdir():
-        core_name = core_path.name.rsplit('_', 1)[0]
-        CORES_DICT[core_name.upper()] = core_name
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._logfile.close()
 
-def fix_core(core_name):
-    if core_name == "":
-        return ""
-    return CORES_DICT.get(core_name.upper().strip(".RBF"), core_name)
+    def print(self, *args, sep='', end='\n', file=sys.stdout, flush=False):
+        print(*args, sep=sep, end=end, file=file, flush=flush)
 
-#####Extract MRA Info######
-def header():
-   print('%-44s' % "MRA", end='')
-   print(' %-10s' % "Core", end='')
-   print(' %-4s' % "Year", end='')
-   print(' %-10s' % "Manufactu.", end='')
-   print(' %-8s' % "Category", end='')
-   print()
-   print("################################################################################")
+    def log(self, *args, sep='', end='\n', flush=False):
+        print(*args, sep=sep, end=end, file=self._logfile, flush=flush)
 
 def between_chars(char, left, right):
     return char >= ord(left) and char <= ord(right)
 
-def make_symlink(mra_path, basename_mra, directory):
-    target = Path("%s/%s" % (directory, basename_mra))
-    if target.is_file() or target.is_symlink():
-        return
-    try:
-        target.parent.mkdir(parents=True, exist_ok=True)
-    except:
-        return
-    os.symlink(str(mra_path.absolute()), str(target.absolute()))
-
-def read_orgdir_file_folders():
-    result = list()
-    orgdir_folders_file = Path(ORGDIR_FOLDERS_FILE)
-    if orgdir_folders_file.is_file():
-        with orgdir_folders_file.open() as f:
-            for line in f:
-                directory = line.strip()
-                path = Path(directory)
-                if path.is_dir():
-                    result.append(directory)
-    return result
-
-def read_rotations():
-    if CACHED_DATA_ZIP.is_file():
-        output = subprocess.run("unzip -p %s" % CACHED_DATA_ZIP, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
-        if output.returncode == 0:
-            return json.loads(output.stdout.decode())
-
-        print("Error while reading rotations from %s" % CACHED_DATA_ZIP)
-
-    return {}
-
-def search_rotation(setname, ao_db):
-    mame_rotation = ao_db.get(setname, {}).get('rot')
-    return ROTATION_DIRECTORIES.get(mame_rotation, '')
-
 def is_alternative(mra_path):
     return any(p.name.lower() == '_alternatives' for p in mra_path.parents)
 
-def organize_mra(mra_path, ao_db):
-    tags = ['name', 'setname', 'rbf', 'year', 'manufacturer', 'category', 'region']
-    fields = { i : '' for i in tags }
+def datetime_from_ctime(entry):
+    return datetime.datetime.utcfromtimestamp(entry.stat().st_ctime)
 
-    try:
-        context = ET.iterparse(str(mra_path), events=("start",))
-        for event, elem in context:
-            elem_tag = elem.tag.lower()
-            if elem_tag in tags:
-                tags.remove(elem_tag)
-                elem_value = elem.text
-                if isinstance(elem_value, str):
-                    fields[elem_tag] = elem_value
-                if len(tags) == 0:
-                    break
-    except:
-        pass
+class MraFinderOld:
+    def __init__(self, config, infra):
+        self._config = config
+        self._find_args = ''
 
-    skipping_alt = SKIPALTS and is_alternative(mra_path)
+    def not_in_directory(self, directory):
+        self._find_args = "%s -not -path \"%s\"/\*" % (self._find_args, directory)
 
-    if skipping_alt and fields['region'] == '':
-        return
+    def newer_than(self, date):
+        self._find_args = "%s -newerct %s" % (self._find_args, date)
 
-    if 'rbf' not in fields:
-        print("%s is ill-formed, please delete and download it again." % mra)
-        return
+    def find_all_mras(self):
+        find_command = 'find %s -type f -name "*.mra" %s' % (self._config['MRADIR'], self._find_args)
+        updated_mras = subprocess.run(find_command, shell=True, stdout=subprocess.PIPE).stdout.splitlines()
+        updated_mras = map(lambda byteline: Path(byteline.decode()), updated_mras)
+        updated_mras = sorted(updated_mras, key=lambda mra: mra.name.lower())
+        return updated_mras
 
-    fields['rbf'] = fix_core(fields['rbf'])
+class MraFinderNew:
+    def __init__(self, config, infra):
+        self._config = config
+        self._infra = infra
+        self._not_in_directory = []
+        self._newer_than = None
 
-    basename_mra = mra_path.name
+    def not_in_directory(self, directory):
+        self._not_in_directory.append(directory)
 
-    print('%-44s' % basename_mra[0:44], end='')
-    print(' %-10s' % fields['rbf'][0:10], end='')
-    print(' %-4s' % fields['year'][0:4], end='')
-    print(' %-10s' % fields['manufacturer'][0:10], end='')
-    print(' %-8s' % fields['category'].replace('/', '')[0:8], end='')
-    print()
+    def newer_than(self, date_text):
+        self._newer_than = self._infra.text_to_date(date_text)
 
-    fields['rbf'] = better_core_name(fields['rbf'])
+    def find_all_mras(self):
+        return sorted(self._scan(self._config['MRADIR']), key=lambda mra: mra.name.lower())
 
-    #####Create symlinks for Region#####
-    if fields['region'] != '':
-        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_7Region, fields['region']))
+    def _scan(self, directory):
+        for entry in os.scandir(directory):
+            if entry.is_dir(follow_symlinks=False) and entry.path not in self._not_in_directory:
+                yield from self._scan(entry.path)
+            elif entry.name.lower().endswith(".mra") \
+            and (self._newer_than is None or datetime_from_ctime(entry) > self._newer_than):
+                yield Path(entry.path)
 
-    if skipping_alt:
-        return
+class Infrastructure:
+    def __init__(self, config, printer):
+        self._config = config
+        self._printer = printer
+        self._init_private_variables()
 
-    #####Create symlinks for A-Z######
-    first_letter_char = ord(basename_mra.upper()[0])
-    if between_chars(first_letter_char, '0', '9') or between_chars(first_letter_char, 'A', 'E'):
-        make_symlink(mra_path, basename_mra, ORGDIR_1AE)
-    elif between_chars(first_letter_char, 'F', 'K'):
-        make_symlink(mra_path, basename_mra, ORGDIR_1FK)
-    elif between_chars(first_letter_char, 'L', 'Q'):
-        make_symlink(mra_path, basename_mra, ORGDIR_1LQ)
-    elif between_chars(first_letter_char, 'R', 'T'):
-        make_symlink(mra_path, basename_mra, ORGDIR_1RT)
-    elif between_chars(first_letter_char, 'U', 'Z'):
-        make_symlink(mra_path, basename_mra, ORGDIR_1UZ)
+    def _init_private_variables(self):
+        self._last_run_path = Path("%s/last_run" % self._config['ARCADE_ORGANIZER_WORK_PATH'])
+        self._cached_names_path = Path("%s/installed_names.txt" % self._config['ARCADE_ORGANIZER_WORK_PATH'])
+        self._tmp_data_zip_path = Path(self._config['TMP_DATA_ZIP'])
 
-    #####Create symlinks for Core#####
-    if fields['rbf'] != '':
-        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_2Core, fields['rbf']))
+    def make_symlink(self, mra_path, basename_mra, directory):
+        target = Path("%s/%s" % (directory, basename_mra))
+        if target.is_file() or target.is_symlink():
+            return
+        try:
+            self.make_directory(target.parent)
+        except Exception as e:
+            self._printer.log("Line %s || %s (%s)" % (lineno(), e, mra_path))
+            return
+        src = str(mra_path.absolute())
+        dst = str(target.absolute())
+        if self._config['PRINT_SYMLINKS']:
+            self._printer.print("make_symlink: src %s dst %s" % (src, dst))
+        else:
+            os.symlink(src, dst)
 
-    #####Create symlinks for Year#####
-    if fields['year'] != '':
-        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_3Year, fields['year']))
+    def download_data_zip(self):
+        self._printer.print("Downloading rotations data.zip")
 
-    #####Create symlinks for Manufacturer#####
-    if fields['manufacturer'] != '':
-        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_4Manufacturer, fields['manufacturer']))
+        if 'FAKE_DATA' in self._config:
+            src = self._config['FAKE_DATA']
+            shutil.copyfile(src, self._config['TMP_DATA_ZIP'])
+            with open(self._config['TMP_DATA_ZIP'], 'rb') as tmp_data_zip:
+                self._printer.print("MD5 Hash: %s" % hashlib.md5(tmp_data_zip.read()).hexdigest())
+                self._printer.print()
+                return None
 
-    #####Create symlinks for Category#####
-    if fields['category'] != '':
-        make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_5Category, fields['category']))
+        zip_output = subprocess.run('curl %s %s -o %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/data.zip' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP']), shell=True, stderr=subprocess.DEVNULL)
 
-    #####Create symlinks for Rotation#####
-    if fields['setname'] != '' and CACHED_DATA_ZIP.is_file():
-        rotation = search_rotation(fields['setname'], ao_db)
-        if rotation != '':
-            make_symlink(mra_path, basename_mra, "%s/_%s/" % (ORGDIR_6Rotation, rotation))
+        if zip_output.returncode != 0 or not self._tmp_data_zip_path.is_file():
+            self._printer.print("Couldn't download rotations data.zip : Network Problem")
+            self._printer.print()
+            return None
+        
+        md5_output = subprocess.run('curl %s %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/data.zip.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION']), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+        if md5_output.returncode != 0:
+            self._printer.print("Couldn't download rotations data.zip.md5 : Network Problem")
+            self._printer.print()
+            self._tmp_data_zip_path.unlink()
+            return None
 
+        md5hash = md5_output.stdout.splitlines()[0].decode()
+        self._printer.print("MD5 Hash: %s" % md5hash)
+        self._printer.print()
+        with open(self._config['TMP_DATA_ZIP'], 'rb') as tmp_data_zip:
+            if hashlib.md5(tmp_data_zip.read()).hexdigest() != md5hash:
+                self._printer.print("Corrupted rotations data.zip : Network Problem")
+                self._printer.print()
+                self._tmp_data_zip_path.unlink()
+                return None
 
-def is_date(date_text):
-    try:
-        datetime.datetime.strptime(date_text, '%Y-%m-%dT%H:%M:%SZ')
-        return True
-    except:
-        return False
+        return self._tmp_data_zip_path
 
-def are_files_different(file1, file2):
-    with file1.open() as f1:
-        with file2.open() as f2:
+    def remove_orgdir_directories(self, orgdir_folders_file):
+        if orgdir_folders_file.is_file():
+            for directory in self.read_orgdir_file_folders():
+                self._remove_dir(directory)
+            orgdir_folders_file.unlink()
+        for directory in self._config['ORGDIR_DIRECTORIES']:
+            self._remove_dir(directory)
+
+    def remove_all_broken_symlinks(self):
+        for directory in self.read_orgdir_file_folders():
+            self._remove_broken_symlinks(directory)
+
+    def get_ini_date(self):
+        ini_file_path = self._config['ini_file_path']
+        self._printer.print("Reading INI (%s):" % ini_file_path.name)
+
+        ini_date = ''
+        if ini_file_path.is_file():
+            ctime = datetime_from_ctime(self._config['ini_file_path'])
+            ini_date = ctime.strftime('%Y-%m-%dT%H:%M:%SZ')
+            self._printer.print("OK")
+        else:
+            self._printer.print("Not found.")
+
+        return ini_date
+
+    def get_now_date(self):
+        return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def read_last_run_file(self):
+        last_ini_date = ''
+        last_mra_date = ''
+        if self._last_run_path.is_file():
+            with self._last_run_path.open() as f:
+                content = f.readlines()
+                content = [x.strip() for x in content]
+                if len(content) > 1:
+                    last_ini_date = content[1]
+                if len(content) > 2:
+                    last_mra_date = content[2]
+
+        return [last_ini_date, last_mra_date]
+
+    def write_last_run_file(self, ini_date, mra_date):
+        with self._last_run_path.open("w") as f:
+            f.write(self._config['ARCADE_ORGANIZER_VERSION'] + "\n")
+            f.write(ini_date + "\n")
+            f.write(mra_date + "\n")
+
+    def cache_names_file(self):
+        if self._config['ARCADE_ORGANIZER_NAMES_TXT'].is_file():
+            shutil.copy(str(self._config['ARCADE_ORGANIZER_NAMES_TXT']), str(self._cached_names_path))
+
+    def handle_orgdir_outside_mra_folder(self):
+        org_rp = Path(os.path.realpath(self._config['ORGDIR']))
+        mra_rp = Path(os.path.realpath(self._config['MRADIR']))
+
+        org_cores = Path("%s/cores" % self._config['ORGDIR'])
+        mra_cores = Path("%s/cores" % self._config['MRADIR'])
+        if mra_rp not in org_rp.parents and not org_cores.is_dir() and mra_cores.is_dir():
+            os.symlink(str(mra_cores.absolute()), str(org_cores.absolute()))
+            with orgdir_folders_file.open("a") as f:
+                f.write(str(org_cores) + "\n")
+
+    def write_orgdir_folders_file(self):
+        orgdir_folders_file = self._config['ORGDIR_FOLDERS_FILE']
+
+        with orgdir_folders_file.open("a") as f:
+            orgdir_lines = self.read_orgdir_file_folders()
+            for directory in self._config['ORGDIR_DIRECTORIES']:
+                if Path(directory).is_dir():
+                    if not os.listdir(directory):
+                        self._remove_dir(directory)
+                    elif directory not in orgdir_lines:
+                        f.write(directory + "\n")
+
+    def read_orgdir_file_folders(self):
+        result = list()
+        orgdir_folders_file = Path(self._config['ORGDIR_FOLDERS_FILE'])
+        if orgdir_folders_file.is_file():
+            with orgdir_folders_file.open() as f:
+                for line in f:
+                    directory = line.strip()
+                    path = Path(directory)
+                    if path.is_dir():
+                        result.append(directory)
+        return result
+
+    def install_standalone_script_if_needed(self):
+        self._config['INSTALL_PATH'] = "/media/fat/Scripts/update_arcade-organizer.sh"
+        if self._config['INSTALL'] and not Path(self._config['INSTALL_PATH']).is_file():
+            self._printer.print("Installing update_arcade-organizer.sh at /media/fat/Scripts")
+            output = subprocess.run('curl %s %s --location -o %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/update_arcade-organizer.sh' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['INSTALL_PATH']), shell=True)
+            if output.returncode == 0:
+                self._printer.print("Installed.")
+            else:
+                self._printer.print("Couldn't install it : Network Problem")
+            time.sleep(10)
+            self._printer.print()
+
+    def remove_any_previous_rotation_files_in_tmp(self):
+        if self._tmp_data_zip_path.is_file():
+            self._tmp_data_zip_path.unlink()
+
+    def get_cached_data_zip(self):
+        return self._config['CACHED_DATA_ZIP']
+    
+    def are_files_different(self, left_file, right_file):
+        return (not left_file.is_file() and right_file.is_file()) or \
+                (not right_file.is_file() and left_file.is_file()) or \
+                self._are_files_md5_different(left_file, right_file)
+
+    def copy_file(self, from_file, to_file):
+        shutil.copy(str(from_file), str(to_file))
+
+    def remove_file(self, file_path):
+        file_path.unlink()
+
+    def check_if_orgdir_directories_are_missing(self):
+        return not Path(self._config['ORGDIR_1AE']).is_dir() or \
+            not Path(self._config['ORGDIR_1FK']).is_dir() or \
+            not Path(self._config['ORGDIR_1LQ']).is_dir() or \
+            not Path(self._config['ORGDIR_1RT']).is_dir() or \
+            not Path(self._config['ORGDIR_1UZ']).is_dir()
+
+    def check_if_names_txt_is_new(self):
+        return self._config['ARCADE_ORGANIZER_NAMES_TXT'].is_file() \
+        and ( \
+            not self._cached_names_path.is_file() \
+            or self._are_files_different(self._config['ARCADE_ORGANIZER_NAMES_TXT'], self._cached_names_path) \
+        )
+
+    def read_mra_fields(self, mra_path, tags):
+        fields = { i : '' for i in tags }
+
+        try:
+            context = ET.iterparse(str(mra_path), events=("start",))
+            for event, elem in context:
+                elem_tag = elem.tag.lower()
+                if elem_tag in tags:
+                    tags.remove(elem_tag)
+                    elem_value = elem.text
+                    if isinstance(elem_value, str):
+                        fields[elem_tag] = elem_value
+                    if len(tags) == 0:
+                        break
+        except Exception as e:
+            self._printer.log("Line %s || %s (%s)" % (lineno(), e, mra_path))
+
+        return fields
+
+    def read_rotations(self):
+        if self._config['CACHED_DATA_ZIP'].is_file():
+            output = subprocess.run("unzip -p %s" % self._config['CACHED_DATA_ZIP'], shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+            if output.returncode == 0:
+                return json.loads(output.stdout.decode())
+
+            self._printer.print("Error while reading rotations from %s" % self._config['CACHED_DATA_ZIP'])
+
+        return {}
+
+    def text_is_date(self, date_text):
+        if self.text_to_date(date_text) is None:
+            return False
+        else:
+            return True
+
+    def text_to_date(self, date_text):
+        try:
+            date = datetime.datetime.strptime(date_text, '%Y-%m-%dT%H:%M:%SZ')
+            return date
+        except Exception as e:
+            self._printer.log("Line %s || %s (%s)" % (lineno(), e, date_text))
+            return None
+
+    def make_directory(self, directory_path):
+        directory_path.mkdir(parents=True, exist_ok=True)
+
+    def _are_files_different(self, file1, file2):
+        with file1.open() as f1, file2.open() as f2:
             diffs = list(difflib.unified_diff(f1.readlines(), f2.readlines()))
             return len(diffs) > 0
 
-def are_files_md5_different(path1, path2):
-    return hashlib.md5(path1.open('rb').read()).hexdigest() != hashlib.md5(path2.open('rb').read()).hexdigest()
+    def _are_files_md5_different(self, path1, path2):
+        with path1.open('rb') as path1_file, path2.open('rb') as path2_file:
+            return hashlib.md5(path1_file.read()).hexdigest() != hashlib.md5(path2_file.read()).hexdigest()
 
-def download_data_zip():
-    print("Downloading rotations data.zip")
-
-    zip_output = subprocess.run('curl %s %s -o %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/data.zip' % (CURL_RETRY, SSL_SECURITY_OPTION, TMP_DATA_ZIP), shell=True, stderr=subprocess.DEVNULL)
-
-    tmp_data_zip = Path(TMP_DATA_ZIP)
-    if zip_output.returncode != 0 or not tmp_data_zip.is_file():
-        print("Couldn't download rotations data.zip : Network Problem")
-        print()
-        return
-    
-    md5_output = subprocess.run('curl %s %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/data.zip.md5' % (CURL_RETRY, SSL_SECURITY_OPTION), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
-    if md5_output.returncode != 0:
-        print("Couldn't download rotations data.zip.md5 : Network Problem")
-        print()
-        tmp_data_zip.unlink()
-        return
-
-    md5hash = md5_output.stdout.splitlines()[0].decode()
-    print("MD5 Hash: %s" % md5hash)
-    print()
-    if hashlib.md5(open(TMP_DATA_ZIP,'rb').read()).hexdigest() != md5hash:
-        print("Corrupted rotations data.zip : Network Problem")
-        print()
-        tmp_data_zip.unlink()
-
-def optimized_arcade_organizer():
-    Path(ARCADE_ORGANIZER_WORK_PATH).mkdir(parents=True, exist_ok=True)
-
-    print("Reading INI (%s):" % ini_file_path.name)
-
-    INI_DATE = ''
-    if ini_file_path.is_file():
-        ctime = datetime.datetime.fromtimestamp(ini_file_path.stat().st_ctime)
-        INI_DATE = ctime.strftime('%Y-%m-%dT%H:%M:%SZ')
-        print("OK")
-    else:
-        print("Not found.")
-
-    print()
-    print('Arguments:')
-    for key, value in calculate_ini_options().items():
-        print("%s=%s" % (key, value))
-    print()
-
-    #########Auto Install##########
-    INSTALL_PATH="/media/fat/Scripts/update_arcade-organizer.sh"
-    if INSTALL and not Path(INSTALL_PATH).is_file():
-        print("Installing update_arcade-organizer.sh at /media/fat/Scripts")
-        output = subprocess.run('curl %s %s --location -o %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/update_arcade-organizer.sh' % (CURL_RETRY, SSL_SECURITY_OPTION, INSTALL_PATH), shell=True)
-        if output.returncode == 0:
-            print("Installed.")
+    def _remove_dir(self, directory):
+        path = Path(directory)
+        if path.is_dir() and not path.is_symlink():
+            shutil.rmtree(directory)
+        elif path.is_symlink():
+            path.unlink()
         else:
-            print("Couldn't install it : Network Problem")
-        time.sleep(10)
-        print()
+            return
+        parent = str(path.parent)
+        if not os.listdir(parent):
+            shutil.rmtree(parent)
 
-    # check for any previous rotation files in tmp folder
-    tmp_data_zip = Path(TMP_DATA_ZIP)
-    if tmp_data_zip.is_file():
-        tmp_data_zip.unlink()
+    def _remove_broken_symlinks(self, directory):
+        output = subprocess.run('find "%s/" -xtype l -exec rm \{\} \;' % directory, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        if output.returncode != 0:
+            self._printer.print("Couldn't clean broken symlinks at " + directory)
+            self._printer.print(output.stderr.decode())
 
-    download_data_zip()
 
-    last_run_path = Path("%s/last_run" % ARCADE_ORGANIZER_WORK_PATH)
+class ArcadeOrganizer:
+    def __init__(self, config, infra, mra_finder, printer):
+        self._config = config
+        self._infra = infra
+        self._mra_finder = mra_finder
+        self._printer = printer
+        self._init_cores_dict()
+        self._init_names_txt_dict()
+        self._cached_rotations = None
 
-    LAST_INI_DATE = ''
-    LAST_MRA_DATE = ''
-    if last_run_path.is_file():
-        with last_run_path.open() as f:
-            content = f.readlines()
-            content = [x.strip() for x in content]
-            if len(content) > 1:
-                LAST_INI_DATE = content[1]
-            if len(content) > 2:
-                LAST_MRA_DATE = content[2]
+    def _init_cores_dict(self):
+        cores_dir = Path("%s/cores/" % self._config['MRADIR'])
+        self._cores_dict = dict()
+        if cores_dir.is_dir():
+            for core_path in cores_dir.iterdir():
+                core_name = core_path.name.rsplit('_', 1)[0]
+                self._cores_dict[core_name.upper()] = core_name
 
-    FROM_SCRATCH = False
+    def _init_names_txt_dict(self):
+        self._names_txt_dict = dict()
+        if self._config['ARCADE_ORGANIZER_NAMES_TXT'].is_file():
+            with self._config['ARCADE_ORGANIZER_NAMES_TXT'].open() as f:
+                for line in f:
+                    if ":" not in line:
+                        continue
+                    splits = line.split(':', 1)
+                    self._names_txt_dict[splits[0].upper()] = splits[1].strip()
 
-    if not Path(ORGDIR_1AE).is_dir() or \
-       not Path(ORGDIR_1FK).is_dir() or \
-       not Path(ORGDIR_1LQ).is_dir() or \
-       not Path(ORGDIR_1RT).is_dir() or \
-       not Path(ORGDIR_1UZ).is_dir() or \
-       not is_date(LAST_MRA_DATE):
-        FROM_SCRATCH = True
-        print("Fresh run required.")
-        print()
+    def organize_single_mra(self, mra_path):
 
-    cached_names = Path("%s/installed_names.txt" % ARCADE_ORGANIZER_WORK_PATH)
-    real_names = Path(ARCADE_ORGANIZER_NAMES_TXT)
-    if real_names.is_file() and (not cached_names.is_file() or are_files_different(real_names, cached_names)):
-        FROM_SCRATCH = True
-        print("The installed names.txt is new for the Arcade Organizer.")
-        print()
+        fields = self._infra.read_mra_fields(mra_path, [
+            'name',
+            'setname',
+            'rbf',
+            'year',
+            'manufacturer',
+            'category',
+            'region'
+        ])
 
-    if INI_DATE != LAST_INI_DATE:
-        FROM_SCRATCH = True
-        if LAST_INI_DATE != '':
-            print("INI file has been modified.")
-            print()
+        skipping_alt = self._config['SKIPALTS'] and is_alternative(mra_path)
 
-    if tmp_data_zip.is_file():
-        cached_data_zip = CACHED_DATA_ZIP
-        if not cached_data_zip.is_file() or are_files_md5_different(tmp_data_zip, cached_data_zip):
-            shutil.copy(str(tmp_data_zip), str(cached_data_zip))
-            FROM_SCRATCH = True
-            print("The rotations data.zip is new for the Arcade Organizer")
-            print()
-        else:
-            print("No changes detected in rotations data.zip")
-            print("Skipping rotations data.zip...")
-            print()
-        tmp_data_zip.unlink()
+        if skipping_alt and fields['region'] == '':
+            return
 
-    find_args=""
-    for directory in ORGDIR_DIRECTORIES:
-        find_args = "%s -not -path \"%s\"/\*" % (find_args, directory)
+        if 'rbf' not in fields:
+            self._printer.print("%s is ill-formed, please delete and download it again." % mra)
+            return
 
-    if not FROM_SCRATCH:
-        find_args = "%s -newerct %s" % (find_args, LAST_MRA_DATE)
+        fields['rbf'] = self.fix_core(fields['rbf'])
 
-    orgdir_folders_file = ORGDIR_FOLDERS_FILE
-    MRA_DATE = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-    if FROM_SCRATCH:
-        print("Performing a full build.")
-        if orgdir_folders_file.is_file():
-            for directory in read_orgdir_file_folders():
-                remove_dir(directory)
-            orgdir_folders_file.unlink()
-        for directory in ORGDIR_DIRECTORIES:
-            remove_dir(directory)
+        basename_mra = mra_path.name
 
-    if not FROM_SCRATCH:
-        print("Performing an incremental build.")
-        print("NOTE: Remove the Organized folders if you wish to start from scratch.")
-        for directory in read_orgdir_file_folders():
-            remove_broken_symlinks(directory)
+        self._printer.print('%-44s' % basename_mra[0:44], end='')
+        self._printer.print(' %-10s' % fields['rbf'][0:10], end='')
+        self._printer.print(' %-4s' % fields['year'][0:4], end='')
+        self._printer.print(' %-10s' % fields['manufacturer'][0:10], end='')
+        self._printer.print(' %-8s' % fields['category'].replace('/', '')[0:8], end='')
+        self._printer.print()
 
-    print()
+        fields['rbf'] = self.better_core_name(fields['rbf'])
 
-    find_command = 'find %s -type f -name "*.mra" %s' % (MRADIR, find_args)
-    updated_mras = subprocess.run(find_command, shell=True, stdout=subprocess.PIPE).stdout.splitlines()
-    updated_mras = map(lambda byteline: Path(byteline.decode()), updated_mras)
-    updated_mras = sorted(updated_mras, key=lambda mra: mra.name.lower())
+        #####Create symlinks for Region#####
+        if fields['region'] != '':
+            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_7Region'], fields['region']))
 
-    if len(updated_mras) == 0:
-        print("No new MRAs detected")
-        print()
-        print("Skipping Arcade Organizer...")
-        print()
-        exit(0)
-    
-    print("Organizing %s MRAs." % len(updated_mras))
-    print()
+        if skipping_alt:
+            return
 
-    ao_db = read_rotations()
-    header()
+        #####Create symlinks for A-Z######
+        first_letter_char = ord(basename_mra.upper()[0])
+        if between_chars(first_letter_char, '0', '9') or between_chars(first_letter_char, 'A', 'E'):
+            self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1AE'])
+        elif between_chars(first_letter_char, 'F', 'K'):
+            self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1FK'])
+        elif between_chars(first_letter_char, 'L', 'Q'):
+            self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1LQ'])
+        elif between_chars(first_letter_char, 'R', 'T'):
+            self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1RT'])
+        elif between_chars(first_letter_char, 'U', 'Z'):
+            self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1UZ'])
 
-    for mra in updated_mras:
-        organize_mra(mra, ao_db)
+        #####Create symlinks for Core#####
+        if fields['rbf'] != '':
+            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_2Core'], fields['rbf']))
 
-    with orgdir_folders_file.open("a") as f:
-        orgdir_lines = read_orgdir_file_folders()
+        #####Create symlinks for Year#####
+        if fields['year'] != '':
+            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_3Year'], fields['year']))
+
+        #####Create symlinks for Manufacturer#####
+        if fields['manufacturer'] != '':
+            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_4Manufacturer'], fields['manufacturer']))
+
+        #####Create symlinks for Category#####
+        if fields['category'] != '':
+            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_5Category'], fields['category']))
+
+        #####Create symlinks for Rotation#####
+        if fields['setname'] != '' and self._config['CACHED_DATA_ZIP'].is_file():
+            rotation = self.search_rotation(fields['setname'])
+            if rotation != '':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_6Rotation'], rotation))
+
+    def fix_core(self, core_name):
+        if core_name == "":
+            return ""
+        return self._cores_dict.get(core_name.upper().strip(".RBF"), core_name)
+
+    def better_core_name(self, core_name):
+        if core_name == "":
+            return ""
+
+        upper_core = core_name.upper()
+        if upper_core in self._names_txt_dict:
+            return self._names_txt_dict[upper_core]
+
+        return core_name
+
+    def search_rotation(self, setname):
+        mame_rotation = self.rotations_dict.get(setname, {}).get('rot')
+        return self._config['ROTATION_DIRECTORIES'].get(mame_rotation, '')
+
+    def calculate_ini_options(self):
+        return {
+            'MRADIR' : self._config['MRADIR'],
+            'ORGDIR' : self._config['ORGDIR'],
+            'SKIPALTS' : "true" if self._config['SKIPALTS'] else "false",
+            'INSTALL' : "true" if self._config['INSTALL'] else "false",
+        }
+
+    def calculate_orgdir_folders(self):
+        dir_set=set()
         for directory in ORGDIR_DIRECTORIES:
             if Path(directory).is_dir():
-                if not os.listdir(directory):
-                    remove_dir(directory)
-                elif directory not in orgdir_lines:
-                    f.write(directory + "\n")
-
-    org_rp = Path(os.path.realpath(ORGDIR))
-    mra_rp = Path(os.path.realpath(MRADIR))
-
-    org_cores = Path("%s/cores" % ORGDIR)
-    mra_cores = Path("%s/cores" % MRADIR)
-    if mra_rp not in org_rp.parents and not org_cores.is_dir() and mra_cores.is_dir():
-        os.symlink(str(mra_cores.absolute()), str(org_cores.absolute()))
-        with orgdir_folders_file.open("a") as f:
-            f.write(str(org_cores) + "\n")
-
-    with last_run_path.open("w") as f:
-        f.write(ARCADE_ORGANIZER_VERSION + "\n")
-        f.write(INI_DATE + "\n")
-        f.write(MRA_DATE + "\n")
-    
-    if real_names.is_file():
-        shutil.copy(str(real_names), str(cached_names))
-
-    print("################################################################################")
-
-def remove_dir(directory):
-    path = Path(directory)
-    if path.is_dir() and not path.is_symlink():
-        shutil.rmtree(directory)
-    elif path.is_symlink():
-        path.unlink()
-    else:
-        return
-    parent = str(path.parent)
-    if not os.listdir(parent):
-        shutil.rmtree(parent)
-
-def remove_broken_symlinks(directory):
-    output = subprocess.run('find "%s/" -xtype l -exec rm \{\} \;' % directory, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    if output.returncode != 0:
-        print("Couldn't clean broken symlinks at " + directory)
-
-def calculate_orgdir_folders():
-    dir_set=set()
-    for directory in ORGDIR_DIRECTORIES:
-        if Path(directory).is_dir():
+                dir_set.add(directory)
+        
+        for directory in self.read_orgdir_file_folders():
             dir_set.add(directory)
-    
-    for directory in read_orgdir_file_folders():
-        dir_set.add(directory)
 
-    return sorted(dir_set)
+        return sorted(dir_set)
 
-def calculate_ini_options():
-    return {
-        'MRADIR' : MRADIR,
-        'ORGDIR' : ORGDIR,
-        'SKIPALTS' : "true" if SKIPALTS else "false",
-        'INSTALL' : "true" if INSTALL else "false",
-    }
+    @property
+    def rotations_dict(self):
+        if self._cached_rotations is None:
+            self._cached_rotations = self._infra.read_rotations()
+        return self._cached_rotations
+
+    def organize_all_mras(self):
+        self._infra.make_directory(Path(self._config['ARCADE_ORGANIZER_WORK_PATH']))
+
+        ini_date = self._infra.get_ini_date()
+
+        self._printer.print()
+        self._printer.print('Arguments:')
+        for key, value in sorted(self.calculate_ini_options().items()):
+            self._printer.print("%s=%s" % (key, value))
+        self._printer.print()
+
+        self._infra.install_standalone_script_if_needed()
+
+        self._infra.remove_any_previous_rotation_files_in_tmp()
+
+        tmp_data_file = self._infra.download_data_zip()
+
+        last_ini_date, last_mra_date = self._infra.read_last_run_file()
+
+        from_scatch = False
+
+        if self._infra.check_if_orgdir_directories_are_missing():
+            from_scatch = True
+            self._printer.print("Some ORGDIR directories are missing.")
+            self._printer.print()
+
+        if not self._infra.text_is_date(last_mra_date):
+            from_scatch = True
+            self._printer.print("Last run file not found.")
+            self._printer.print()
+
+        if self._infra.check_if_names_txt_is_new():
+            from_scatch = True
+            self._printer.print("The installed names.txt is new.")
+            self._printer.print()
+
+        if ini_date != last_ini_date:
+            from_scatch = True
+            if last_ini_date != '':
+                self._printer.print("INI file has been modified.")
+                self._printer.print()
+
+        if tmp_data_file is not None:
+            cached_data_file = self._infra.get_cached_data_zip()
+            if self._infra.are_files_different(tmp_data_file, cached_data_file):
+                self._infra.copy_file(tmp_data_file, cached_data_file)
+                from_scatch = True
+                self._printer.print("The rotations data.zip is new.")
+                self._printer.print()
+            self._infra.remove_file(tmp_data_file)
+
+        for directory in self._config['ORGDIR_DIRECTORIES']:
+            self._mra_finder.not_in_directory(directory)
+
+        if not from_scatch:
+            self._mra_finder.newer_than(last_mra_date)
+
+        orgdir_folders_file = self._config['ORGDIR_FOLDERS_FILE']
+        mra_date = self._infra.get_now_date()
+        if from_scatch:
+            self._printer.print("Performing a full build.")
+            self._infra.remove_orgdir_directories(orgdir_folders_file)
+        else:
+            self._printer.print("Performing an incremental build.")
+            self._printer.print("NOTE: Remove the Organized folders if you wish to start from scratch.")
+            self._infra.remove_all_broken_symlinks()
+
+        self._printer.print()
+
+        updated_mras = self._mra_finder.find_all_mras()
+
+        if len(updated_mras) == 0:
+            self._printer.print("No new MRAs detected")
+            self._printer.print()
+            self._printer.print("Skipping Arcade Organizer...")
+            self._printer.print()
+            return
+        
+        self._printer.print("Organizing %s MRAs." % len(updated_mras))
+        self._printer.print()
+        self._printer.print('%-44s' % "MRA", end='')
+        self._printer.print(' %-10s' % "Core", end='')
+        self._printer.print(' %-4s' % "Year", end='')
+        self._printer.print(' %-10s' % "Manufactu.", end='')
+        self._printer.print(' %-8s' % "Category", end='')
+        self._printer.print()
+        self._printer.print("################################################################################")
+
+        for mra in updated_mras:
+            self.organize_single_mra(mra)
+
+        self._infra.write_orgdir_folders_file()
+
+        self._infra.handle_orgdir_outside_mra_folder()
+
+        self._infra.write_last_run_file(ini_date, mra_date)
+        
+        self._infra.cache_names_file()
+
+        self._printer.print("################################################################################")
+
+def run():
+    config = make_config()
+    with Printer(config) as printer:
+        infra = Infrastructure(config, printer)
+        mra_finder = MraFinderNew(config, infra)
+        ao = ArcadeOrganizer(config, infra, mra_finder, printer)
+
+        if len(sys.argv) == 2 and sys.argv[1] == "--print-orgdir-folders":
+            for directory in ao.calculate_orgdir_folders():
+                printer.print(directory)
+
+        elif len(sys.argv) == 2 and sys.argv[1] == "--print-ini-options":
+            for key, value in sorted(ao.calculate_ini_options().items()):
+                printer.print("%s=%s" % (key, value))
+
+        elif len(sys.argv) != 1:
+            printer.print("Invalid arguments.")
+            printer.print("Usage: %s --print-orgdir-folders" % sys.argv[0])
+            printer.print("       %s --print-ini-options" % sys.argv[0])
+            printer.print("       %s" % sys.argv[0])
+            exit(1)
+
+        else:
+            ao.organize_all_mras()
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2 and sys.argv[1] == "--print-orgdir-folders":
-        for directory in calculate_orgdir_folders():
-            print(directory)
-
-    elif len(sys.argv) == 2 and sys.argv[1] == "--print-ini-options":
-        for key, value in calculate_ini_options().items():
-            print("%s=%s" % (key, value))
-
-    elif len(sys.argv) != 1:
-        print("Invalid arguments.")
-        print("Usage: %s --print-orgdir-folders" % sys.argv[0])
-        print("       %s --print-ini-options" % sys.argv[0])
-        print("       %s" % sys.argv[0])
-        exit(1)
-
-    else:
-        optimized_arcade_organizer()
+    run()
