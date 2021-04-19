@@ -45,7 +45,7 @@ def make_config():
 
     INIFILE=Path(original_script_path).with_suffix('.ini').absolute()
     ini_parser = configparser.ConfigParser()
-    config["ini_file_path"] = Path(inifile)
+    config["ini_file_path"] = Path(INIFILE)
     if config['ini_file_path'].is_file():
         try:
             ini_parser.read(config['ini_file_path'])
