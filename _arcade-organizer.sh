@@ -113,17 +113,26 @@ class Printer:
         self._config = config
 
     def __enter__(self):
-        self._logfile = open(self._config['ARCADE_ORGANIZER_WORK_PATH'] + "/issues.log", "w")
+        try:
+            self._logfile = open(self._config['ARCADE_ORGANIZER_WORK_PATH'] + "/issues.log", "w")
+        except:
+            pass
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._logfile.close()
+        try:
+            self._logfile.close()
+        except:
+            pass
 
     def print(self, *args, sep='', end='\n', file=sys.stdout, flush=False):
         print(*args, sep=sep, end=end, file=file, flush=flush)
 
     def log(self, *args, sep='', end='\n', flush=False):
-        print(*args, sep=sep, end=end, file=self._logfile, flush=flush)
+        try:
+            print(*args, sep=sep, end=end, file=self._logfile, flush=flush)
+        except:
+            pass
 
 def between_chars(char, left, right):
     return char >= ord(left) and char <= ord(right)
