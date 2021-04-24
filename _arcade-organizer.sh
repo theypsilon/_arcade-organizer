@@ -589,11 +589,11 @@ class ArcadeOrganizer:
 
     def calculate_orgdir_folders(self):
         dir_set=set()
-        for directory in ORGDIR_DIRECTORIES:
+        for directory in self._config['ORGDIR_DIRECTORIES']:
             if Path(directory).is_dir():
                 dir_set.add(directory)
         
-        for directory in self.read_orgdir_file_folders():
+        for directory in self._infra.read_orgdir_file_folders():
             dir_set.add(directory)
 
         return sorted(dir_set)
