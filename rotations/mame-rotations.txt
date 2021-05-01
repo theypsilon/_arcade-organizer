@@ -751,6 +751,7 @@ amidars,ROT90
 amidaru,ROT90
 amigo,ROT90
 amigo2,ROT90
+aminosan,ROT0
 ampkr228,ROT0
 ampkr2b1,ROT0
 ampkr2b2,ROT0
@@ -1412,8 +1413,10 @@ baraduke,ROT0
 barata,ROT0
 barbball,ROT0
 barbwire,ROT0
+barek2ch,ROT0
 barek2mb,ROT0
 barek3mb,ROT0
+barekch,ROT0
 barline,ROT180
 barra_l1,ROT0
 barricad,ROT0
@@ -2381,6 +2384,7 @@ carnking,ROT0
 carpolo,ROT0
 carrera,ROT0
 cartfury,ROT0
+cas21iwc,ROT0
 casanova,ROT0
 casbjack,ROT0
 cascade,ROT0
@@ -3409,6 +3413,7 @@ daioh,ROT270
 daioha,ROT270
 daiohc,ROT270
 daiohp,ROT270
+daiohp2,ROT270
 daireika,ROT0
 dairesya,ROT0
 daisenpu,ROT270
@@ -4154,6 +4159,7 @@ drmn7m,ROT0
 drmn7ma,ROT0
 drmn8m,ROT0
 drmn9m,ROT0
+drmna,ROT0
 drmred,ROT0
 drpong,ROT0
 drtomy,ROT0
@@ -5983,6 +5989,7 @@ funkyfig,ROT0
 funkyfiga,ROT0
 funkyjet,ROT0
 funkyjeta,ROT0
+funkyjeta2,ROT0
 funkyjetb,ROT0
 funkyjetj,ROT0
 funlddlx,ROT0
@@ -7460,6 +7467,7 @@ hnageman,ROT180
 hnayayoi,ROT0
 hncholms,ROT90
 hndlchmp,ROT0
+hndlchmpj,ROT0
 hnfubuki,ROT0
 hng64,ROT0
 hngmnjpm,ROT0
@@ -7625,6 +7633,7 @@ hvyunitja,ROT0
 hvyunitjo,ROT0
 hvyunitu,ROT0
 hwchamp,ROT0
+hwchampa,ROT0
 hwchampj,ROT0
 hwchampjd,ROT0
 hwrace,ROT270
@@ -7851,6 +7860,7 @@ invasnab3,ROT0
 invasnab4,ROT0
 invds,ROT270
 invho2,ROT270
+invho2a,ROT270
 invinco,ROT270
 invmulti,ROT270
 invmultim1a,ROT270
@@ -9410,6 +9420,9 @@ joemacrj,ROT0
 jogakuen,ROT0
 joinem,ROT90
 jojo,ROT0
+jojoa,ROT0
+jojoar1,ROT0
+jojoar2,ROT0
 jojoba,ROT0
 jojobaj,ROT0
 jojobajr1,ROT0
@@ -10092,7 +10105,6 @@ lazercmd,ROT0
 lazrlord,ROT0
 lbeach,ROT0
 lbgrande,ROT0
-lbgrandeja,ROT0
 lbowling,ROT0
 lbvbiosu,ROT0
 lc_11,ROT0
@@ -13793,6 +13805,7 @@ mmancp2u,ROT0
 mmancp2ur1,ROT0
 mmancp2ur2,ROT0
 mmatrix,ROT0
+mmatrixa,ROT0
 mmatrixd,ROT0
 mmatrixj,ROT0
 mmaulers,ROT0
@@ -14326,6 +14339,7 @@ narc1,ROT0
 narc2,ROT0
 narc3,ROT0
 narc4,ROT0
+narc6,ROT0
 nascar,ROT0
 nascar_301,ROT0
 nascar_340,ROT0
@@ -14365,6 +14379,11 @@ nbaf_31,ROT0
 nbaf_31a,ROT0
 nbagold,ROT0
 nbahangt,ROT0
+nbahangtl11,ROT0
+nbahangtl12,ROT0
+nbahangtm11,ROT0
+nbahangtm12,ROT0
+nbahangtm13,ROT0
 nbajam,ROT0
 nbajamex,ROT0
 nbajamexa,ROT0
@@ -14373,11 +14392,16 @@ nbajamr2,ROT0
 nbajamte,ROT0
 nbajamte1,ROT0
 nbajamte2,ROT0
+nbajamte2a,ROT0
 nbajamte3,ROT0
+nbajamte3a,ROT0
+nbajamte4,ROT0
 nbajamten,ROT0
 nbamac,ROT0
 nbamht,ROT0
-nbamht1,ROT0
+nbamhtl10,ROT0
+nbamhtm10,ROT0
+nbamhtp,ROT0
 nbanfl,ROT0
 nbapbp,ROT0
 nbapbpa,ROT0
@@ -14853,8 +14877,10 @@ outrunb,ROT0
 outrundx,ROT0
 outrundxa,ROT0
 outrundxeh,ROT0
+outrundxeha,ROT0
 outrundxj,ROT0
 outruneh,ROT0
+outruneha,ROT0
 outrunra,ROT0
 outzone,ROT270
 outzonea,ROT270
@@ -15161,11 +15187,15 @@ pclubyo2,ROT0
 pclubys,ROT0
 pclubysa,ROT0
 pcmostw,ROT0
+pcnfrk,ROT0
 pcnfrk2m,ROT0
 pcnfrk3m,ROT0
 pcnfrk4m,ROT0
 pcnfrk4mk,ROT0
 pcnfrk5m,ROT0
+pcnfrka,ROT0
+pcnfrkk,ROT0
+pcnfrku,ROT0
 pcockmag,ROT0
 pcockmagu,ROT0
 pcorig,ROT0
@@ -16115,10 +16145,12 @@ poker72,ROT0
 poker91,ROT0
 pokerdub,ROT0
 pokeresp,ROT0
+pokeriwc,ROT0
 pokermon,ROT0
 pokeroul,ROT0
 pokerout,ROT0
 pokersis,ROT0
+pokiwc162,ROT0
 pokoachu,ROT0
 pokonl97,ROT0
 pokonyan,ROT0
@@ -16558,6 +16590,7 @@ ptblank,ROT0
 ptblank2,ROT0
 ptblank2a,ROT0
 ptblank2b,ROT0
+ptblank2c,ROT0
 ptblank2ua,ROT0
 ptblank3,ROT0
 ptblanka,ROT0
@@ -17747,6 +17780,7 @@ sbishi,ROT0
 sbishik,ROT0
 sbishika,ROT0
 sblast2b,ROT0
+sblast2ba,ROT0
 sblazerp,ROT0
 sbm,ROT0
 sbmj,ROT0
@@ -22584,6 +22618,7 @@ scfinals,ROT0
 scfinalso,ROT0
 scfinalsoc,ROT0
 scg05nt,ROT0
+scg05ntb,ROT0
 scg06nt,ROT0
 scg06nto,ROT0
 schamp,ROT0
@@ -25202,6 +25237,7 @@ tekken2ub,ROT0
 tekken3,ROT0
 tekken3a,ROT0
 tekken3b,ROT0
+tekken3d,ROT0
 tekken3ja,ROT0
 tekken3je1,ROT0
 tekken3ua,ROT0
@@ -25837,8 +25873,10 @@ troangel,ROT0
 trocana,ROT0
 trog,ROT0
 trog3,ROT0
+trog3a,ROT0
 trog4,ROT0
 trogpa4,ROT0
+trogpa5,ROT0
 trogpa6,ROT0
 trojan,ROT0
 trojana,ROT0
@@ -26954,6 +26992,8 @@ warlords,ROT0
 warofbug,ROT90
 warofbugg,ROT90
 warofbugu,ROT90
+warp1,ROT90
+warp1bl,ROT270
 warpsped,ROT0
 warpwarp,ROT90
 warpwarpr,ROT90
