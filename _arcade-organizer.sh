@@ -78,7 +78,7 @@ def make_config():
     config['ORGDIR_1RT'] = "%s/__R-T" % config['ORGDIR']
     config['ORGDIR_1UZ'] = "%s/__U-Z" % config['ORGDIR']
     config['ORGDIR_Core'] = "%s/_Core" % config['ORGDIR']
-    config['ORGDIR_Year'] = "%s/_Year" % config['ORGDIR']
+    config['ORGDIR_Chron'] = "%s/_Chronological" % config['ORGDIR']
     config['ORGDIR_Manufacturer'] = "%s/_Manufacturer" % config['ORGDIR']
     config['ORGDIR_Category'] = "%s/_Category" % config['ORGDIR']
     config['ORGDIR_RotationMAME'] = "%s/_Rotation (MAME)" % config['ORGDIR']
@@ -103,7 +103,7 @@ def make_config():
         config['ORGDIR_1RT'],
         config['ORGDIR_1UZ'],
         config['ORGDIR_Core'],
-        config['ORGDIR_Year'],
+        config['ORGDIR_Chron'],
         config['ORGDIR_Manufacturer'],
         config['ORGDIR_Category'],
         config['ORGDIR_RotationMAME'],
@@ -634,29 +634,44 @@ class ArcadeOrganizer:
         #####Create symlinks for Core#####
         if fields['rbf'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Core'], fields['rbf']))
-            # Create chronological links inside category
+            # Create chronological links inside core folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Core'], fields['rbf'], "chronological"))
 
-        #####Create symlinks for Year#####
+        #####Create symlinks for Chronological#####
         if fields['year'] != '':
-            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Year'], fields['year']))
+            if fields['year'] < '1970':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "1960s"))
+            elif fields['year'] < '1980':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "1970s"))
+            elif fields['year'] < '1990':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "1980s"))
+            elif fields['year'] < '2000':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "1990s"))
+            elif fields['year'] < '2010':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "2000s"))
+            elif fields['year'] < '2020':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "2010s"))
+            elif fields['year'] < '2030':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "2020s"))
+            # Create chronological links inside chronological folder
+            self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/" % self._config['ORGDIR_Chron'])
 
         #####Create symlinks for Manufacturer#####
         if fields['manufacturer'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer']))
-            # Create chronological links inside category
+            # Create chronological links inside manufacturer
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer'], "chronological"))
 
         #####Create symlinks for Manufacturer 2#####
         if fields['manufacturer2'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer2']))
-            # Create chronological links inside category
+            # Create chronological links inside manufacturer
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer2'], "chronological"))
 
         #####Create symlinks for Manufacturer 3#####
         if fields['manufacturer3'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer3']))
-            # Create chronological links inside category
+            # Create chronological links inside manufacturer
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer3'], "chronological"))
 
         #####Create symlinks for Category#####
@@ -674,37 +689,37 @@ class ArcadeOrganizer:
         #####Create symlinks for Rotation (MRA)#####
         if fields['rotation'] == 'horizontal':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation']))
-            # Create chronological links inside category
+            # Create chronological links inside rotation folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation'], "chronological"))
         if fields['rotation'] == 'vertical (cw)' and fields['flip'] == 'no':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation']))
-            # Create chronological links inside category
+            # Create chronological links inside rotation folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation'], "chronological"))
         if fields['rotation'] == 'vertical (ccw)' and fields['flip'] == 'no':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation']))
-            # Create chronological links inside category
+            # Create chronological links inside rotation folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation'], "chronological"))
         if fields['rotation'] == ('vertical (cw)' or 'vertical (ccw)') and fields['flip'] == 'yes':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMRA'], "vertical (either)"))
-            # Create chronological links inside category
+            # Create chronological links inside rotation folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_RotationMRA'], "vertical (either)", "chronological"))
 
         #####Create symlinks for Resolution#####
         if 'resolution' in fields and fields['resolution'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Resolution'], fields['resolution']))
-            # Create chronological links inside category
+            # Create chronological links inside resolution folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Resolution'], fields['resolution'], "chronological"))
 
         #####Create symlinks for Series #####
         if 'series' in fields and fields['series'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Series'], fields['series']))
-            # Create chronological links inside category
+            # Create chronological links inside series folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Series'], fields['series'], "chronological"))
 
         #####Create symlinks for Platform #####
         if 'platform' in fields and fields['platform'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Platform'], fields['platform']))
-            # Create chronological links inside category
+            # Create chronological links inside platform folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Platform'], fields['platform'], "chronological"))
 
         #####Create symlinks for Flip #####
@@ -714,25 +729,25 @@ class ArcadeOrganizer:
         #####Create symlinks for Players #####
         if 'players' in fields and fields['players'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Players'], fields['players']))
-            # Create chronological links inside category
+            # Create chronological links inside players folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Players'], fields['players'], "chronological"))
 
         #####Create symlinks for Joystick #####
         if 'joystick' in fields and fields['joystick'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Joystick'], fields['joystick']))
-            # Create chronological links inside category
+            # Create chronological links inside joystick folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Joystick'], fields['joystick'], "chronological"))
 
         #####Create symlinks for Buttons #####
         if 'num_buttons' in fields and fields['num_buttons'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_NumButtons'], fields['num_buttons']))
-            # Create chronological links inside category
+            # Create chronological links inside buttons folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_NumButtons'], fields['num_buttons'], "chronological"))
 
         #####Create symlinks for Special Controls #####
         if 'special_controls' in fields and fields['special_controls'] != '':
             self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls']))
-            # Create chronological links inside category
+            # Create chronological links inside controls folder
             self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls'], "chronological"))
 
         #####Create symlinks for Bootleg #####
