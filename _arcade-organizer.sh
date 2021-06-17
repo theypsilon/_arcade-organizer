@@ -621,6 +621,7 @@ class ArcadeOrganizer:
             'players',
             'joystick',
             'special_controls',
+            'special_controls_2',
             'num_buttons'
         ])
 
@@ -969,6 +970,10 @@ class ArcadeOrganizer:
                 self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls']))
                 # Create chronological links inside controls folder
                 self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls'], "Chronological"))
+            if 'special_controls' in fields and fields['special_controls_2'] != '':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls_2']))
+                # Create chronological links inside controls folder
+                self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls_2'], "Chronological"))
 
         #####Create symlinks for Bootleg #####
         if self._config['BOOTLEG_DIR']:
