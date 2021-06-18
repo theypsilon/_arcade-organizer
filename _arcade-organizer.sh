@@ -60,6 +60,7 @@ def make_config():
     config['INSTALL'] = bool(distutils.util.strtobool(ini_args.get('INSTALL', 'false').strip('"\'')))
     config['AZ_DIR'] = bool(distutils.util.strtobool(ini_args.get('AZ_DIR', 'true').strip('"\'')))
     config['CHRON_DIR'] = bool(distutils.util.strtobool(ini_args.get('CHRON_DIR', 'true').strip('"\'')))
+    config['CHRON_SUB_DIR'] = bool(distutils.util.strtobool(ini_args.get('CHRON_SUB_DIR', 'true').strip('"\'')))
     config['BUTTONS_DIR'] = bool(distutils.util.strtobool(ini_args.get('BUTTONS_DIR', 'true').strip('"\'')))
     config['JOYSTICK_DIR'] = bool(distutils.util.strtobool(ini_args.get('JOYSTICK_DIR', 'true').strip('"\'')))
     config['PLAYERS_DIR'] = bool(distutils.util.strtobool(ini_args.get('PLAYERS_DIR', 'true').strip('"\'')))
@@ -876,10 +877,12 @@ class ArcadeOrganizer:
             if fields['manufacturer'] != '':
                 self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer']))
                 # Create chronological links inside manufacturer
+                if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer'], "Chronological"))
             if fields['manufacturer2'] != '':
                 self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer2']))
                 # Create chronological links inside manufacturer
+                if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer2'], "Chronological"))
             if fields['manufacturer3'] != '':
                 self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer3']))
@@ -900,7 +903,6 @@ class ArcadeOrganizer:
             if fields['setname'] != '' and self._config['CACHED_DATA_ZIP'].is_file():
                 rotation = self.search_rotation(fields['setname'])
                 if rotation != '':
-                if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMAME'], rotation))
 
         #####Create symlinks for Rotation (MRA)#####
@@ -1001,7 +1003,7 @@ class ArcadeOrganizer:
         #####Create symlinks for Homebrew #####
         if self._config['HOMEBREW_DIR']:
             if 'homebrew' in fields and fields['homebrew'] == 'yes':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Homebrew'],fields['homebrew']))
+                self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_Homebrew'])
 
     def fix_core(self, core_name):
         if core_name == "":
