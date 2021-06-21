@@ -167,8 +167,7 @@ def make_config():
     config['ORGDIR_Chron'] = "%s/_Chronological" % config['ORGDIR']
     config['ORGDIR_Manufacturer'] = "%s/_Manufacturer" % config['ORGDIR']
     config['ORGDIR_Category'] = "%s/_Category" % config['ORGDIR']
-    config['ORGDIR_RotationMAME'] = "%s/_Rotation (MAME)" % config['ORGDIR']
-    config['ORGDIR_RotationMRA'] = "%s/_Rotation (MRA)" % config['ORGDIR']
+    config['ORGDIR_Rotation'] = "%s/_Rotation" % config['ORGDIR']
     config['ORGDIR_Region'] = "%s/_Region" % config['ORGDIR']
     config['ORGDIR_Resolution'] = "%s/_Resolution" % config['ORGDIR']
     config['ORGDIR_Series'] = "%s/_Series" % config['ORGDIR']
@@ -192,8 +191,8 @@ def make_config():
         config['ORGDIR_Chron'],
         config['ORGDIR_Manufacturer'],
         config['ORGDIR_Category'],
-        config['ORGDIR_RotationMAME'],
-        config['ORGDIR_RotationMRA'],
+        config['ORGDIR_Rotation'],
+        config['ORGDIR_Rotation'],
         config['ORGDIR_Region'],
         config['ORGDIR_Resolution'],
         config['ORGDIR_Series'],
@@ -209,9 +208,9 @@ def make_config():
 
     config['ROTATION_DIRECTORIES'] = {
         0: "Horizontal",
-        90: "Vertical CW 90 Deg",
-        180: "Horizontal 180 Deg",
-        270: "Vertical CCW 90 Deg"
+        90: "Vertical (CW)",
+        180: "Horizontal (180)",
+        270: "Vertical (CCW)"
     }
 
     return config
@@ -787,21 +786,21 @@ class ArcadeOrganizer:
             if fields['year'] < "1980" and not self._config['1970S']:
                 self._printer.print("%s: %s" % (fields['setname'], "Skipped 1970s"))
                 return
-                if fields['year'] < "1990" and not self._config['1980S']:
-                    self._printer.print("%s: %s" % (fields['setname'], "Skipped 1980s"))
-                    return
-                    if fields['year'] < "2000" and not self._config['1990S']:
-                        self._printer.print("%s: %s" % (fields['setname'], "Skipped 1990s"))
-                        return
-                        if fields['year'] < "2010" and not self._config['2000S']:
-                            self._printer.print("%s: %s" % (fields['setname'], "Skipped 2000s"))
-                            return
-                            if fields['year'] < "2020" and not self._config['2010S']:
-                                self._printer.print("%s: %s" % (fields['setname'], "Skipped 2010s"))
-                                return
-                                if fields['year'] < "2030" and not self._config['2020S']:
-                                    self._printer.print("%s: %s" % (fields['setname'], "Skipped 2020s"))
-                                    return
+            elif fields['year'] < "1990" and not self._config['1980S']:
+                self._printer.print("%s: %s" % (fields['setname'], "Skipped 1980s"))
+                return
+            elif fields['year'] < "2000" and not self._config['1990S']:
+                self._printer.print("%s: %s" % (fields['setname'], "Skipped 1990s"))
+                return
+            elif fields['year'] < "2010" and not self._config['2000S']:
+                self._printer.print("%s: %s" % (fields['setname'], "Skipped 2000s"))
+                return
+            elif fields['year'] < "2020" and not self._config['2010S']:
+                self._printer.print("%s: %s" % (fields['setname'], "Skipped 2010s"))
+                return
+            elif fields['year'] < "2030" and not self._config['2020S']:
+                self._printer.print("%s: %s" % (fields['setname'], "Skipped 2020s"))
+                return
 
         if 'rbf' not in fields:
             self._printer.print("%s is ill-formed, please delete and download it again." % mra)
@@ -858,17 +857,35 @@ class ArcadeOrganizer:
         if self._config['CHRON_DIR']:
             if fields['year'] != '':
                 if fields['year'] < "1980":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "1970s"))
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "1970s"))
+                    # Create chronological links inside decades folders
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "1970s", "Chronological"))
                 elif fields['year'] < "1990":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "1980s"))
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "1980s"))
+                    # Create chronological links inside decades folders
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "1980s", "Chronological"))
                 elif fields['year'] < "2000":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "1990s"))
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "1990s"))
+                    # Create chronological links inside decades folders
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "1990s", "Chronological"))
                 elif fields['year'] < "2010":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "2000s"))
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "2000s"))
+                    # Create chronological links inside decades folders
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "2000s", "Chronological"))
                 elif fields['year'] < "2020":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "2010s"))
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "2010s"))
+                    # Create chronological links inside decades folders
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "2010s", "Chronological"))
                 elif fields['year'] < "2030":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/__%s/" % (self._config['ORGDIR_Chron'], "2020s"))
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "2020s"))
+                    # Create chronological links inside decades folders
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "2020s", "Chronological"))
                 # Create chronological links inside chronological folder
                 self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/" % self._config['ORGDIR_Chron'])
 
@@ -898,35 +915,34 @@ class ArcadeOrganizer:
                 if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Category'], fields['category'], "Chronological"))
             
-        #####Create symlinks for Rotation (MAME)#####
-        if self._config['ROTATION_DIR']:
-            if fields['setname'] != '' and self._config['CACHED_DATA_ZIP'].is_file():
-                rotation = self.search_rotation(fields['setname'])
-                if rotation != '':
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMAME'], rotation))
-
         #####Create symlinks for Rotation (MRA)#####
         if self._config['ROTATION_DIR']:
-            if fields['rotation'] == 'horizontal':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation']))
-                # Create chronological links inside rotation folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation'], "Chronological"))
-            if fields['rotation'] == 'vertical (cw)' and fields['flip'] == 'no':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation']))
-                # Create chronological links inside rotation folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation'], "Chronological"))
-            if fields['rotation'] == 'vertical (ccw)' and fields['flip'] == 'no':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation']))
-                # Create chronological links inside rotation folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_RotationMRA'], fields['rotation'], "Chronological"))
-            if fields['rotation'] == ('vertical (cw)' or 'vertical (ccw)') and fields['flip'] == 'yes':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_RotationMRA'], "vertical (either)"))
-                # Create chronological links inside rotation folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_RotationMRA'], "vertical (either)", "Chronological"))
+            if 'rotation' in fields:
+                if fields['rotation'] == 'horizontal':
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], "Horizontal"))
+                    # Create chronological links inside rotation folder
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Rotation'], fields['rotation'], "Chronological"))
+                elif fields['rotation'] == 'vertical (cw)' and fields['flip'] == 'no':
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], "Vertical (CW)"))
+                    # Create chronological links inside rotation folder
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Rotation'], fields['rotation'], "Chronological"))
+                elif fields['rotation'] == 'vertical (ccw)' and fields['flip'] == 'no':
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], "Vertical (CCW)"))
+                    # Create chronological links inside rotation folder
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Rotation'], fields['rotation'], "Chronological"))
+                elif fields['rotation'] == ('vertical (cw)' or 'vertical (ccw)') and fields['flip'] == 'yes':
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], "Vertical (Either)"))
+                    # Create chronological links inside rotation folder
+                    if self._config['CHRON_SUB_DIR']:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Rotation'], "vertical (either)", "Chronological"))
+            elif fields['setname'] != '' and self._config['CACHED_DATA_ZIP'].is_file():
+                self._printer.print("%s: %s" % (fields['setname'], "MRA missing Rotation Information"))
+                rotation = self.search_rotation(fields['setname'])
+                if rotation != '':
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], rotation))
 
         #####Create symlinks for Resolution#####
         if self._config['RESOLUTION_DIR']:
