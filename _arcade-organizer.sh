@@ -58,6 +58,7 @@ def make_config():
     config['ORGDIR'] = ini_args.get('ORGDIR', "/media/fat/_Arcade/_Organized").strip('"\'')
     config['SKIPALTS'] = bool(distutils.util.strtobool(ini_args.get('SKIPALTS', 'true').strip('"\'')))
     config['INSTALL'] = bool(distutils.util.strtobool(ini_args.get('INSTALL', 'false').strip('"\'')))
+    config['VERBOSE'] = bool(distutils.util.strtobool(ini_args.get('VERBOSE', 'true').strip('"\'')))
     config['AZ_DIR'] = bool(distutils.util.strtobool(ini_args.get('AZ_DIR', 'true').strip('"\'')))
     config['CHRON_DIR'] = bool(distutils.util.strtobool(ini_args.get('CHRON_DIR', 'true').strip('"\'')))
     config['CHRON_SUB_DIR'] = bool(distutils.util.strtobool(ini_args.get('CHRON_SUB_DIR', 'true').strip('"\'')))
@@ -74,6 +75,7 @@ def make_config():
     config['SPECIAL_CONTROLS_DIR'] = bool(distutils.util.strtobool(ini_args.get('SPECIAL_CONTROLS_DIR', 'true').strip('"\'')))
     config['FLIP_DIR'] = bool(distutils.util.strtobool(ini_args.get('FLIP_DIR', 'true').strip('"\'')))
     config['REGION_DIR'] = bool(distutils.util.strtobool(ini_args.get('REGION_DIR', 'true').strip('"\'')))
+    config['REGION_SUB_DIR'] = bool(distutils.util.strtobool(ini_args.get('REGION_SUB_DIR', 'true').strip('"\'')))
     config['BOOTLEG_DIR'] = bool(distutils.util.strtobool(ini_args.get('BOOTLEG_DIR', 'true').strip('"\'')))
     config['HOMEBREW_DIR'] = bool(distutils.util.strtobool(ini_args.get('HOMEBREW_DIR', 'true').strip('"\'')))
     config['ALTERNATIVE'] = bool(distutils.util.strtobool(ini_args.get('ALTERNATIVE', 'true').strip('"\'')))
@@ -107,12 +109,12 @@ def make_config():
     config['ROTATION_90'] = bool(distutils.util.strtobool(ini_args.get('ROTATION_90', 'true').strip('"\'')))
     config['ROTATION_180'] = bool(distutils.util.strtobool(ini_args.get('ROTATION_180', 'true').strip('"\'')))
     config['ROTATION_270'] = bool(distutils.util.strtobool(ini_args.get('ROTATION_270', 'true').strip('"\'')))
-    config['REGION_US'] = bool(distutils.util.strtobool(ini_args.get('REGION_US', 'true').strip('"\'')))
-    config['REGION_JP'] = bool(distutils.util.strtobool(ini_args.get('REGION_JP', 'true').strip('"\'')))
-    config['REGION_EU'] = bool(distutils.util.strtobool(ini_args.get('REGION_EU', 'true').strip('"\'')))
-    config['REGION_W'] = bool(distutils.util.strtobool(ini_args.get('REGION_W', 'true').strip('"\'')))
-    config['REGION_AS'] = bool(distutils.util.strtobool(ini_args.get('REGION_AS', 'true').strip('"\'')))
-    config['REGION_BR'] = bool(distutils.util.strtobool(ini_args.get('REGION_BR', 'true').strip('"\'')))
+    config['REGION_USA'] = bool(distutils.util.strtobool(ini_args.get('REGION_USA', 'true').strip('"\'')))
+    config['REGION_JAPAN'] = bool(distutils.util.strtobool(ini_args.get('REGION_JAPAN', 'true').strip('"\'')))
+    config['REGION_EUROPE'] = bool(distutils.util.strtobool(ini_args.get('REGION_EUROPE', 'true').strip('"\'')))
+    config['REGION_WORLD'] = bool(distutils.util.strtobool(ini_args.get('REGION_WORLD', 'true').strip('"\'')))
+    config['REGION_ASIA'] = bool(distutils.util.strtobool(ini_args.get('REGION_ASIA', 'true').strip('"\'')))
+    config['REGION_BRAZIL'] = bool(distutils.util.strtobool(ini_args.get('REGION_BRAZIL', 'true').strip('"\'')))
     config['BOOTLEG'] = bool(distutils.util.strtobool(ini_args.get('BOOTLEG', 'true').strip('"\'')))
     config['HOMEBREW'] = bool(distutils.util.strtobool(ini_args.get('HOMEBREW', 'true').strip('"\'')))
     config['1970S'] = bool(distutils.util.strtobool(ini_args.get('1970S', 'true').strip('"\'')))
@@ -145,6 +147,7 @@ def make_config():
     config['CATEGORY_SHOOTER_TUBE'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SHOOTER_TUBE', 'true').strip('"\'')))
     config['CATEGORY_SHOOTER_VER'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SHOOTER_VER', 'true').strip('"\'')))
     config['CATEGORY_SPORTS'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SPORTS', 'true').strip('"\'')))
+    config['CLEAN_CATEGORY'] = bool(distutils.util.strtobool(ini_args.get('CLEAN_CATEGORY', 'true').strip('"\'')))
 
     ###############################
     config['ARCADE_ORGANIZER_VERSION'] = "1.0"
@@ -621,8 +624,171 @@ class ArcadeOrganizer:
             'players',
             'joystick',
             'special_controls',
+            'buttons',
             'num_buttons'
         ])
+
+        category_list = [
+            "Action",
+            "Arena",
+            "Ball and Paddle",
+            "Beat \'em Up",
+            "Fighting",
+            "Gambling",
+            "Grid / Maze",
+            "Lander",
+            "Mixed",
+            "Platform",
+            "Platform - Climb",
+            "Puzzle",
+            "Puzzle - Platform",
+            "Quiz",
+            "Racing",
+            "Run \'n\' Gun - Horizontal",
+            "Run \'n\' Gun - Vertical",
+            "Shooter - Gallery",
+            "Shooter - Horizontal",
+            "Shooter - Isometric",
+            "Shooter - Multidirectional",
+            "Shooter - Tube",
+            "Shooter - Vertical",
+            "Sports"
+        ]
+
+        if self._config['CLEAN_CATEGORY']:
+            if fields['category'] not in category_list:
+                if fields['category'] == "Adventure / Knights" or fields['category'] == "Adventure/Knights":
+                    fields['category'] = "Platform"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Arcade / Knights category changed to %s" % (fields['setname'], fields['category']))
+                if fields['category'] == "Adventure / Western":
+                    fields['category'] = "Run \'n\' Gun - Vertical"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Adventure / Western category changed to %s" % (fields['setname'], fields['category']))
+                if fields['category'] == "Arcade Quiz":
+                    fields['category'] = "Quiz"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Arcade Quiz category changed to %s" % (fields['setname'], fields['category']))
+                if fields['category'] == "Army / Airforce":
+                    fields['category'] = "Shooter - Vertical"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Army / Airforce category changed to %s" % (fields['setname'], fields['category']))
+                if fields['category'] == "Army / Fighter":
+                    fields['category'] = "Platform"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Army / Fighter category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Beat em up":
+                    fields['category'] = "Beat \'em Up"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Beat em up category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Beat\'em up":
+                    fields['category'] = "Beat \'em Up"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Beat\'em up category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Fighter":
+                    fields['category'] = "Fighting"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Fighter category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Fighter / Asian" or fields['category'] == "Fighter / Hero" or fields['category'] == "Fighter / Warriors":
+                    fields['category'] = "Beat \'em Up"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Fighter * category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Hack & Slash":
+                    fields['category'] = "Platform"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Hack & Slash category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Hack \'n Slash":
+                    fields['category'] = "Platform"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Hack \'n Slash category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Horizontal scrolling shooter":
+                    fields['category'] = "Shooter - Horizontal"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Horizontal scrolling shooter category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Isometric Shoot\'em up":
+                    fields['category'] = "Shooter - Isometric"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Isometric Shoot\'em up category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Multigame":
+                    fields['category'] = "Mixed"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Multigame category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "MultiGame":
+                    fields['category'] = "Sports"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: MultiGame category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Platformer":
+                    fields['category'] = "Platform"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Platformer category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Run \'n Gun":
+                    fields['category'] = "Run \'n\' Gun - Vertical"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Run \'n Gun category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Run n Gun":
+                    fields['category'] = "Run \'n\' Gun - Horizontal"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Run n Gun category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Scrolling Shooter":
+                    fields['category'] = "Shooter - Horizontal"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Scrolling Shooter category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Shoot \'em up":
+                    if fields['setname'] == "sidearms" or fields['setname'] == "unsquad":
+                        fields['category'] = "Shooter - Horizontal"
+                    elif fields['setname'] == "varth":
+                        fields['category'] = "Shooter - Vertical"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Shoot \'em up category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Shoot\'em Up" or fields['category'] == "Shoot&apos;em up" or fields['category'] == "Shoot\'em up":
+                    if fields['setname'] == "ecofghtr" or fields['setname'] == "unsquad" or fields['setname'] == "fantzone" or fields['setname'] == "progear":
+                        fields['category'] = "Shooter - Horizontal"
+                    elif fields['setname'] == "19xx" or fields['setname'] == "1944" or fields['setname'] == "dimahoo" or fields['setname'] == "gigawing" or fields['setname'] == "mmatrix" or fields['setname'] == "afighter":
+                        fields['category'] = "Shooter - Vertical"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Shoot\'em up category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Shooter":
+                    if fields['setname'] == "sectionz" or fields['setname'] == "cawing":
+                        fields['category'] = "Shooter - Horizontal"
+                    elif fields['setname'] == "19xx" or fields['setname'] == "dfeveron" or fields['setname'] == "ddonpach" or fields['setname'] == "espradej" or fields['setname'] == "esprade" or fields['setname'] == "lwings" or fields['setname'] == "srumbler":
+                        fields['category'] = "Shooter - Vertical"
+                    elif fields['setname'] == "ganbare":
+                        fields['category'] = "Shooter - Gallery"
+                    elif fields['setname'] == "tricktrp":
+                        fields['category'] = "Run \'n\' Gun - Horizontal"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Shooter category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Shooter / Walking":
+                    fields['category'] = "Run \'n\' Gun - Vertical"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Shooter / Walking category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Space":
+                    fields['category'] = "Shooter - Tube"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Space category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Space / Asteroids":
+                    fields['category'] = "Shooter - Multidirectional"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Space / Asteroids category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Space / Force":
+                    fields['category'] = "Shooter - Vertical"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Space / Force category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Space / Moon":
+                    fields['category'] = "Lander"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Space / Moon category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Space / Shooter":
+                    if fields['setname'] == "gyrussb" or fields['setname'] == "venus":
+                        fields['category'] = "Shooter - Tube"
+                    if fields['setname'] == "pleiads" or fields['setname'] == "pleiadce":
+                        fields['category'] = "Shooter - Vertical"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Space / Shooter category changed to %s" % (fields['setname'], fields['category']))
+                elif fields['category'] == "Wrestling" or fields['category'] == "Wrestling / Fighting"or fields['category'] == "Wrestling/Fighting":
+                    fields['category'] = "Sports"
+                    if self._config['VERBOSE']:
+                        self._printer.print("----%s: Wrestling * category changed to %s" % (fields['setname'], fields['category']))
 
         skipping_alt = self._config['SKIPALTS'] and is_alternative(mra_path)
 
@@ -630,176 +796,176 @@ class ArcadeOrganizer:
             return
     
         if 'region' in fields:
-            if fields['region'] == "USA" and not self._config['REGION_US']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Region USA"))
+            if (fields['region'] == "USA" or fields['region'] == "US") and not self._config['REGION_USA']:
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region USA ****"))
                 return
-            elif fields['region'] == "Japan" and not self._config['REGION_JP']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Region Japan"))
+            elif fields['region'] == "Japan" and not self._config['REGION_JAPAN']:
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region Japan ****"))
                 return
-            elif fields['region'] == "World" and not self._config['REGION_W']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Region World"))
+            elif fields['region'] == "World" and not self._config['REGION_WORLD']:
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region World ****"))
                 return
-            elif fields['region'] == "Europe" and not self._config['REGION_EU']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Region Europe"))
+            elif fields['region'] == "Europe" and not self._config['REGION_EUROPE']:
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region Europe ****"))
                 return
-            elif fields['region'] == "Asia" and not self._config['REGION_AS']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Region Asia"))
+            elif fields['region'] == "Asia" and not self._config['REGION_ASIA']:
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region Asia ****"))
                 return
-            elif fields['region'] == "Brazil" and not self._config['REGION_BR']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Region Brazil"))
+            elif fields['region'] == "Brazil" and not self._config['REGION_BRAZIL']:
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region Brazil ****"))
                 return
         
         if 'homebrew' in fields:
             if fields['homebrew'] == "yes" and not self._config['HOMEBREW']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Homebrew"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Homebrew ****"))
                 return
 
         if 'bootleg' in fields:
             if fields['bootleg'] == "yes" and not self._config['BOOTLEG']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Bootleg"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Bootleg ****"))
                 return
 
         if 'alternative' in fields:
             if fields['alternative'] != '' and not self._config['ALTERNATIVE']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Alternative"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Alternative ****"))
                 return
 
         if 'resolution' in fields:
             if fields['resolution'] == "15kHz" and not self._config['RESOLUTION_15KHZ']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped 15kHz"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 15kHz ****"))
                 return
             elif fields['resolution'] == "24kHz" and not self._config['RESOLUTION_24KHZ']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped 24kHz"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 24kHz ****"))
                 return
             elif fields['resolution'] == "31kHz" and not self._config['RESOLUTION_31KHZ']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped 31kHz"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 31kHz ****"))
                 return
 
         if 'rotation' in fields:
             if fields['rotation'] == "horizontal":
                 if not self._config['ROTATION_0']:
-                    self._printer.print("%s: %s" % (fields['setname'], "Skipped Rotation 0"))
+                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 0 ****"))
                     return
                 elif not self._config['ROTATION_180'] and fields['flip'] != "yes":
-                    self._printer.print("%s: %s" % (fields['setname'], "Skipped Rotation 180 + flip"))
+                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 180 + flip ****"))
                     return
             elif fields['rotation'] == "horizontal (flip)":
                 if not self._config['ROTATION_180']:
-                    self._printer.print("%s: %s" % (fields['setname'], "Skipped Rotation 180"))
+                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 180 ****"))
                     return
                 elif not self._config['ROTATION_0'] and fields['flip'] != "yes":
-                    self._printer.print("%s: %s" % (fields['setname'], "Skipped Rotation 0 + flip"))
+                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 0 + flip ****"))
                     return
             elif fields['rotation'] == "vertical (cw)":
                 if not self._config['ROTATION_90']:
-                    self._printer.print("%s: %s" % (fields['setname'], "Skipped Rotation 90"))
+                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 90 ****"))
                     return
                 elif not self._config['ROTATION_270'] and fields['flip'] != "yes":
-                    self._printer.print("%s: %s" % (fields['setname'], "Skipped Rotation 270 + flip"))
+                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 270 + flip ****"))
                     return
             elif fields['rotation'] == "vertical (ccw)":
                 if not self._config['ROTATION_270']:
-                    self._printer.print("%s: %s" % (fields['setname'], "Skipped Rotation 270"))
+                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 270 ****"))
                     return
                 elif not self._config['ROTATION_90'] and fields['flip'] != "yes":
-                    self._printer.print("%s: %s" % (fields['setname'], "Skipped Rotation 90 + flip"))
+                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 90 + flip ****"))
                     return
 
         if 'players' in fields:
             if fields['players'] == "1" and not self._config['PLAYERS_1']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Players 1"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1 Player ****"))
                 return
             elif fields['players'] == "2 (alternating)" and not self._config['PLAYERS_2_ALT']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Players 2 (Alternating)"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2 Players (Alternating) ****"))
                 return
             elif fields['players'] == "2 (simultaneous)" and not self._config['PLAYERS_2_SIM']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Players 2 (Simultaneous)"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2 Players (Simultaneous) ****"))
                 return
             elif fields['players'] == "3" and not self._config['PLAYERS_3']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Players 3"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 3 Players ****"))
                 return
             elif fields['players'] == "4" and not self._config['PLAYERS_4']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Players 4"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 4 Players ****"))
                 return
             elif fields['players'] == "5" and not self._config['PLAYERS_5']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Players 5"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 5 Players ****"))
                 return
             elif fields['players'] == "6" and not self._config['PLAYERS_6']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Players 6"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 6 Players ****"))
                 return
 
         if 'joystick' in fields:
             if fields['joystick'] == "2-way horizontal" and not self._config['JOYSTICK_2H']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Joystick 2H"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2-way Horizontal Joystick ****"))
                 return
             elif fields['joystick'] == "2-way vertical" and not self._config['JOYSTICK_2V']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Joystick 2V"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2-way Vertical Joystick ****"))
                 return
             elif fields['joystick'] == "4-way" and not self._config['JOYSTICK_4']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Joystick 4"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 4-way Joystick ****"))
                 return
             elif fields['joystick'] == "8-way" and not self._config['JOYSTICK_8']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Joystick 8"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 8-way Joystick ****"))
                 return
 
         if 'special_controls' in fields:
             if fields['special_controls'] == "trackball" and not self._config['TRACKBALL']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Trackball"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Trackball ****"))
                 return
             elif fields['special_controls'] == "spinner" and not self._config['SPINNER']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Spinner"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Spinner ****"))
                 return
             elif fields['special_controls'] == "twin stick" and not self._config['TWIN_STICK']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Twin Stick"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Twin Stick ****"))
                 return
             elif fields['special_controls'] == "tank stick" and not self._config['TANK_STICK']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Tank Stick"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Tank Stick ****"))
                 return
             elif fields['special_controls'] == "positional stick" and not self._config['POSITIONAL_STICK']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Positional Stick"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Positional Stick ****"))
                 return
             elif fields['special_controls'] == "tilt stick" and not self._config['TILT_STICK']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Tilt Stick"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Tilt Stick ****"))
                 return
         
         if 'num_buttons' in fields:
             if fields['num_buttons'] == "1" and not self._config['BUTTONS_1']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Buttons 1"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1 Button ****"))
                 return
             elif fields['num_buttons'] == "2" and not self._config['BUTTONS_2']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Buttons 2"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2 Buttons ****"))
                 return
             elif fields['num_buttons'] == "3" and not self._config['BUTTONS_3']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Buttons 3"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 3 Buttons ****"))
                 return
             elif fields['num_buttons'] == "4" and not self._config['BUTTONS_4']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Buttons 4"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 4 Buttons ****"))
                 return
             elif fields['num_buttons'] == "5" and not self._config['BUTTONS_5']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Buttons 5"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 5 Buttons ****"))
                 return
             elif fields['num_buttons'] == "6" and not self._config['BUTTONS_6']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped Buttons 6"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 6 Buttons ****"))
                 return
 
         if 'year' in fields:
             if fields['year'] < "1980" and not self._config['1970S']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped 1970s"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1970s ****"))
                 return
             elif fields['year'] < "1990" and not self._config['1980S']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped 1980s"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1980s ****"))
                 return
             elif fields['year'] < "2000" and not self._config['1990S']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped 1990s"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1990s ****"))
                 return
             elif fields['year'] < "2010" and not self._config['2000S']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped 2000s"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2000s ****"))
                 return
             elif fields['year'] < "2020" and not self._config['2010S']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped 2010s"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2010s ****"))
                 return
             elif fields['year'] < "2030" and not self._config['2020S']:
-                self._printer.print("%s: %s" % (fields['setname'], "Skipped 2020s"))
+                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2020s ****"))
                 return
 
         if 'rbf' not in fields:
@@ -822,9 +988,37 @@ class ArcadeOrganizer:
         #####Create symlinks for Region#####
         if self._config['REGION_DIR']:
             if 'region' in fields and fields['region'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Region'], fields['region']))
+                if fields['region'] == "US":
+                    self._printer.print("**** US Region detected - please update MRA Region to USA ****")
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Region'], "USA"))
+                else:    
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Region'], fields['region']))
+                if self._config['REGION_SUB_DIR']:
+                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Core", fields['rbf']))
+                    if fields['manufacturer'] != '':
+                        self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer']))
+                    if fields['manufacturer2'] != '':
+                        self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer']))
+                    if fields['manufacturer3'] != '':
+                        self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer']))
+                    if fields['platform'] != '':
+                        self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Platform", fields['platform']))
                 if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Chronological"))
+                    if fields['region'] == "US":
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Region'], "USA", "Chronological"))
+                    else:
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Chronological"))
+                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Core", fields['rbf'], "Chronological"))
+                        if fields['manufacturer'] != '':
+                            self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer'], "Chronological"))
+                        if fields['manufacturer2'] != '':
+                            self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer'], "Chronological"))
+                        if fields['manufacturer3'] != '':
+                            self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer'], "Chronological"))
+                        if fields['platform'] != '':
+                            self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Platform", fields['platform'], "Chronological"))
+            elif self._config['VERBOSE']:
+                self._printer.print("----%s: %s" % (basename_mra, "missing <region>"))
 
         if skipping_alt:
             return
@@ -888,6 +1082,8 @@ class ArcadeOrganizer:
                         self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "2020s", "Chronological"))
                 # Create chronological links inside chronological folder
                 self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/" % self._config['ORGDIR_Chron'])
+            elif self._config['VERBOSE']:
+                self._printer.print("----%s: %s" % (basename_mra, "missing <year>"))
 
         #####Create symlinks for Manufacturer#####
         if self._config['MANUFACTURER_DIR']:
@@ -896,6 +1092,8 @@ class ArcadeOrganizer:
                 # Create chronological links inside manufacturer
                 if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer'], "Chronological"))
+            elif self._config['VERBOSE']:
+                self._printer.print("%s: %s" % (basename_mra, "missing <manufacturer>"))
             if fields['manufacturer2'] != '':
                 self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer2']))
                 # Create chronological links inside manufacturer
@@ -906,15 +1104,20 @@ class ArcadeOrganizer:
                 # Create chronological links inside manufacturer
                 if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer3'], "Chronological"))
+            
 
         #####Create symlinks for Category#####
         if self._config['CATEGORY_DIR']:
             if fields['category'] != '':
+                if fields['category'] not in category_list and self._config['VERBOSE']:
+                    self._printer.print("----%s: %s" % (basename_mra, "non-standard <category>"))
                 self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Category'], fields['category']))
                 # Create chronological links inside category
                 if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Category'], fields['category'], "Chronological"))
-            
+            elif self._config['VERBOSE']:
+                self._printer.print("----%s: %s" % (basename_mra, "missing <category>"))
+
         #####Create symlinks for Rotation (MRA)#####
         if self._config['ROTATION_DIR']:
             if 'rotation' in fields:
@@ -939,7 +1142,7 @@ class ArcadeOrganizer:
                     if self._config['CHRON_SUB_DIR']:
                         self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Rotation'], "vertical (either)", "Chronological"))
             elif fields['setname'] != '' and self._config['CACHED_DATA_ZIP'].is_file():
-                self._printer.print("%s: %s" % (fields['setname'], "MRA missing Rotation Information"))
+                self._printer.print("%s: %s" % (basename_mra, "missing <rotation>"))
                 rotation = self.search_rotation(fields['setname'])
                 if rotation != '':
                     self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], rotation))
@@ -951,6 +1154,8 @@ class ArcadeOrganizer:
                 # Create chronological links inside resolution folder
                 if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Resolution'], fields['resolution'], "Chronological"))
+            elif self._config['VERBOSE']:
+                self._printer.print("----%s: %s" % (basename_mra, "missing <resolution>"))
 
         #####Create symlinks for Series #####
         if self._config['SERIES_DIR']:
@@ -981,6 +1186,8 @@ class ArcadeOrganizer:
                 # Create chronological links inside players folder
                 if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Players'], fields['players'], "Chronological"))
+            elif self._config['VERBOSE']:
+                self._printer.print("----%s: %s" % (basename_mra, "missing <players>"))
 
         #####Create symlinks for Joystick #####
         if self._config['JOYSTICK_DIR']:
@@ -989,6 +1196,8 @@ class ArcadeOrganizer:
                 # Create chronological links inside joystick folder
                 if self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Joystick'], fields['joystick'], "Chronological"))
+            elif self._config['VERBOSE']:
+                self._printer.print("----%s: %s" % (basename_mra, "missing <joystick>"))
 
         #####Create symlinks for Buttons #####
         if self._config['BUTTONS_DIR']:
@@ -996,7 +1205,10 @@ class ArcadeOrganizer:
                 self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_NumButtons'], fields['num_buttons']))
                 # Create chronological links inside buttons folder
                 if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_NumButtons'], fields['num_buttons'], "Chronological"))
+                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_NumButtons'], fields['num_buttons'], "Chronological"))      
+            elif self._config['VERBOSE']:
+                ####self._printer.print(fields['buttons'])
+                self._printer.print("----%s: %s" % (basename_mra, "missing <buttons>"))
 
         #####Create symlinks for Special Controls #####
         if self._config['SPECIAL_CONTROLS_DIR']:
@@ -1088,12 +1300,13 @@ class ArcadeOrganizer:
             'FLIP_DIR' : "true" if self._config['FLIP_DIR'] else "false",
             'SPECIAL_CONTROLS_DIR' : "true" if self._config['SPECIAL_CONTROLS_DIR'] else "false",
             'REGION_DIR' : "true" if self._config['REGION_DIR'] else "false",
-            'REGION_US' : "true" if self._config['REGION_US'] else "false",
-            'REGION_JP' : "true" if self._config['REGION_JP'] else "false",
-            'REGION_EU' : "true" if self._config['REGION_EU'] else "false",
-            'REGION_W' : "true" if self._config['REGION_W'] else "false",
-            'REGION_AS' : "true" if self._config['REGION_AS'] else "false",
-            'REGION_BR' : "true" if self._config['REGION_BR'] else "false",
+            'REGION_SUB_DIR' : "true" if self._config['REGION_SUB_DIR'] else "false",
+            'REGION_USA' : "true" if self._config['REGION_USA'] else "false",
+            'REGION_JAPAN' : "true" if self._config['REGION_JAPAN'] else "false",
+            'REGION_EUROPE' : "true" if self._config['REGION_EUROPE'] else "false",
+            'REGION_WORLD' : "true" if self._config['REGION_WORLD'] else "false",
+            'REGION_ASIA' : "true" if self._config['REGION_ASIA'] else "false",
+            'REGION_BRAZIL' : "true" if self._config['REGION_BRAZIL'] else "false",
             'BOOTLEG' : "true" if self._config['BOOTLEG'] else "false",
             'BOOTLEG_DIR' : "true" if self._config['BOOTLEG_DIR'] else "false",
             'HOMEBREW' : "true" if self._config['HOMEBREW'] else "false",
