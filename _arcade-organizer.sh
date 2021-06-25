@@ -989,7 +989,8 @@ class ArcadeOrganizer:
         if self._config['REGION_DIR']:
             if 'region' in fields and fields['region'] != '':
                 if fields['region'] == "US":
-                    self._printer.print("**** US Region detected - please update MRA Region to USA ****")
+                    if self._config['VERBOSE']:
+                        self._printer.print("**** US Region detected - please update MRA Region to USA ****")
                     self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Region'], "USA"))
                 else:    
                     self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Region'], fields['region']))
