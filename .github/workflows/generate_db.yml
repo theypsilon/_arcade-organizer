@@ -1,0 +1,27 @@
+name: Generate DBs
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Generate DBs
+      run: |
+        set -euo pipefail
+        git config --global user.email "theypsilon@gmail.com"
+        git config --global user.name "The CI/CD Bot"
+        ./.github/generate_dbs.py
+        git add db/main.json
+        if ! git diff --staged --quiet --exit-code ; then
+            git commit -m "BOT: db/main.json updated."
+            git push origin master
+        else
+            echo "Nothing to be done."
+        fi
