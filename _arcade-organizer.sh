@@ -365,7 +365,7 @@ class Infrastructure:
         else:
             os.symlink(src, dst)
 
-    def download_data_zip(self):
+    def download_aod_db_zip(self):
         self._printer.print("Downloading rotations data.zip")
 
         if 'FAKE_DATA' in self._config:
@@ -376,14 +376,14 @@ class Infrastructure:
                 self._printer.print()
                 return None
 
-        zip_output = subprocess.run('curl %s %s -o %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/data.zip' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP']), shell=True, stderr=subprocess.DEVNULL)
+        zip_output = subprocess.run('curl %s %s -o %s https://raw.githubusercontent.com/theypsilon/_arcade-organizer/master/db/main.json.zip' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP']), shell=True, stderr=subprocess.DEVNULL)
 
         if zip_output.returncode != 0 or not self._tmp_data_zip_path.is_file():
             self._printer.print("Couldn't download rotations data.zip : Network Problem")
             self._printer.print()
             return None
 
-        md5_output = subprocess.run('curl %s %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/rotations/data.zip.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION']), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+        md5_output = subprocess.run('curl %s %s https://raw.githubusercontent.com/theypsilon/_arcade-organizer/master/db/main.json.zip.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION']), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
         if md5_output.returncode != 0:
             self._printer.print("Couldn't download rotations data.zip.md5 : Network Problem")
             self._printer.print()
@@ -1331,7 +1331,7 @@ class ArcadeOrganizer:
         return core_name
 
     def search_rotation(self, setname):
-        mame_rotation = self.rotations_dict.get(setname, {}).get('rot')
+        mame_rotation = self.rotations_dict.get(setname, {}).get('rotation')
         return self._config['ROTATION_DIRECTORIES'].get(mame_rotation, '')
 
     def calculate_ini_options(self):
@@ -1463,7 +1463,7 @@ class ArcadeOrganizer:
 
         self._infra.remove_any_previous_rotation_files_in_tmp()
 
-        tmp_data_file = self._infra.download_data_zip()
+        tmp_data_file = self._infra.download_aod_db_zip()
 
         last_ini_date, last_mra_date = self._infra.read_last_run_file()
 
