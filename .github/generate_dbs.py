@@ -72,7 +72,7 @@ def main():
             md5_file.write(hash(zip_filename))
         run_succesfully('git add %s' % md5_filename)
 
-    run_succesfully('git commit -m "BOT: Releasing new AOD databases."')
+    run_succesfully('git commit -m "BOT: Releasing new AOD databases." > /dev/null 2>&1 || true')
     if not run_conditional('git diff --exit-code master origin/master'):
         print("There are changes to commit.")
         print()
