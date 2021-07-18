@@ -40,7 +40,7 @@ def main():
         for line in rotations_file:
             parts = line.split(',')
             if len(parts) == 2:
-                rot = translate_rotation(parts[1].strip('\n').lower())
+                rot = translate_mame_rotation(parts[1].strip('\n').lower())
                 if rot is not None:
                     rotations[parts[0]] = rot
 
@@ -85,15 +85,27 @@ def main():
 
     print('Done.')
 
-def translate_rotation(rot):
+def translate_mame_rotation(rot):
     if rot == 'rot0':
-        return 'horizontal'
+        return 0
     elif  rot == 'rot90':
-        return 'vertical (cw)'
+        return 90
     elif  rot == 'rot180':
-        return 'horizontal (180)'
+        return 180
     elif  rot == 'rot270':
-        return 'vertical (ccw)'
+        return 270
+    else:
+        return None
+
+def translate_aod_rotation(rot):
+    if rot == 'horizontal':
+        return 0
+    elif  rot == 'vertical (cw)':
+        return 90
+    elif  rot == 'horizontal (180)':
+        return 180
+    elif  rot == 'vertical (ccw)':
+        return 270
     else:
         return None
 
@@ -163,7 +175,6 @@ class AodReader:
 
         data = dict()
         set_if_not_empty(data, fields, 'name')
-        set_if_not_empty(data, fields, 'rotation')
         set_if_not_empty(data, fields, 'flip')
         set_if_not_empty(data, fields, 'resolution')
         set_if_not_empty(data, fields, 'region')
@@ -172,6 +183,11 @@ class AodReader:
         set_if_not_empty(data, fields, 'year')
         set_if_not_empty(data, fields, 'category')
         set_if_not_empty(data, fields, 'manufacturer')
+
+        if fields['rotation'] != '':
+            rot = translate_aod_rotation(fields['rotation'].strip().lower())
+            if rot is not None:
+                data['rotation'] = rot
 
         self._data[fields['setname']] = data
 
