@@ -67,8 +67,8 @@ def main():
         save_data_to_compressed_json(data, json_filename, zip_filename)
         run_succesfully('git add %s' % zip_filename)
 
-        md5_filename = zip_filename + '.md5', 'w'
-        with open(md5_filename) as md5_file:
+        md5_filename = zip_filename + '.md5'
+        with open(md5_filename, 'w') as md5_file:
             md5_file.write(hash(zip_filename))
         run_succesfully('git add %s' % md5_filename)
 
