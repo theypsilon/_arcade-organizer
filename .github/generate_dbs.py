@@ -35,6 +35,15 @@ def main():
 
     print('START!')
 
+    rotations = dict()
+    with open('rotations/mame-rotations.txt', 'r') as rotations_file:
+        for line in rotations_file:
+            parts = line.split(',')
+            if len(parts) == 2:
+                rot = translate_rotation(parts[1].strip('\n').lower())
+                if rot is not None:
+                    rotations[parts[0]] = rot
+
     subdirs_finder = SubdirsFinder('aod')
     for subdir in subdirs_finder.find_all_subdirs():
         print("\n%s:" % subdir)
@@ -44,10 +53,18 @@ def main():
         for aod in aod_finder.find_all_aods():
             print(str(aod))
             aod_reader.read_aod(aod)
+        
+        data = aod_reader.data()
+        for setname in rotations:
+            if setname not in data:
+                data[setname] = dict()
+
+            if 'rotation' not in data[setname]:
+                data[setname]['rotation'] = rotations[setname]
 
         json_filename = 'db/' + subdir.stem + '.json'
         zip_filename = json_filename + '.zip'
-        save_data_to_compressed_json(aod_reader.data(), json_filename, zip_filename)
+        save_data_to_compressed_json(data, json_filename, zip_filename)
         run_succesfully('git add %s' % zip_filename)
 
     run_succesfully('git commit -m "BOT: Releasing new AOD databases."')
@@ -60,6 +77,18 @@ def main():
         print("Nothing to be updated.")
 
     print('Done.')
+
+def translate_rotation(rot):
+    if rot == 'rot0':
+        return 'horizontal'
+    elif  rot == 'rot90':
+        return 'vertical (cw)'
+    elif  rot == 'rot180':
+        return 'horizontal (180)'
+    elif  rot == 'rot270':
+        return 'vertical (ccw)'
+    else:
+        return None
 
 class AodFinder:
     def __init__(self, dir):
