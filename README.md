@@ -26,7 +26,7 @@ These scripts DO NOT DUPLICATE any cores or mra files, only soft symlinks are us
 
 THESE SYMLINKS ONLY WORK ON MISTER! IF YOU MOUNT YOUR SD CARD OUTSIDE OF MISTER THESE SYMLINKS WILL NOT WORK.
 
-THIS SCRIP USES A DEFAULT LOCATION FOR `_Arcade at /media/fat/_Arcade`
+THIS SCRIPT USES A DEFAULT LOCATION FOR `_Arcade at /media/fat/_Arcade`
 
 AND
 
@@ -55,4 +55,4 @@ A: You need to re-run the script to have them included in the Organized files.
 
 **You should back up your \_Arcade directory before running this script.**
 
-**USE AT YOUR OWN RISK - THIS COMES WITHOUT WARRANTE AND MAY NEUTER EVERYTHING.**
+**USE AT YOUR OWN RISK - THIS COMES WITHOUT WARRANTY.**
