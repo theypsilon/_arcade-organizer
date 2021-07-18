@@ -58,7 +58,7 @@ def make_config():
     config['ORGDIR'] = ini_args.get('ORGDIR', "/media/fat/_Arcade/_Organized").strip('"\'')
     config['SKIPALTS'] = bool(distutils.util.strtobool(ini_args.get('SKIPALTS', 'true').strip('"\'')))
     config['INSTALL'] = bool(distutils.util.strtobool(ini_args.get('INSTALL', 'false').strip('"\'')))
-    config['VERBOSE'] = bool(distutils.util.strtobool(ini_args.get('VERBOSE', 'true').strip('"\'')))
+    config['VERBOSE'] = bool(distutils.util.strtobool(ini_args.get('VERBOSE', 'false').strip('"\'')))
     config['AZ_DIR'] = bool(distutils.util.strtobool(ini_args.get('AZ_DIR', 'true').strip('"\'')))
     config['CHRON_DIR'] = bool(distutils.util.strtobool(ini_args.get('CHRON_DIR', 'true').strip('"\'')))
     config['CHRON_SUB_DIR'] = bool(distutils.util.strtobool(ini_args.get('CHRON_SUB_DIR', 'true').strip('"\'')))
@@ -160,6 +160,46 @@ def make_config():
     config['TMP_DATA_ZIP'] = "/tmp/data.zip"
 
     #####Organized Directories#####
+    config['ORGDIR_109'] = "%s/_1 0-9" % config['ORGDIR']
+    config['ORGDIR_1AE'] = "%s/_1 A-E" % config['ORGDIR']
+    config['ORGDIR_1FK'] = "%s/_1 F-K" % config['ORGDIR']
+    config['ORGDIR_1LQ'] = "%s/_1 L-Q" % config['ORGDIR']
+    config['ORGDIR_1RT'] = "%s/_1 R-T" % config['ORGDIR']
+    config['ORGDIR_1UZ'] = "%s/_1 U-Z" % config['ORGDIR']
+    config['ORGDIR_2Core'] = "%s/_2 Core" % config['ORGDIR']
+    config['ORGDIR_3Year'] = "%s/_3 Year" % config['ORGDIR']
+    config['ORGDIR_4Manufacturer'] = "%s/_4 Manufacturer" % config['ORGDIR']
+    config['ORGDIR_5Category'] = "%s/_5 Category" % config['ORGDIR']
+    config['ORGDIR_6Rotation'] = "%s/_6 Rotation" % config['ORGDIR']
+    config['ORGDIR_7Region'] = "%s/_7 Region" % config['ORGDIR']
+
+    config['ORGDIR_DIRECTORIES'] = [
+        config['ORGDIR_109'],
+        config['ORGDIR_1AE'],
+        config['ORGDIR_1FK'],
+        config['ORGDIR_1LQ'],
+        config['ORGDIR_1RT'],
+        config['ORGDIR_1UZ'],
+        config['ORGDIR_2Core'],
+        config['ORGDIR_3Year'],
+        config['ORGDIR_4Manufacturer'],
+        config['ORGDIR_5Category'],
+        config['ORGDIR_6Rotation'],
+        config['ORGDIR_7Region'],
+    ]
+
+    config['ROTATION_DIRECTORIES'] = {
+        0: "Horizontal",
+        90: "Vertical CW 90 Deg",
+        180: "Horizontal 180 Deg",
+        270: "Vertical CCW 90 Deg"
+    }
+
+    if True:
+        return config
+
+    # @TODO Activate PR #38
+    #####Misteraddons Organized Directories#####
     config['ORGDIR_109'] = "%s/__0-9" % config['ORGDIR']
     config['ORGDIR_1AE'] = "%s/__A-E" % config['ORGDIR']
     config['ORGDIR_1FK'] = "%s/__F-K" % config['ORGDIR']
@@ -606,26 +646,27 @@ class ArcadeOrganizer:
             'rbf',
             'year',
             'manufacturer',
-            'manufacturer2',
-            'manufacturer3',
+            # @TODO Activate PR #38
+            #'manufacturer2',
+            #'manufacturer3',
             'category',
-            'category2',
-            'category3',
+            #'category2',
+            #'category3',
             'region',
-            'homebrew',
-            'bootleg',
-            'platform',
-            'alternative',
-            'series',
-            'parent',
-            'resolution',
-            'rotation',
-            'flip',
-            'players',
-            'joystick',
-            'special_controls',
-            'buttons',
-            'num_buttons'
+            #'homebrew',
+            #'bootleg',
+            #'platform',
+            #'alternative',
+            #'series',
+            #'parent',
+            #'resolution',
+            #'rotation',
+            #'flip',
+            #'players',
+            #'joystick',
+            #'special_controls',
+            #'buttons',
+            #'num_buttons'
         ])
 
         category_list = [
@@ -655,7 +696,8 @@ class ArcadeOrganizer:
             "Sports"
         ]
 
-        if self._config['CLEAN_CATEGORY']:
+        # @TODO Activate PR #38
+        if False and self._config['CLEAN_CATEGORY']:
             if fields['category'] not in category_list:
                 if fields['category'] == "Adventure / Knights" or fields['category'] == "Adventure/Knights":
                     fields['category'] = "Platform"
@@ -792,10 +834,12 @@ class ArcadeOrganizer:
 
         skipping_alt = self._config['SKIPALTS'] and is_alternative(mra_path)
 
-        if skipping_alt:
+        # @TODO Activate PR #38
+        if skipping_alt and fields['region'] == '':
             return
     
-        if 'region' in fields:
+        # @TODO Activate PR #38
+        if False and 'region' in fields:
             if (fields['region'] == "USA" or fields['region'] == "US") and not self._config['REGION_USA']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region USA ****"))
                 return
@@ -815,22 +859,26 @@ class ArcadeOrganizer:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region Brazil ****"))
                 return
         
-        if 'homebrew' in fields:
+        # @TODO Activate PR #38
+        if False and 'homebrew' in fields:
             if fields['homebrew'] == "yes" and not self._config['HOMEBREW']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping Homebrew ****"))
                 return
 
-        if 'bootleg' in fields:
+        # @TODO Activate PR #38
+        if False and 'bootleg' in fields:
             if fields['bootleg'] == "yes" and not self._config['BOOTLEG']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping Bootleg ****"))
                 return
 
-        if 'alternative' in fields:
+        # @TODO Activate PR #38
+        if False and 'alternative' in fields:
             if fields['alternative'] != '' and not self._config['ALTERNATIVE']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping Alternative ****"))
                 return
 
-        if 'resolution' in fields:
+        # @TODO Activate PR #38
+        if False and 'resolution' in fields:
             if fields['resolution'] == "15kHz" and not self._config['RESOLUTION_15KHZ']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping 15kHz ****"))
                 return
@@ -841,7 +889,8 @@ class ArcadeOrganizer:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping 31kHz ****"))
                 return
 
-        if 'rotation' in fields:
+        # @TODO Activate PR #38
+        if False and 'rotation' in fields:
             if fields['rotation'] == "horizontal":
                 if not self._config['ROTATION_0']:
                     self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 0 ****"))
@@ -871,7 +920,8 @@ class ArcadeOrganizer:
                     self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 90 + flip ****"))
                     return
 
-        if 'players' in fields:
+        # @TODO Activate PR #38
+        if False and 'players' in fields:
             if fields['players'] == "1" and not self._config['PLAYERS_1']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1 Player ****"))
                 return
@@ -894,7 +944,8 @@ class ArcadeOrganizer:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping 6 Players ****"))
                 return
 
-        if 'joystick' in fields:
+        # @TODO Activate PR #38
+        if False and 'joystick' in fields:
             if fields['joystick'] == "2-way horizontal" and not self._config['JOYSTICK_2H']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2-way Horizontal Joystick ****"))
                 return
@@ -908,7 +959,8 @@ class ArcadeOrganizer:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping 8-way Joystick ****"))
                 return
 
-        if 'special_controls' in fields:
+        # @TODO Activate PR #38
+        if False and 'special_controls' in fields:
             if fields['special_controls'] == "trackball" and not self._config['TRACKBALL']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping Trackball ****"))
                 return
@@ -928,7 +980,8 @@ class ArcadeOrganizer:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping Tilt Stick ****"))
                 return
         
-        if 'num_buttons' in fields:
+        # @TODO Activate PR #38
+        if False and 'num_buttons' in fields:
             if fields['num_buttons'] == "1" and not self._config['BUTTONS_1']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1 Button ****"))
                 return
@@ -948,7 +1001,8 @@ class ArcadeOrganizer:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping 6 Buttons ****"))
                 return
 
-        if 'year' in fields:
+        # @TODO Activate PR #38
+        if False and 'year' in fields:
             if fields['year'] < "1980" and not self._config['1970S']:
                 self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1970s ****"))
                 return
@@ -986,7 +1040,11 @@ class ArcadeOrganizer:
         fields['rbf'] = self.better_core_name(fields['rbf'])
 
         #####Create symlinks for Region#####
-        if self._config['REGION_DIR']:
+        if fields['region'] != '':
+            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_7Region'], fields['region']))
+
+        # @TODO Activate PR #38
+        if False and self._config['REGION_DIR']:
             if 'region' in fields and fields['region'] != '':
                 if fields['region'] == "US":
                     if self._config['VERBOSE']:
@@ -1024,8 +1082,9 @@ class ArcadeOrganizer:
         if skipping_alt:
             return
 
+        # @TODO Activate PR #38
         #####Create symlinks for A-Z######
-        if self._config['AZ_DIR']:
+        if True or self._config['AZ_DIR']:
             first_letter_char = ord(basename_mra.upper()[0])
             if between_chars(first_letter_char, '0', '9'):
                 self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_109'])
@@ -1040,16 +1099,23 @@ class ArcadeOrganizer:
             elif between_chars(first_letter_char, 'U', 'Z'):
                 self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1UZ'])
 
+        # @TODO Activate PR #38
         #####Create symlinks for Core#####
-        if self._config['CORE_DIR']:
+        if True or self._config['CORE_DIR']:
             if fields['rbf'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Core'], fields['rbf']))
+                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_2Core'], fields['rbf']))
+
+                # @TODO Activate PR #38
                 # Create chronological links inside core folder
-                if self._config['CHRON_SUB_DIR']:
+                if False and self._config['CHRON_SUB_DIR']:
                     self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Core'], fields['rbf'], "Chronological"))
 
         #####Create symlinks for Chronological#####
-        if self._config['CHRON_DIR']:
+        if fields['year'] != '':
+            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_3Year'], fields['year']))
+
+        # @TODO Activate PR #38
+        if False and self._config['CHRON_DIR']:
             if fields['year'] != '':
                 if fields['year'] < "1980":
                     self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "1970s"))
@@ -1087,7 +1153,11 @@ class ArcadeOrganizer:
                 self._printer.print("----%s: %s" % (basename_mra, "missing <year>"))
 
         #####Create symlinks for Manufacturer#####
-        if self._config['MANUFACTURER_DIR']:
+        if fields['manufacturer'] != '':
+            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_4Manufacturer'], fields['manufacturer']))
+
+        # @TODO Activate PR #38
+        if False and self._config['MANUFACTURER_DIR']:
             if fields['manufacturer'] != '':
                 self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer']))
                 # Create chronological links inside manufacturer
@@ -1108,7 +1178,11 @@ class ArcadeOrganizer:
             
 
         #####Create symlinks for Category#####
-        if self._config['CATEGORY_DIR']:
+        if fields['category'] != '':
+            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_5Category'], fields['category']))
+
+        # @TODO Activate PR #38
+        if False and self._config['CATEGORY_DIR']:
             if fields['category'] != '':
                 if fields['category'] not in category_list and self._config['VERBOSE']:
                     self._printer.print("----%s: %s" % (basename_mra, "non-standard <category>"))
@@ -1119,8 +1193,15 @@ class ArcadeOrganizer:
             elif self._config['VERBOSE']:
                 self._printer.print("----%s: %s" % (basename_mra, "missing <category>"))
 
+        #####Create symlinks for Rotation#####
+        if fields['setname'] != '' and self._config['CACHED_DATA_ZIP'].is_file():
+            rotation = self.search_rotation(fields['setname'])
+            if rotation != '':
+                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_6Rotation'], rotation))
+
+        # @TODO Activate PR #38
         #####Create symlinks for Rotation (MRA)#####
-        if self._config['ROTATION_DIR']:
+        if False and self._config['ROTATION_DIR']:
             if 'rotation' in fields:
                 if fields['rotation'] == 'horizontal':
                     self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], "Horizontal"))
@@ -1254,6 +1335,14 @@ class ArcadeOrganizer:
         return self._config['ROTATION_DIRECTORIES'].get(mame_rotation, '')
 
     def calculate_ini_options(self):
+        return {
+            'MRADIR' : self._config['MRADIR'],
+            'ORGDIR' : self._config['ORGDIR'],
+            'SKIPALTS' : "true" if self._config['SKIPALTS'] else "false",
+            'INSTALL' : "true" if self._config['INSTALL'] else "false",
+        }
+
+        # @TODO Activate PR #38
         return {
             'MRADIR' : self._config['MRADIR'],
             'ORGDIR' : self._config['ORGDIR'],
