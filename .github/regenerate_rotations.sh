@@ -12,7 +12,7 @@ echo
 git config --global user.email "theypsilon@gmail.com"
 git config --global user.name "The CI/CD Bot"
 
-ROTATIONS_FILES="rotations/mame-rotations.txt rotations/data.zip rotations/data.zip.md5"
+ROTATIONS_FILES="rotations/mame-rotations.txt"
 git add ${ROTATIONS_FILES}
 
 if ! git diff --staged --quiet --exit-code ; then
