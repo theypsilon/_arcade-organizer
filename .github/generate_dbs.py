@@ -73,8 +73,10 @@ def main():
         run_succesfully('git add %s' % md5_filename)
 
     run_succesfully('git commit -m "BOT: Releasing new AOD databases." > /dev/null 2>&1 || true')
+
+    print()
     if not run_conditional('git diff --exit-code master origin/master'):
-        print("There are changes to commit.")
+        print("There are changes to push.")
         print()
 
         run_succesfully('git push origin master')
