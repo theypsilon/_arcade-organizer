@@ -42,6 +42,7 @@ def main():
         aod_reader = AodReader()
 
         for aod in aod_finder.find_all_aods():
+            print(str(aod))
             aod_reader.read_aod(aod)
 
         json_filename = 'db/' + subdir.stem + '.json'
@@ -113,18 +114,37 @@ class AodReader:
         fields = read_aod_fields(aod, [
             'name',
             'setname',
-            'rotation'
+            'rotation',
+            'flip',
+            'resolution',
+            'region',
+            'homebrew',
+            'bootleg',
+            'year',
+            'category',
+            'manufacturer'
         ])
 
-        print(fields['name'])
-        
-        self._data[fields['setname']] = {
-            "name": fields['name'],
-            "rotation": fields['rotation']
-        }
+        data = dict()
+        set_if_not_empty(data, fields, 'name')
+        set_if_not_empty(data, fields, 'rotation')
+        set_if_not_empty(data, fields, 'flip')
+        set_if_not_empty(data, fields, 'resolution')
+        set_if_not_empty(data, fields, 'region')
+        set_if_not_empty(data, fields, 'homebrew')
+        set_if_not_empty(data, fields, 'bootleg')
+        set_if_not_empty(data, fields, 'year')
+        set_if_not_empty(data, fields, 'category')
+        set_if_not_empty(data, fields, 'manufacturer')
+
+        self._data[fields['setname']] = data
 
     def data(self):
         return self._data
+
+def set_if_not_empty(data, fields, key):
+    if fields[key] != '':
+        data[key] = fields[key]
 
 def save_data_to_compressed_json(db, json_name, zip_name):
 
