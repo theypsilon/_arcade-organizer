@@ -67,6 +67,11 @@ def main():
         save_data_to_compressed_json(data, json_filename, zip_filename)
         run_succesfully('git add %s' % zip_filename)
 
+        md5_filename = zip_filename + '.md5', 'w'
+        with open(md5_filename) as md5_file:
+            md5_file.write(hash(zip_filename))
+        run_succesfully('git add %s' % md5_filename)
+
     run_succesfully('git commit -m "BOT: Releasing new AOD databases."')
     if not run_conditional('git diff --exit-code master origin/master'):
         print("There are changes to commit.")
@@ -182,6 +187,15 @@ def save_data_to_compressed_json(db, json_name, zip_name):
 
     run_succesfully('touch -a -m -t 202108231405 %s' % json_name)
     run_succesfully('zip -rq -D -X -9 -A --compression-method deflate %s %s' % (zip_name, json_name))
+
+def hash(file):
+    with open(file, "rb") as f:
+        file_hash = hashlib.md5()
+        chunk = f.read(8192)
+        while chunk:
+            file_hash.update(chunk)
+            chunk = f.read(8192)
+        return file_hash.hexdigest()
 
 def run_conditional(command):
     result = subprocess.run(command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
