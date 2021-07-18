@@ -44,9 +44,19 @@ def main():
         for aod in aod_finder.find_all_aods():
             aod_reader.read_aod(aod)
 
-        db_filename = 'db/' + subdir.stem + '.json'
-        with open(db_filename, 'w') as f:
-            json.dump(aod_reader.data(), f)
+        json_filename = 'db/' + subdir.stem + '.json'
+        zip_filename = json_filename + '.zip'
+        save_data_to_compressed_json(aod_reader.data(), json_filename, zip_filename)
+        run_succesfully('git add %s' % zip_filename)
+
+    run_succesfully('git commit -m "BOT: Releasing new AOD databases."')
+    if not run_conditional('git diff --exit-code master origin/master'):
+        print("There are changes to commit.")
+        print()
+
+        run_succesfully('git push origin master')
+    else:
+        print("Nothing to be updated.")
 
     print('Done.')
 
@@ -115,6 +125,37 @@ class AodReader:
 
     def data(self):
         return self._data
+
+def save_data_to_compressed_json(db, json_name, zip_name):
+
+    with open(json_name, 'w') as f:
+        json.dump(db, f, sort_keys=True)
+
+    run_succesfully('touch -a -m -t 202108231405 %s' % json_name)
+    run_succesfully('zip -rq -D -X -9 -A --compression-method deflate %s %s' % (zip_name, json_name))
+
+def run_conditional(command):
+    result = subprocess.run(command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+
+    stdout = result.stdout.decode()
+    if stdout.strip():
+        print(stdout)
+        
+    return result.returncode == 0
+
+def run_succesfully(command):
+    result = subprocess.run(command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    stdout = result.stdout.decode()
+    stderr = result.stderr.decode()
+    if stdout.strip():
+        print(stdout)
+    
+    if stderr.strip():
+        print(stderr)
+
+    if result.returncode != 0:
+        raise Exception("subprocess.run Return Code was '%d'" % result.returncode)
 
 if __name__ == '__main__':
     main()
