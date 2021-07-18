@@ -34,16 +34,22 @@ import xml.etree.cElementTree as ET
 def main():
 
     print('START!')
-    aod_finder = AodFinder('aod/main')
-    aod_reader = AodReader()
 
-    for aod in aod_finder.find_all_aods():
-        aod_reader.read_aod(aod)
+    subdirs_finder = SubdirsFinder('aod')
+    for subdir in subdirs_finder.find_all_subdirs():
+        print("\n%s:" % subdir)
+        aod_finder = AodFinder(str(subdir))
+        aod_reader = AodReader()
 
-    with open('db/main.json', 'w') as f:
-        json.dump(aod_reader.data(), f)
+        for aod in aod_finder.find_all_aods():
+            aod_reader.read_aod(aod)
+
+        db_filename = 'db/' + subdir.stem + '.json'
+        with open(db_filename, 'w') as f:
+            json.dump(aod_reader.data(), f)
 
     print('Done.')
+
 class AodFinder:
     def __init__(self, dir):
         self._dir = dir
@@ -53,8 +59,22 @@ class AodFinder:
 
     def _scan(self, directory):
         for entry in os.scandir(directory):
-            if entry.name.lower().endswith(".aod"):
+            if entry.is_dir(follow_symlinks=False):
+                yield from self._scan(entry.path)
+            elif entry.name.lower().endswith(".aod"):
                 yield Path(entry.path)
+
+class SubdirsFinder:
+    def __init__(self, dir):
+        self._dir = dir
+
+    def find_all_subdirs(self):
+        return sorted(self._scan(self._dir), key=lambda subdir: subdir.name.lower())
+
+    def _scan(self, directory):
+        for entry in os.scandir(directory):
+            if entry.is_dir(follow_symlinks=False):
+               yield Path(entry.path)
 
 def read_aod_fields(aod_path, tags):
     fields = { i : '' for i in tags }
