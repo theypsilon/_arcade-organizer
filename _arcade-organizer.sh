@@ -54,6 +54,7 @@ def make_config():
                 ini_parser.read_file(itertools.chain(['[DEFAULT]'], fp), source=config['ini_file_path'])
 
     ini_args = ini_parser['DEFAULT']
+    config['MAD_DB'] = ini_args.get('MAD_DB', "https://raw.githubusercontent.com/theypsilon/BetaMAD/db/mad_db.json.zip").strip('"\'')
     config['MRADIR'] = ini_args.get('MRADIR', "/media/fat/_Arcade/").strip('"\'')
     config['ORGDIR'] = ini_args.get('ORGDIR', "/media/fat/_Arcade/_Organized").strip('"\'')
     config['SKIPALTS'] = bool(distutils.util.strtobool(ini_args.get('SKIPALTS', 'true').strip('"\'')))
@@ -376,14 +377,14 @@ class Infrastructure:
                 self._printer.print()
                 return None
 
-        zip_output = subprocess.run('curl %s %s -o %s https://raw.githubusercontent.com/theypsilon/BetaMAD/db/mad_db.json.zip' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP']), shell=True, stderr=subprocess.DEVNULL)
+        zip_output = subprocess.run('curl %s %s -o %s %s' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP'], self._config['MAD_DB']), shell=True, stderr=subprocess.DEVNULL)
 
         if zip_output.returncode != 0 or not self._tmp_data_zip_path.is_file():
             self._printer.print("Couldn't download rotations data.zip : Network Problem")
             self._printer.print()
             return None
 
-        md5_output = subprocess.run('curl %s %s https://raw.githubusercontent.com/theypsilon/BetaMAD/db/mad_db.json.zip.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION']), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+        md5_output = subprocess.run('curl %s %s %s.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['MAD_DB']), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
         if md5_output.returncode != 0:
             self._printer.print("Couldn't download rotations data.zip.md5 : Network Problem")
             self._printer.print()
