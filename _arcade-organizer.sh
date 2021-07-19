@@ -376,14 +376,14 @@ class Infrastructure:
                 self._printer.print()
                 return None
 
-        zip_output = subprocess.run('curl %s %s -o %s https://raw.githubusercontent.com/theypsilon/_arcade-organizer/master/db/main.json.zip' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP']), shell=True, stderr=subprocess.DEVNULL)
+        zip_output = subprocess.run('curl %s %s -o %s https://raw.githubusercontent.com/theypsilon/BetaMAD/db/mad_db.json.zip' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP']), shell=True, stderr=subprocess.DEVNULL)
 
         if zip_output.returncode != 0 or not self._tmp_data_zip_path.is_file():
             self._printer.print("Couldn't download rotations data.zip : Network Problem")
             self._printer.print()
             return None
 
-        md5_output = subprocess.run('curl %s %s https://raw.githubusercontent.com/theypsilon/_arcade-organizer/master/db/main.json.zip.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION']), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+        md5_output = subprocess.run('curl %s %s https://raw.githubusercontent.com/theypsilon/BetaMAD/db/mad_db.json.zip.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION']), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
         if md5_output.returncode != 0:
             self._printer.print("Couldn't download rotations data.zip.md5 : Network Problem")
             self._printer.print()
