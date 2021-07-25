@@ -30,128 +30,145 @@ import shutil
 import time
 import json
 import xml.etree.cElementTree as ET
+from enum import Enum
+
+class BoolFlagPresence(Enum):
+    DEACTIVATED = 0
+    ONLY_IN_OWN_FOLDER = 1
+    EVERYWHERE = 2
+
+class IniParser:
+    def __init__(self, ini_file_path):
+        self._ini_file_path = ini_file_path
+
+    def initialize(self):
+        ini_parser = configparser.ConfigParser()
+        if self._ini_file_path.is_file():
+            try:
+                ini_parser.read(self._ini_file_path)
+            except:
+                with self._ini_file_path.open() as fp:
+                    ini_parser.read_file(itertools.chain(['[DEFAULT]'], fp), source=self._ini_file_path)
+        
+        self._ini_args = ini_parser['DEFAULT']
+
+    def get_string(self, key, default):
+        result = self._ini_args.get(key, default)
+        if result is None:
+            return None
+        return self._ini_args.get(key, default).strip('"\' ')
+
+    def get_bool(self, key, default):
+        return bool(distutils.util.strtobool(self.get_string(key, 'true' if default else 'false')))
+
+    def get_int(self, key, default):
+        result = self.get_string(key, None)
+        if result is None:
+            return default
+        
+        return to_int(result, default)
+
+    def get_bool_flag_presence(self, key, default):
+        result = self.get_int(key, None)
+        return default if result is None else BoolFlagPresence(result)
+
+    def get_str_list(self, key, default):
+        result = [s for s in [s.strip('"\' ') for s in self.get_string(key, '')] if s != '']
+        if len(result) > 0:
+            return result
+        else:
+            return default
+
+    def get_int_list(self, key, default):
+        result = [s for s in [to_int(s, None) for s in self.get_str_list(key, [])] if s is not None]
+        if len(result) > 0:
+            return result
+        else:
+            return default
+
+def to_int(n, default):
+    try:
+        return int(n)
+    except:
+        if isinstance(default, Exception):
+            raise default
+        return default
 
 def make_config():
     config = dict()
     config['PRINT_SYMLINKS'] = os.getenv('PRINT_SYMLINKS', 'false') == 'true'
-
-    fake_data = os.getenv('FAKE_DATA')
-    if fake_data is not None:
-        config['FAKE_DATA'] = fake_data
 
     original_script_path = subprocess.run('ps | grep "^ *%s " | grep -o "[^ ]*$"' % os.getppid(), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout.decode().strip()
     if original_script_path == '-bash':
         original_script_path = sys.argv[0]
 
     INIFILE=Path(original_script_path).with_suffix('.ini').absolute()
-    ini_parser = configparser.ConfigParser()
-    config["ini_file_path"] = Path(INIFILE)
-    if config['ini_file_path'].is_file():
-        try:
-            ini_parser.read(config['ini_file_path'])
-        except:
-            with config['ini_file_path'].open() as fp:
-                ini_parser.read_file(itertools.chain(['[DEFAULT]'], fp), source=config['ini_file_path'])
 
-    ini_args = ini_parser['DEFAULT']
-    config['MAD_DB'] = ini_args.get('MAD_DB', "https://raw.githubusercontent.com/theypsilon/BetaMAD/db/mad_db.json.zip").strip('"\'')
-    config['MRADIR'] = ini_args.get('MRADIR', "/media/fat/_Arcade/").strip('"\'')
-    config['ORGDIR'] = ini_args.get('ORGDIR', "/media/fat/_Arcade/_Organized").strip('"\'')
-    config['SKIPALTS'] = bool(distutils.util.strtobool(ini_args.get('SKIPALTS', 'true').strip('"\'')))
-    config['INSTALL'] = bool(distutils.util.strtobool(ini_args.get('INSTALL', 'false').strip('"\'')))
-    config['VERBOSE'] = bool(distutils.util.strtobool(ini_args.get('VERBOSE', 'false').strip('"\'')))
-    config['AZ_DIR'] = bool(distutils.util.strtobool(ini_args.get('AZ_DIR', 'true').strip('"\'')))
-    config['CHRON_DIR'] = bool(distutils.util.strtobool(ini_args.get('CHRON_DIR', 'true').strip('"\'')))
-    config['CHRON_SUB_DIR'] = bool(distutils.util.strtobool(ini_args.get('CHRON_SUB_DIR', 'true').strip('"\'')))
-    config['BUTTONS_DIR'] = bool(distutils.util.strtobool(ini_args.get('BUTTONS_DIR', 'true').strip('"\'')))
-    config['JOYSTICK_DIR'] = bool(distutils.util.strtobool(ini_args.get('JOYSTICK_DIR', 'true').strip('"\'')))
-    config['PLAYERS_DIR'] = bool(distutils.util.strtobool(ini_args.get('PLAYERS_DIR', 'true').strip('"\'')))
-    config['RESOLUTION_DIR'] = bool(distutils.util.strtobool(ini_args.get('RESOLUTION_DIR', 'true').strip('"\'')))
-    config['ROTATION_DIR'] = bool(distutils.util.strtobool(ini_args.get('ROTATION_DIR', 'true').strip('"\'')))
-    config['CORE_DIR'] = bool(distutils.util.strtobool(ini_args.get('CORE_DIR', 'true').strip('"\'')))
-    config['MANUFACTURER_DIR'] = bool(distutils.util.strtobool(ini_args.get('MANUFACTURER_DIR', 'true').strip('"\'')))
-    config['CATEGORY_DIR'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_DIR', 'true').strip('"\'')))
-    config['SERIES_DIR'] = bool(distutils.util.strtobool(ini_args.get('SERIES_DIR', 'true').strip('"\'')))
-    config['PLATFORM_DIR'] = bool(distutils.util.strtobool(ini_args.get('PLATFORM_DIR', 'true').strip('"\'')))
-    config['SPECIAL_CONTROLS_DIR'] = bool(distutils.util.strtobool(ini_args.get('SPECIAL_CONTROLS_DIR', 'true').strip('"\'')))
-    config['FLIP_DIR'] = bool(distutils.util.strtobool(ini_args.get('FLIP_DIR', 'true').strip('"\'')))
-    config['REGION_DIR'] = bool(distutils.util.strtobool(ini_args.get('REGION_DIR', 'true').strip('"\'')))
-    config['REGION_SUB_DIR'] = bool(distutils.util.strtobool(ini_args.get('REGION_SUB_DIR', 'true').strip('"\'')))
-    config['BOOTLEG_DIR'] = bool(distutils.util.strtobool(ini_args.get('BOOTLEG_DIR', 'true').strip('"\'')))
-    config['HOMEBREW_DIR'] = bool(distutils.util.strtobool(ini_args.get('HOMEBREW_DIR', 'true').strip('"\'')))
-    config['ALTERNATIVE'] = bool(distutils.util.strtobool(ini_args.get('ALTERNATIVE', 'true').strip('"\'')))
-    config['PLAYERS_1'] = bool(distutils.util.strtobool(ini_args.get('PLAYERS_1', 'true').strip('"\'')))
-    config['PLAYERS_2_ALT'] = bool(distutils.util.strtobool(ini_args.get('PLAYERS_2_ALT', 'true').strip('"\'')))
-    config['PLAYERS_2_SIM'] = bool(distutils.util.strtobool(ini_args.get('PLAYERS_2_SIM', 'true').strip('"\'')))
-    config['PLAYERS_3'] = bool(distutils.util.strtobool(ini_args.get('PLAYERS_3', 'true').strip('"\'')))
-    config['PLAYERS_4'] = bool(distutils.util.strtobool(ini_args.get('PLAYERS_4', 'true').strip('"\'')))
-    config['PLAYERS_5'] = bool(distutils.util.strtobool(ini_args.get('PLAYERS_5', 'true').strip('"\'')))
-    config['PLAYERS_6'] = bool(distutils.util.strtobool(ini_args.get('PLAYERS_6', 'true').strip('"\'')))
-    config['BUTTONS_1'] = bool(distutils.util.strtobool(ini_args.get('BUTTONS_1', 'true').strip('"\'')))
-    config['BUTTONS_2'] = bool(distutils.util.strtobool(ini_args.get('BUTTONS_2', 'true').strip('"\'')))
-    config['BUTTONS_3'] = bool(distutils.util.strtobool(ini_args.get('BUTTONS_3', 'true').strip('"\'')))
-    config['BUTTONS_4'] = bool(distutils.util.strtobool(ini_args.get('BUTTONS_4', 'true').strip('"\'')))
-    config['BUTTONS_5'] = bool(distutils.util.strtobool(ini_args.get('BUTTONS_5', 'true').strip('"\'')))
-    config['BUTTONS_6'] = bool(distutils.util.strtobool(ini_args.get('BUTTONS_6', 'true').strip('"\'')))
-    config['JOYSTICK_2H'] = bool(distutils.util.strtobool(ini_args.get('JOYSTICK_2H', 'true').strip('"\'')))
-    config['JOYSTICK_2V'] = bool(distutils.util.strtobool(ini_args.get('JOYSTICK_2V', 'true').strip('"\'')))
-    config['JOYSTICK_4'] = bool(distutils.util.strtobool(ini_args.get('JOYSTICK_4', 'true').strip('"\'')))
-    config['JOYSTICK_8'] = bool(distutils.util.strtobool(ini_args.get('JOYSTICK_8', 'true').strip('"\'')))
-    config['SPINNER'] = bool(distutils.util.strtobool(ini_args.get('SPINNER', 'true').strip('"\'')))
-    config['TRACKBALL'] = bool(distutils.util.strtobool(ini_args.get('TRACKBALL', 'true').strip('"\'')))
-    config['TWIN_STICK'] = bool(distutils.util.strtobool(ini_args.get('TWIN_STICK', 'true').strip('"\'')))
-    config['TANK_STICK'] = bool(distutils.util.strtobool(ini_args.get('TANK_STICK', 'true').strip('"\'')))
-    config['POSITIONAL_STICK'] = bool(distutils.util.strtobool(ini_args.get('POSITIONAL_STICK', 'true').strip('"\'')))
-    config['TILT_STICK'] = bool(distutils.util.strtobool(ini_args.get('TILT_STICK', 'true').strip('"\'')))
-    config['RESOLUTION_15KHZ'] = bool(distutils.util.strtobool(ini_args.get('RESOLUTION_15KHZ', 'true').strip('"\'')))
-    config['RESOLUTION_24KHZ'] = bool(distutils.util.strtobool(ini_args.get('RESOLUTION_24KHZ', 'true').strip('"\'')))
-    config['RESOLUTION_31KHZ'] = bool(distutils.util.strtobool(ini_args.get('RESOLUTION_31KHZ', 'true').strip('"\'')))
-    config['ROTATION_0'] = bool(distutils.util.strtobool(ini_args.get('ROTATION_0', 'true').strip('"\'')))
-    config['ROTATION_90'] = bool(distutils.util.strtobool(ini_args.get('ROTATION_90', 'true').strip('"\'')))
-    config['ROTATION_180'] = bool(distutils.util.strtobool(ini_args.get('ROTATION_180', 'true').strip('"\'')))
-    config['ROTATION_270'] = bool(distutils.util.strtobool(ini_args.get('ROTATION_270', 'true').strip('"\'')))
-    config['REGION_USA'] = bool(distutils.util.strtobool(ini_args.get('REGION_USA', 'true').strip('"\'')))
-    config['REGION_JAPAN'] = bool(distutils.util.strtobool(ini_args.get('REGION_JAPAN', 'true').strip('"\'')))
-    config['REGION_EUROPE'] = bool(distutils.util.strtobool(ini_args.get('REGION_EUROPE', 'true').strip('"\'')))
-    config['REGION_WORLD'] = bool(distutils.util.strtobool(ini_args.get('REGION_WORLD', 'true').strip('"\'')))
-    config['REGION_ASIA'] = bool(distutils.util.strtobool(ini_args.get('REGION_ASIA', 'true').strip('"\'')))
-    config['REGION_BRAZIL'] = bool(distutils.util.strtobool(ini_args.get('REGION_BRAZIL', 'true').strip('"\'')))
-    config['BOOTLEG'] = bool(distutils.util.strtobool(ini_args.get('BOOTLEG', 'true').strip('"\'')))
-    config['HOMEBREW'] = bool(distutils.util.strtobool(ini_args.get('HOMEBREW', 'true').strip('"\'')))
-    config['1970S'] = bool(distutils.util.strtobool(ini_args.get('1970S', 'true').strip('"\'')))
-    config['1980S'] = bool(distutils.util.strtobool(ini_args.get('1980S', 'true').strip('"\'')))
-    config['1990S'] = bool(distutils.util.strtobool(ini_args.get('1990S', 'true').strip('"\'')))
-    config['2000S'] = bool(distutils.util.strtobool(ini_args.get('2000S', 'true').strip('"\'')))
-    config['2010S'] = bool(distutils.util.strtobool(ini_args.get('2010S', 'true').strip('"\'')))
-    config['2020S'] = bool(distutils.util.strtobool(ini_args.get('2020S', 'true').strip('"\'')))
-    config['CATEGORY_ACTION'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_ACTION', 'true').strip('"\'')))
-    config['CATEGORY_ARENA'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_ARENA', 'true').strip('"\'')))
-    config['CATEGORY_BALL_PADDLE'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_BALL_PADDLE', 'true').strip('"\'')))
-    config['CATEGORY_BEAT_EM_UP'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_BEAT_EM_UP', 'true').strip('"\'')))
-    config['CATEGORY_FIGHTING'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_FIGHTING', 'true').strip('"\'')))
-    config['CATEGORY_GAMBLING'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_GAMBLING', 'true').strip('"\'')))
-    config['CATEGORY_GRID_MAZE'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_GRID_MAZE', 'true').strip('"\'')))
-    config['CATEGORY_LANDER'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_LANDER', 'true').strip('"\'')))
-    config['CATEGORY_MAHJONG'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_MAHJONG', 'true').strip('"\'')))
-    config['CATEGORY_MIXED'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_MIXED', 'true').strip('"\'')))
-    config['CATEGORY_PLATFORM'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_PLATFORM', 'true').strip('"\'')))
-    config['CATEGORY_PLATFORM_CLIMB'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_PLATFORM_CLIMB', 'true').strip('"\'')))
-    config['CATEGORY_PUZZLE'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_PUZZLE', 'true').strip('"\'')))
-    config['CATEGORY_PUZZLE_PLATFORM'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_PUZZLE_PLATFORM', 'true').strip('"\'')))
-    config['CATEGORY_QUIZ'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_QUIZ', 'true').strip('"\'')))
-    config['CATEGORY_RUN_N_GUN_HOR'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_RUN_N_GUN_HOR', 'true').strip('"\'')))
-    config['CATEGORY_RUN_N_GUN_VER'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_RUN_N_GUN_VER', 'true').strip('"\'')))
-    config['CATEGORY_SHOOTER_GALLERY'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SHOOTER_GALLERY', 'true').strip('"\'')))
-    config['CATEGORY_SHOOTER_HOR'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SHOOTER_HOR', 'true').strip('"\'')))
-    config['CATEGORY_SHOOTER_ISO'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SHOOTER_ISO', 'true').strip('"\'')))
-    config['CATEGORY_SHOOTER_MULTI'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SHOOTER_MULTI', 'true').strip('"\'')))
-    config['CATEGORY_SHOOTER_TUBE'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SHOOTER_TUBE', 'true').strip('"\'')))
-    config['CATEGORY_SHOOTER_VER'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SHOOTER_VER', 'true').strip('"\'')))
-    config['CATEGORY_SPORTS'] = bool(distutils.util.strtobool(ini_args.get('CATEGORY_SPORTS', 'true').strip('"\'')))
-    config['CLEAN_CATEGORY'] = bool(distutils.util.strtobool(ini_args.get('CLEAN_CATEGORY', 'true').strip('"\'')))
+    config["ini_file_path"] = Path(INIFILE)
+
+    ini_parser = IniParser(config["ini_file_path"])
+    ini_parser.initialize()
+
+    config['MAD_DB'] = ini_parser.get_string('MAD_DB', "https://raw.githubusercontent.com/theypsilon/BetaMAD/db/mad_db.json.zip")
+    config['MRADIR'] = ini_parser.get_string('MRADIR', "/media/fat/_Arcade/")
+    config['ORGDIR'] = ini_parser.get_string('ORGDIR', "/media/fat/_Arcade/_Organized")
+    config['SKIPALTS'] = ini_parser.get_bool('SKIPALTS', True)
+    config['VERBOSE'] = ini_parser.get_bool('VERBOSE', False)
+    config['AZ_DIR'] = ini_parser.get_bool('AZ_DIR', True)
+    
+    config['REGION_MAIN'] = ini_parser.get_string('REGION_MAIN', 'DEV PREFERRED')
+    config['REGION_DEV_PREFERRED'] = config['REGION_MAIN'] == 'DEV PREFERRED'
+    config['REGION_OTHERS'] = ini_parser.get_bool_flag_presence('REGION_OTHERS', BoolFlagPresence.ONLY_IN_OWN_FOLDER)
+
+    config['RESOLUTION_15KHZ'] = ini_parser.get_bool('RESOLUTION_15KHZ', True)
+    config['RESOLUTION_24KHZ'] = ini_parser.get_bool('RESOLUTION_24KHZ', True)
+    config['RESOLUTION_31KHZ'] = ini_parser.get_bool('RESOLUTION_31KHZ', True)
+
+    config['ROTATION_0'] = ini_parser.get_bool('ROTATION_0', True)
+    config['ROTATION_90'] = ini_parser.get_bool('ROTATION_90', True)
+    config['ROTATION_180'] = ini_parser.get_bool('ROTATION_180', True)
+    config['ROTATION_270'] = ini_parser.get_bool('ROTATION_270', True)
+    config['FLIP'] = ini_parser.get_bool('FLIP', True)
+
+    config['MOVE_INPUTS_NOT_SUPPORTED'] = ini_parser.get_str_list('MOVE_INPUTS_NOT_SUPPORTED', [])
+    config['SPECIAL_CONTROLS_NOT_SUPPORTED'] = ini_parser.get_str_list('SPECIAL_CONTROLS_NOT_SUPPORTED', [])
+    config['NUM_CONTROLLERS_NOT_SUPPORTED'] = ini_parser.get_int_list('NUM_CONTROLLERS_NOT_SUPPORTED', [])
+    config['NUM_BUTTONS_MAXIMUM'] = ini_parser.get_int('NUM_BUTTONS_MAXIMUM', 9999)
+    config['YEAR_LOW'] = ini_parser.get_int('YEAR_LOW', 0)
+    config['YEAR_HIGH'] = ini_parser.get_int('YEAR_LOW', 9999)
+    config['PREPEND_YEAR'] = ini_parser.get_bool('PREPEND_YEAR', False)
+
+    config['BOOTLEG'] = ini_parser.get_bool_flag_presence('BOOTLEG', BoolFlagPresence.ONLY_IN_OWN_FOLDER)
+    config['HOMEBREW'] = ini_parser.get_bool_flag_presence('HOMEBREW', BoolFlagPresence.ONLY_IN_OWN_FOLDER)
+
+    config['ROTATION_DIR'] = ini_parser.get_bool('ROTATION_DIR', True)
+    config['RESOLUTION_DIR'] = ini_parser.get_bool('RESOLUTION_DIR', True)
+    config['REGION_DIR'] = ini_parser.get_bool('REGION_DIR', True)
+    config['YEAR_DIR'] = ini_parser.get_bool('YEAR_DIR', True)
+    config['NUM_BUTTONS_DIR'] = ini_parser.get_bool('NUM_BUTTONS_DIR', True)
+    config['MOVE_INPUTS_DIR'] = ini_parser.get_bool('MOVE_INPUTS_DIR', True)
+    config['NUM_CONTROLLERS_DIR'] = ini_parser.get_bool('NUM_CONTROLLERS_DIR', True)
+    config['CORE_DIR'] = ini_parser.get_bool('CORE_DIR', True)
+    config['MANUFACTURER_DIR'] = ini_parser.get_bool('MANUFACTURER_DIR', True)
+    config['CATEGORY_DIR'] = ini_parser.get_bool('CATEGORY_DIR', True)
+    config['SERIES_DIR'] = ini_parser.get_bool('SERIES_DIR', True)
+    config['PLATFORM_DIR'] = ini_parser.get_bool('PLATFORM_DIR', True)
+    config['SPECIAL_CONTROLS_DIR'] = ini_parser.get_bool('SPECIAL_CONTROLS_DIR', True)
+    config['NUM_MONITORS_DIR'] = ini_parser.get_bool('NUM_MONITORS_DIR', True)
+    config['BEST_OF_DIR'] = ini_parser.get_bool('BEST_OF_DIR', True)
+
+    config['TOPDIR'] = ini_parser.get_string('TOPDIR', None)
+
+    #config['ALTERNATIVE'] = ini_parser.get_bool('ALTERNATIVE', True)
+    #config['SPINNER'] = ini_parser.get_bool('SPINNER', True)
+    #config['TRACKBALL'] = ini_parser.get_bool('TRACKBALL', True)
+    #config['TWIN_STICK'] = ini_parser.get_bool('TWIN_STICK', True)
+    #config['TANK_STICK'] = ini_parser.get_bool('TANK_STICK', True)
+    #config['POSITIONAL_STICK'] = ini_parser.get_bool('POSITIONAL_STICK', True)
+    #config['TILT_STICK'] = ini_parser.get_bool('TILT_STICK', True)
 
     ###############################
-    config['ARCADE_ORGANIZER_VERSION'] = "1.0"
+    config['ARCADE_ORGANIZER_VERSION'] = "2.0"
     config['ARCADE_ORGANIZER_WORK_PATH'] = os.getenv('ARCADE_ORGANIZER_WORK_PATH', "/media/fat/Scripts/.cache/arcade-organizer")
     config['ARCADE_ORGANIZER_NAMES_TXT'] = Path(os.getenv('ARCADE_ORGANIZER_NAMES_TXT', "/media/fat/names.txt"))
     config['CACHED_DATA_ZIP'] = Path("%s/data.zip" % config['ARCADE_ORGANIZER_WORK_PATH'])
@@ -161,39 +178,59 @@ def make_config():
     config['TMP_DATA_ZIP'] = "/tmp/data.zip"
 
     #####Organized Directories#####
-    config['ORGDIR_109'] = "%s/_1 0-9" % config['ORGDIR']
-    config['ORGDIR_1AE'] = "%s/_1 A-E" % config['ORGDIR']
-    config['ORGDIR_1FK'] = "%s/_1 F-K" % config['ORGDIR']
-    config['ORGDIR_1LQ'] = "%s/_1 L-Q" % config['ORGDIR']
-    config['ORGDIR_1RT'] = "%s/_1 R-T" % config['ORGDIR']
-    config['ORGDIR_1UZ'] = "%s/_1 U-Z" % config['ORGDIR']
-    config['ORGDIR_2Core'] = "%s/_2 Core" % config['ORGDIR']
-    config['ORGDIR_3Year'] = "%s/_3 Year" % config['ORGDIR']
-    config['ORGDIR_4Manufacturer'] = "%s/_4 Manufacturer" % config['ORGDIR']
-    config['ORGDIR_5Category'] = "%s/_5 Category" % config['ORGDIR']
-    config['ORGDIR_6Rotation'] = "%s/_6 Rotation" % config['ORGDIR']
-    config['ORGDIR_7Region'] = "%s/_7 Region" % config['ORGDIR']
+    config['ORGDIR_09'] = "%s/_1 0-9" % config['ORGDIR']
+    config['ORGDIR_AE'] = "%s/_1 A-E" % config['ORGDIR']
+    config['ORGDIR_FK'] = "%s/_1 F-K" % config['ORGDIR']
+    config['ORGDIR_LQ'] = "%s/_1 L-Q" % config['ORGDIR']
+    config['ORGDIR_RT'] = "%s/_1 R-T" % config['ORGDIR']
+    config['ORGDIR_UZ'] = "%s/_1 U-Z" % config['ORGDIR']
+
+    config['ORGDIR_Region'] = "%s/_2 Region" % config['ORGDIR']
+    config['ORGDIR_Collections'] = "%s/_3 Collections" % config['ORGDIR']
+    config['ORGDIR_VideoNInputs'] = "%s/_4 Video & Inputs" % config['ORGDIR']
+    config['ORGDIR_ExtraSoftware'] = "%s/_5 Extra Software" % config['ORGDIR']
+
+    config['ORGDIR_Platform'] = "%s/_1 By Platform" % config['ORGDIR_Collections']
+    config['ORGDIR_Core'] = "%s/_2 By MiSTer Core" % config['ORGDIR_Collections']
+    config['ORGDIR_Year'] = "%s/_3 By Year" % config['ORGDIR_Collections']
+    config['ORGDIR_Category'] = "%s/_4 By Genre" % config['ORGDIR_Collections']
+    config['ORGDIR_Manufacturer'] = "%s/_5 By Manufacturer" % config['ORGDIR_Collections']
+    config['ORGDIR_Series'] = "%s/_6 By Series" % config['ORGDIR_Collections']
+    config['ORGDIR_BestOf'] = "%s/_7 Best-Of Lists" % config['ORGDIR_Collections']
+
+    config['ORGDIR_Resolution'] = "%s/_1 Resolution" % config['ORGDIR_VideoNInputs']
+    config['ORGDIR_Rotation'] = "%s/_2 Rotation" % config['ORGDIR_VideoNInputs']
+    config['ORGDIR_MoveInputs'] = "%s/_3 Move Inputs" % config['ORGDIR_VideoNInputs']
+    config['ORGDIR_NumButtons'] = "%s/_4 Num Buttons" % config['ORGDIR_VideoNInputs']
+    config['ORGDIR_SpecialControls'] = "%s/_5 Special Inputs" % config['ORGDIR_VideoNInputs']
+    config['ORGDIR_NumControllers'] = "%s/_6 Num Controllers" % config['ORGDIR_VideoNInputs']
+    config['ORGDIR_Cocktail'] = "%s/_7 Cocktail" % config['ORGDIR_VideoNInputs']
+    config['ORGDIR_NumMonitors'] = "%s/_8 Num Monitors" % config['ORGDIR_VideoNInputs']
+
+    config['ORGDIR_Bootleg'] = "%s/_1 Bootleg" % config['ORGDIR_ExtraSoftware']
+    config['ORGDIR_Homebrew'] = "%s/_2 Homebrew" % config['ORGDIR_ExtraSoftware']
+    config['ORGDIR_Enhancements'] = "%s/_3 Enhancements" % config['ORGDIR_ExtraSoftware']
+    config['ORGDIR_Translations'] = "%s/_4 Translations" % config['ORGDIR_ExtraSoftware']
+    config['ORGDIR_Hacks'] = "%s/_5 Hacks" % config['ORGDIR_ExtraSoftware']
 
     config['ORGDIR_DIRECTORIES'] = [
-        config['ORGDIR_109'],
-        config['ORGDIR_1AE'],
-        config['ORGDIR_1FK'],
-        config['ORGDIR_1LQ'],
-        config['ORGDIR_1RT'],
-        config['ORGDIR_1UZ'],
-        config['ORGDIR_2Core'],
-        config['ORGDIR_3Year'],
-        config['ORGDIR_4Manufacturer'],
-        config['ORGDIR_5Category'],
-        config['ORGDIR_6Rotation'],
-        config['ORGDIR_7Region'],
+        config['ORGDIR_09'],
+        config['ORGDIR_AE'],
+        config['ORGDIR_FK'],
+        config['ORGDIR_LQ'],
+        config['ORGDIR_RT'],
+        config['ORGDIR_UZ'],
+        config['ORGDIR_Region'],
+        config['ORGDIR_Collections'],
+        config['ORGDIR_VideoNInputs'],
+        config['ORGDIR_ExtraSoftware'],
     ]
 
     config['ROTATION_DIRECTORIES'] = {
         0: "Horizontal",
-        90: "Vertical CW 90 Deg",
-        180: "Horizontal 180 Deg",
-        270: "Vertical CCW 90 Deg"
+        90: "Vertical (CW)",
+        180: "Horizontal (180)",
+        270: "Vertical (CCW)",
     }
 
     if True:
@@ -201,36 +238,34 @@ def make_config():
 
     # @TODO Activate PR #38
     #####Misteraddons Organized Directories#####
-    config['ORGDIR_109'] = "%s/__0-9" % config['ORGDIR']
-    config['ORGDIR_1AE'] = "%s/__A-E" % config['ORGDIR']
-    config['ORGDIR_1FK'] = "%s/__F-K" % config['ORGDIR']
-    config['ORGDIR_1LQ'] = "%s/__L-Q" % config['ORGDIR']
-    config['ORGDIR_1RT'] = "%s/__R-T" % config['ORGDIR']
-    config['ORGDIR_1UZ'] = "%s/__U-Z" % config['ORGDIR']
+    config['ORGDIR_09'] = "%s/__0-9" % config['ORGDIR']
+    config['ORGDIR_AE'] = "%s/__A-E" % config['ORGDIR']
+    config['ORGDIR_FK'] = "%s/__F-K" % config['ORGDIR']
+    config['ORGDIR_LQ'] = "%s/__L-Q" % config['ORGDIR']
+    config['ORGDIR_RT'] = "%s/__R-T" % config['ORGDIR']
+    config['ORGDIR_UZ'] = "%s/__U-Z" % config['ORGDIR']
     config['ORGDIR_Core'] = "%s/_Core" % config['ORGDIR']
     config['ORGDIR_Chron'] = "%s/_Chronological" % config['ORGDIR']
     config['ORGDIR_Manufacturer'] = "%s/_Manufacturer" % config['ORGDIR']
     config['ORGDIR_Category'] = "%s/_Category" % config['ORGDIR']
     config['ORGDIR_Rotation'] = "%s/_Rotation" % config['ORGDIR']
     config['ORGDIR_Region'] = "%s/_Region" % config['ORGDIR']
-    config['ORGDIR_Resolution'] = "%s/_Resolution" % config['ORGDIR']
     config['ORGDIR_Series'] = "%s/_Series" % config['ORGDIR']
     config['ORGDIR_Platform'] = "%s/_Platform" % config['ORGDIR']
     config['ORGDIR_Flip'] = "%s/_Flip" % config['ORGDIR']
     config['ORGDIR_Players'] = "%s/_Players" % config['ORGDIR']
-    config['ORGDIR_Joystick'] = "%s/_Joystick" % config['ORGDIR']
+    config['ORGDIR_MoveInputs'] = "%s/_MoveInputs" % config['ORGDIR']
     config['ORGDIR_NumButtons'] = "%s/_Buttons" % config['ORGDIR']
     config['ORGDIR_SpecialControls'] = "%s/_Special Controls" % config['ORGDIR']
-    config['ORGDIR_Bootleg'] = "%s/_Bootleg" % config['ORGDIR']
-    config['ORGDIR_Homebrew'] = "%s/_Homebrew" % config['ORGDIR']
+
 
     config['ORGDIR_DIRECTORIES'] = [
-        config['ORGDIR_109'],
-        config['ORGDIR_1AE'],
-        config['ORGDIR_1FK'],
-        config['ORGDIR_1LQ'],
-        config['ORGDIR_1RT'],
-        config['ORGDIR_1UZ'],
+        config['ORGDIR_09'],
+        config['ORGDIR_AE'],
+        config['ORGDIR_FK'],
+        config['ORGDIR_LQ'],
+        config['ORGDIR_RT'],
+        config['ORGDIR_UZ'],
         config['ORGDIR_Core'],
         config['ORGDIR_Chron'],
         config['ORGDIR_Manufacturer'],
@@ -243,19 +278,12 @@ def make_config():
         config['ORGDIR_Platform'],
         config['ORGDIR_Flip'],
         config['ORGDIR_Players'],
-        config['ORGDIR_Joystick'],
+        config['ORGDIR_MoveInputs'],
         config['ORGDIR_NumButtons'],
         config['ORGDIR_SpecialControls'],
         config['ORGDIR_Bootleg'],
         config['ORGDIR_Homebrew']
     ]
-
-    config['ROTATION_DIRECTORIES'] = {
-        0: "Horizontal",
-        90: "Vertical (CW)",
-        180: "Horizontal (180)",
-        270: "Vertical (CCW)"
-    }
 
     return config
 
@@ -291,31 +319,13 @@ class Printer:
 def between_chars(char, left, right):
     return char >= ord(left) and char <= ord(right)
 
-def is_alternative(mra_path):
+def is_path_alternative(mra_path):
     return any(p.name.lower() == '_alternatives' for p in mra_path.parents)
 
 def datetime_from_ctime(entry):
     return datetime.datetime.utcfromtimestamp(entry.stat().st_ctime)
 
-class MraFinderOld:
-    def __init__(self, config, infra):
-        self._config = config
-        self._find_args = ''
-
-    def not_in_directory(self, directory):
-        self._find_args = "%s -not -path \"%s\"/\*" % (self._find_args, directory)
-
-    def newer_than(self, date):
-        self._find_args = "%s -newerct %s" % (self._find_args, date)
-
-    def find_all_mras(self):
-        find_command = 'find %s -type f -name "*.mra" %s' % (self._config['MRADIR'], self._find_args)
-        updated_mras = subprocess.run(find_command, shell=True, stdout=subprocess.PIPE).stdout.splitlines()
-        updated_mras = map(lambda byteline: Path(byteline.decode()), updated_mras)
-        updated_mras = sorted(updated_mras, key=lambda mra: mra.name.lower())
-        return updated_mras
-
-class MraFinderNew:
+class MraFinder:
     def __init__(self, config, infra):
         self._config = config
         self._infra = infra
@@ -350,8 +360,8 @@ class Infrastructure:
         self._cached_names_path = Path("%s/installed_names.txt" % self._config['ARCADE_ORGANIZER_WORK_PATH'])
         self._tmp_data_zip_path = Path(self._config['TMP_DATA_ZIP'])
 
-    def make_symlink(self, mra_path, basename_mra, directory):
-        target = Path("%s/%s" % (directory, basename_mra))
+    def make_symlink(self, mra_path, name, directory):
+        target = Path("%s/%s" % (directory, name))
         if target.is_file() or target.is_symlink():
             return
         try:
@@ -366,11 +376,11 @@ class Infrastructure:
         else:
             os.symlink(src, dst)
 
-    def download_aod_db_zip(self):
-        self._printer.print("Downloading rotations data.zip")
+    def download_mad_db_zip(self):
+        self._printer.print("Downloading Mister Arcade Descriptions database")
 
-        if 'FAKE_DATA' in self._config:
-            src = self._config['FAKE_DATA']
+        if not self._config['MAD_DB'].startswith('http'):
+            src = self._config['MAD_DB']
             shutil.copyfile(src, self._config['TMP_DATA_ZIP'])
             with open(self._config['TMP_DATA_ZIP'], 'rb') as tmp_data_zip:
                 self._printer.print("MD5 Hash: %s" % hashlib.md5(tmp_data_zip.read()).hexdigest())
@@ -380,13 +390,13 @@ class Infrastructure:
         zip_output = subprocess.run('curl %s %s -o %s %s' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP'], self._config['MAD_DB']), shell=True, stderr=subprocess.DEVNULL)
 
         if zip_output.returncode != 0 or not self._tmp_data_zip_path.is_file():
-            self._printer.print("Couldn't download rotations data.zip : Network Problem")
+            self._printer.print("Couldn't download %s : Network Problem" % self._config['MAD_DB'])
             self._printer.print()
             return None
 
         md5_output = subprocess.run('curl %s %s %s.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['MAD_DB']), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
         if md5_output.returncode != 0:
-            self._printer.print("Couldn't download rotations data.zip.md5 : Network Problem")
+            self._printer.print("Couldn't download %s.md5 : Network Problem" % self._config['MAD_DB'])
             self._printer.print()
             self._tmp_data_zip_path.unlink()
             return None
@@ -396,7 +406,7 @@ class Infrastructure:
         self._printer.print()
         with open(self._config['TMP_DATA_ZIP'], 'rb') as tmp_data_zip:
             if hashlib.md5(tmp_data_zip.read()).hexdigest() != md5hash:
-                self._printer.print("Corrupted rotations data.zip : Network Problem")
+                self._printer.print("Corrupted database downloaded : Network Problem")
                 self._printer.print()
                 self._tmp_data_zip_path.unlink()
                 return None
@@ -409,6 +419,8 @@ class Infrastructure:
                 self._remove_dir(directory)
             orgdir_folders_file.unlink()
         for directory in self._config['ORGDIR_DIRECTORIES']:
+            self._remove_dir(directory)
+        for directory in self.read_topdir_folders():
             self._remove_dir(directory)
 
     def remove_all_broken_symlinks(self):
@@ -473,7 +485,7 @@ class Infrastructure:
 
         with orgdir_folders_file.open("a") as f:
             orgdir_lines = self.read_orgdir_file_folders()
-            for directory in self._config['ORGDIR_DIRECTORIES']:
+            for directory in (list(self._config['ORGDIR_DIRECTORIES']) + self.read_topdir_folders()):
                 if Path(directory).is_dir():
                     if not os.listdir(directory):
                         self._remove_dir(directory)
@@ -492,19 +504,37 @@ class Infrastructure:
                         result.append(directory)
         return result
 
-    def install_standalone_script_if_needed(self):
-        self._config['INSTALL_PATH'] = "/media/fat/Scripts/update_arcade-organizer.sh"
-        if self._config['INSTALL'] and not Path(self._config['INSTALL_PATH']).is_file():
-            self._printer.print("Installing update_arcade-organizer.sh at /media/fat/Scripts")
-            output = subprocess.run('curl %s %s --location -o %s https://raw.githubusercontent.com/MAME-GETTER/_arcade-organizer/master/update_arcade-organizer.sh' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['INSTALL_PATH']), shell=True)
-            if output.returncode == 0:
-                self._printer.print("Installed.")
-            else:
-                self._printer.print("Couldn't install it : Network Problem")
-            time.sleep(10)
-            self._printer.print()
+    def read_topdir_folders(self):
+        files = list(self._scan_topdir_files())
 
-    def remove_any_previous_rotation_files_in_tmp(self):
+        dirs = []
+        if self._config['TOPDIR'] == 'platform':
+            dirs = list(self._scan_folders(self._config['ORGDIR_Platform']))
+
+        intersection = self._make_pathstr_names_set(files) & self._make_pathstr_names_set(dirs)
+
+        return [f for f in files if Path(f).name in intersection]
+
+    def _make_pathstr_names_set(self, paths):
+        return set([Path(p).name for p in paths])
+
+    def _scan_topdir_files(self):
+        try:
+            for entry in os.scandir(self._config['ORGDIR']):
+                if entry.is_file(follow_symlinks=True) and entry.name.startswith('_'):
+                    yield str(Path(entry.path).absolute())
+        except FileNotFoundError:
+            pass
+
+    def _scan_folders(self, directory):
+        try:
+            for entry in os.scandir(directory):
+                if entry.is_dir(follow_symlinks=False):
+                    yield str(Path(entry.path).absolute())
+        except FileNotFoundError:
+            pass
+
+    def remove_any_previous_mad_db_files_in_tmp(self):
         if self._tmp_data_zip_path.is_file():
             self._tmp_data_zip_path.unlink()
 
@@ -523,12 +553,12 @@ class Infrastructure:
         file_path.unlink()
 
     def check_if_orgdir_directories_are_missing(self):
-        return not Path(self._config['ORGDIR_109']).is_dir() or \
-            not Path(self._config['ORGDIR_1AE']).is_dir() or \
-            not Path(self._config['ORGDIR_1FK']).is_dir() or \
-            not Path(self._config['ORGDIR_1LQ']).is_dir() or \
-            not Path(self._config['ORGDIR_1RT']).is_dir() or \
-            not Path(self._config['ORGDIR_1UZ']).is_dir()
+        return not Path(self._config['ORGDIR_09']).is_dir() or \
+            not Path(self._config['ORGDIR_AE']).is_dir() or \
+            not Path(self._config['ORGDIR_FK']).is_dir() or \
+            not Path(self._config['ORGDIR_LQ']).is_dir() or \
+            not Path(self._config['ORGDIR_RT']).is_dir() or \
+            not Path(self._config['ORGDIR_UZ']).is_dir()
 
     def check_if_names_txt_is_new(self):
         return self._config['ARCADE_ORGANIZER_NAMES_TXT'].is_file() \
@@ -556,13 +586,13 @@ class Infrastructure:
 
         return fields
 
-    def read_rotations(self):
+    def read_mad_db(self):
         if self._config['CACHED_DATA_ZIP'].is_file():
             output = subprocess.run("unzip -p %s" % self._config['CACHED_DATA_ZIP'], shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
             if output.returncode == 0:
                 return json.loads(output.stdout.decode())
 
-            self._printer.print("Error while reading rotations from %s" % self._config['CACHED_DATA_ZIP'])
+            self._printer.print("Error while reading %s from %s" % (self._config['MAD_DB'], self._config['CACHED_DATA_ZIP']))
 
         return {}
 
@@ -619,7 +649,7 @@ class ArcadeOrganizer:
         self._printer = printer
         self._init_cores_dict()
         self._init_names_txt_dict()
-        self._cached_rotations = None
+        self._cached_db = None
 
     def _init_cores_dict(self):
         cores_dir = Path("%s/cores/" % self._config['MRADIR'])
@@ -639,682 +669,367 @@ class ArcadeOrganizer:
                     splits = line.split(':', 1)
                     self._names_txt_dict[splits[0].upper()] = splits[1].strip()
 
+    def read_description(self, setname, keys):
+        description = { i : '' for i in keys }
+        mad_db = self.mad_dict.get(setname, None)
+
+        if mad_db is None:
+            return description
+
+        for key in keys:
+            description[key] = mad_db.get(key, '')
+
+        return description
+
+
+    def organize_topdir(self):
+        if self._config['TOPDIR'] == 'platform':
+            for entry in os.scandir(self._config['ORGDIR_Platform']):
+                if entry.is_dir(follow_symlinks=False):
+                    self._infra.make_symlink(Path(entry.path), entry.name, self._config['ORGDIR'])
+
     def organize_single_mra(self, mra_path):
 
-        fields = self._infra.read_mra_fields(mra_path, [
-            'name',
+        self._mra_path = mra_path
+
+        self._fields = self._infra.read_mra_fields(mra_path, [
             'setname',
             'rbf',
-            'year',
-            'manufacturer',
-            # @TODO Activate PR #38
-            #'manufacturer2',
-            #'manufacturer3',
-            'category',
-            #'category2',
-            #'category3',
-            'region',
-            #'homebrew',
-            #'bootleg',
-            #'platform',
-            #'alternative',
-            #'series',
-            #'parent',
-            #'resolution',
-            #'rotation',
-            #'flip',
-            #'players',
-            #'joystick',
-            #'special_controls',
-            #'buttons',
-            #'num_buttons'
         ])
 
-        category_list = [
-            "Action",
-            "Arena",
-            "Ball and Paddle",
-            "Beat \'em Up",
-            "Fighting",
-            "Gambling",
-            "Grid / Maze",
-            "Lander",
-            "Mixed",
-            "Platform",
-            "Platform - Climb",
-            "Puzzle",
-            "Puzzle - Platform",
-            "Quiz",
-            "Racing",
-            "Run \'n\' Gun - Horizontal",
-            "Run \'n\' Gun - Vertical",
-            "Shooter - Gallery",
-            "Shooter - Horizontal",
-            "Shooter - Isometric",
-            "Shooter - Multidirectional",
-            "Shooter - Tube",
-            "Shooter - Vertical",
-            "Sports"
-        ]
+        self._description = self.read_description(self._fields['setname'], [
+            #'name',
+            'rotation',
+            'flip',
+            'resolution',
+            'region',
+            'homebrew',
+            'bootleg',
+            'year',
+            'manufacturer',
+            'platform',
+            'category',
+            'series',
+            'num_controllers',
+            'move_inputs',
+            'special_controls',
+            'num_buttons',
+            'num_monitors',
+            'cocktail',
+            'best_of',
+            'alternative'
+            # @TODO Activate PR #38
+            #'parent',
+        ])
 
-        # @TODO Activate PR #38
-        if False and self._config['CLEAN_CATEGORY']:
-            if fields['category'] not in category_list:
-                if fields['category'] == "Adventure / Knights" or fields['category'] == "Adventure/Knights":
-                    fields['category'] = "Platform"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Arcade / Knights category changed to %s" % (fields['setname'], fields['category']))
-                if fields['category'] == "Adventure / Western":
-                    fields['category'] = "Run \'n\' Gun - Vertical"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Adventure / Western category changed to %s" % (fields['setname'], fields['category']))
-                if fields['category'] == "Arcade Quiz":
-                    fields['category'] = "Quiz"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Arcade Quiz category changed to %s" % (fields['setname'], fields['category']))
-                if fields['category'] == "Army / Airforce":
-                    fields['category'] = "Shooter - Vertical"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Army / Airforce category changed to %s" % (fields['setname'], fields['category']))
-                if fields['category'] == "Army / Fighter":
-                    fields['category'] = "Platform"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Army / Fighter category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Beat em up":
-                    fields['category'] = "Beat \'em Up"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Beat em up category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Beat\'em up":
-                    fields['category'] = "Beat \'em Up"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Beat\'em up category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Fighter":
-                    fields['category'] = "Fighting"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Fighter category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Fighter / Asian" or fields['category'] == "Fighter / Hero" or fields['category'] == "Fighter / Warriors":
-                    fields['category'] = "Beat \'em Up"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Fighter * category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Hack & Slash":
-                    fields['category'] = "Platform"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Hack & Slash category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Hack \'n Slash":
-                    fields['category'] = "Platform"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Hack \'n Slash category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Horizontal scrolling shooter":
-                    fields['category'] = "Shooter - Horizontal"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Horizontal scrolling shooter category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Isometric Shoot\'em up":
-                    fields['category'] = "Shooter - Isometric"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Isometric Shoot\'em up category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Multigame":
-                    fields['category'] = "Mixed"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Multigame category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "MultiGame":
-                    fields['category'] = "Sports"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: MultiGame category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Platformer":
-                    fields['category'] = "Platform"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Platformer category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Run \'n Gun":
-                    fields['category'] = "Run \'n\' Gun - Vertical"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Run \'n Gun category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Run n Gun":
-                    fields['category'] = "Run \'n\' Gun - Horizontal"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Run n Gun category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Scrolling Shooter":
-                    fields['category'] = "Shooter - Horizontal"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Scrolling Shooter category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Shoot \'em up":
-                    if fields['setname'] == "sidearms" or fields['setname'] == "unsquad":
-                        fields['category'] = "Shooter - Horizontal"
-                    elif fields['setname'] == "varth":
-                        fields['category'] = "Shooter - Vertical"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Shoot \'em up category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Shoot\'em Up" or fields['category'] == "Shoot&apos;em up" or fields['category'] == "Shoot\'em up":
-                    if fields['setname'] == "ecofghtr" or fields['setname'] == "unsquad" or fields['setname'] == "fantzone" or fields['setname'] == "progear":
-                        fields['category'] = "Shooter - Horizontal"
-                    elif fields['setname'] == "19xx" or fields['setname'] == "1944" or fields['setname'] == "dimahoo" or fields['setname'] == "gigawing" or fields['setname'] == "mmatrix" or fields['setname'] == "afighter":
-                        fields['category'] = "Shooter - Vertical"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Shoot\'em up category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Shooter":
-                    if fields['setname'] == "sectionz" or fields['setname'] == "cawing":
-                        fields['category'] = "Shooter - Horizontal"
-                    elif fields['setname'] == "19xx" or fields['setname'] == "dfeveron" or fields['setname'] == "ddonpach" or fields['setname'] == "espradej" or fields['setname'] == "esprade" or fields['setname'] == "lwings" or fields['setname'] == "srumbler":
-                        fields['category'] = "Shooter - Vertical"
-                    elif fields['setname'] == "ganbare":
-                        fields['category'] = "Shooter - Gallery"
-                    elif fields['setname'] == "tricktrp":
-                        fields['category'] = "Run \'n\' Gun - Horizontal"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Shooter category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Shooter / Walking":
-                    fields['category'] = "Run \'n\' Gun - Vertical"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Shooter / Walking category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Space":
-                    fields['category'] = "Shooter - Tube"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Space category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Space / Asteroids":
-                    fields['category'] = "Shooter - Multidirectional"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Space / Asteroids category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Space / Force":
-                    fields['category'] = "Shooter - Vertical"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Space / Force category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Space / Moon":
-                    fields['category'] = "Lander"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Space / Moon category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Space / Shooter":
-                    if fields['setname'] == "gyrussb" or fields['setname'] == "venus":
-                        fields['category'] = "Shooter - Tube"
-                    if fields['setname'] == "pleiads" or fields['setname'] == "pleiadce":
-                        fields['category'] = "Shooter - Vertical"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Space / Shooter category changed to %s" % (fields['setname'], fields['category']))
-                elif fields['category'] == "Wrestling" or fields['category'] == "Wrestling / Fighting"or fields['category'] == "Wrestling/Fighting":
-                    fields['category'] = "Sports"
-                    if self._config['VERBOSE']:
-                        self._printer.print("----%s: Wrestling * category changed to %s" % (fields['setname'], fields['category']))
+        # @TODO Redo once dbs handle name correctly
+        self._description['move_inputs'] = self.to_list(self._description['move_inputs'])
+        self._description['special_controls'] = self.to_list(self._description['special_controls'])
+        self._description['num_controllers'] = self.to_list(self._description['num_controllers'])
+        self._description['best_of'] = self.to_list(self._description['best_of'])
+        self._description['manufacturer'] = self.to_list(self._description['manufacturer'])
+        self._description['category'] = self.to_list(self._description['category'])
+        self._description['series'] = self.to_list(self._description['series'])
+        self._description['platform'] = self.to_list(self._description['platform'])
 
-        skipping_alt = self._config['SKIPALTS'] and is_alternative(mra_path)
+        self._description['num_buttons'] = to_int(self._description['num_buttons'], 0)
+        self._description['year'] = to_int(self._description['year'], self._description['year'])
 
-        # @TODO Activate PR #38
-        if skipping_alt and fields['region'] == '':
+        # @TODO Reactivate once dbs handle name correctly?
+        #self._name = self._description['name']
+        #self._name = self._name.replace(':', '¦')
+        #self._name = self._name.replace('*', '•')
+        #self._name = self._name.replace('?', '¿')
+
+        self._basename_mra = mra_path.name
+
+        if self._description['alternative'] == '':
+            self._description['alternative'] = "yes" if is_path_alternative(mra_path) else "no"
+
+        if self._description['homebrew'] == "yes":
+            if self._config['HOMEBREW'] == BoolFlagPresence.DEACTIVATED:
+                self.log_skipped("**** Skipping Homebrew ****")
+                return
+            elif self._config['HOMEBREW'] == BoolFlagPresence.ONLY_IN_OWN_FOLDER:
+                self.prepare_run()
+                self.create_homebrew()
+                return
+
+        if self._description['bootleg'] == "yes":
+            if self._config['BOOTLEG'] == BoolFlagPresence.DEACTIVATED:
+                self.log_skipped("**** Skipping Bootleg ****")
+                return
+            elif self._config['BOOTLEG'] == BoolFlagPresence.ONLY_IN_OWN_FOLDER:
+                self.prepare_run()
+                self.create_bootleg()
+                return
+
+        if self._description['region'] == "US":
+            self._description['region'] = 'USA'
+
+        region_is_dev_preferred = self._description['alternative'] != "yes" and self._config['REGION_DEV_PREFERRED']
+        region_matching_main = self._description['region'] == self._config['REGION_MAIN']
+        if not region_is_dev_preferred and not region_matching_main:
+            if self._config['REGION_OTHERS'] == BoolFlagPresence.DEACTIVATED:
+                self.log_skipped("**** Skipping Region ****")
+                return
+            elif self._config['REGION_OTHERS'] == BoolFlagPresence.ONLY_IN_OWN_FOLDER:
+                self.prepare_run()
+                self.create_region()
+                return
+
+        if self._description['resolution'] == '':
+            self._description['resolution'] = "15kHz"
+
+        if self._description['resolution'] == "15kHz" and not self._config['RESOLUTION_15KHZ']:
+            self.log_skipped("**** Skipping Resolution 15kHz ****")
             return
-    
-        # @TODO Activate PR #38
-        if False and 'region' in fields:
-            if (fields['region'] == "USA" or fields['region'] == "US") and not self._config['REGION_USA']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region USA ****"))
-                return
-            elif fields['region'] == "Japan" and not self._config['REGION_JAPAN']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region Japan ****"))
-                return
-            elif fields['region'] == "World" and not self._config['REGION_WORLD']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region World ****"))
-                return
-            elif fields['region'] == "Europe" and not self._config['REGION_EUROPE']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region Europe ****"))
-                return
-            elif fields['region'] == "Asia" and not self._config['REGION_ASIA']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region Asia ****"))
-                return
-            elif fields['region'] == "Brazil" and not self._config['REGION_BRAZIL']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Region Brazil ****"))
-                return
-        
-        # @TODO Activate PR #38
-        if False and 'homebrew' in fields:
-            if fields['homebrew'] == "yes" and not self._config['HOMEBREW']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Homebrew ****"))
-                return
-
-        # @TODO Activate PR #38
-        if False and 'bootleg' in fields:
-            if fields['bootleg'] == "yes" and not self._config['BOOTLEG']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Bootleg ****"))
-                return
-
-        # @TODO Activate PR #38
-        if False and 'alternative' in fields:
-            if fields['alternative'] != '' and not self._config['ALTERNATIVE']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Alternative ****"))
-                return
-
-        # @TODO Activate PR #38
-        if False and 'resolution' in fields:
-            if fields['resolution'] == "15kHz" and not self._config['RESOLUTION_15KHZ']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 15kHz ****"))
-                return
-            elif fields['resolution'] == "24kHz" and not self._config['RESOLUTION_24KHZ']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 24kHz ****"))
-                return
-            elif fields['resolution'] == "31kHz" and not self._config['RESOLUTION_31KHZ']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 31kHz ****"))
-                return
-
-        # @TODO Activate PR #38
-        if False and 'rotation' in fields:
-            if fields['rotation'] == "horizontal":
-                if not self._config['ROTATION_0']:
-                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 0 ****"))
-                    return
-                elif not self._config['ROTATION_180'] and fields['flip'] != "yes":
-                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 180 + flip ****"))
-                    return
-            elif fields['rotation'] == "horizontal (flip)":
-                if not self._config['ROTATION_180']:
-                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 180 ****"))
-                    return
-                elif not self._config['ROTATION_0'] and fields['flip'] != "yes":
-                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 0 + flip ****"))
-                    return
-            elif fields['rotation'] == "vertical (cw)":
-                if not self._config['ROTATION_90']:
-                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 90 ****"))
-                    return
-                elif not self._config['ROTATION_270'] and fields['flip'] != "yes":
-                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 270 + flip ****"))
-                    return
-            elif fields['rotation'] == "vertical (ccw)":
-                if not self._config['ROTATION_270']:
-                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 270 ****"))
-                    return
-                elif not self._config['ROTATION_90'] and fields['flip'] != "yes":
-                    self._printer.print("%s: %s" % (basename_mra, "**** Skipping Rotation 90 + flip ****"))
-                    return
-
-        # @TODO Activate PR #38
-        if False and 'players' in fields:
-            if fields['players'] == "1" and not self._config['PLAYERS_1']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1 Player ****"))
-                return
-            elif fields['players'] == "2 (alternating)" and not self._config['PLAYERS_2_ALT']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2 Players (Alternating) ****"))
-                return
-            elif fields['players'] == "2 (simultaneous)" and not self._config['PLAYERS_2_SIM']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2 Players (Simultaneous) ****"))
-                return
-            elif fields['players'] == "3" and not self._config['PLAYERS_3']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 3 Players ****"))
-                return
-            elif fields['players'] == "4" and not self._config['PLAYERS_4']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 4 Players ****"))
-                return
-            elif fields['players'] == "5" and not self._config['PLAYERS_5']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 5 Players ****"))
-                return
-            elif fields['players'] == "6" and not self._config['PLAYERS_6']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 6 Players ****"))
-                return
-
-        # @TODO Activate PR #38
-        if False and 'joystick' in fields:
-            if fields['joystick'] == "2-way horizontal" and not self._config['JOYSTICK_2H']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2-way Horizontal Joystick ****"))
-                return
-            elif fields['joystick'] == "2-way vertical" and not self._config['JOYSTICK_2V']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2-way Vertical Joystick ****"))
-                return
-            elif fields['joystick'] == "4-way" and not self._config['JOYSTICK_4']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 4-way Joystick ****"))
-                return
-            elif fields['joystick'] == "8-way" and not self._config['JOYSTICK_8']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 8-way Joystick ****"))
-                return
-
-        # @TODO Activate PR #38
-        if False and 'special_controls' in fields:
-            if fields['special_controls'] == "trackball" and not self._config['TRACKBALL']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Trackball ****"))
-                return
-            elif fields['special_controls'] == "spinner" and not self._config['SPINNER']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Spinner ****"))
-                return
-            elif fields['special_controls'] == "twin stick" and not self._config['TWIN_STICK']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Twin Stick ****"))
-                return
-            elif fields['special_controls'] == "tank stick" and not self._config['TANK_STICK']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Tank Stick ****"))
-                return
-            elif fields['special_controls'] == "positional stick" and not self._config['POSITIONAL_STICK']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Positional Stick ****"))
-                return
-            elif fields['special_controls'] == "tilt stick" and not self._config['TILT_STICK']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping Tilt Stick ****"))
-                return
-        
-        # @TODO Activate PR #38
-        if False and 'num_buttons' in fields:
-            if fields['num_buttons'] == "1" and not self._config['BUTTONS_1']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1 Button ****"))
-                return
-            elif fields['num_buttons'] == "2" and not self._config['BUTTONS_2']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2 Buttons ****"))
-                return
-            elif fields['num_buttons'] == "3" and not self._config['BUTTONS_3']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 3 Buttons ****"))
-                return
-            elif fields['num_buttons'] == "4" and not self._config['BUTTONS_4']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 4 Buttons ****"))
-                return
-            elif fields['num_buttons'] == "5" and not self._config['BUTTONS_5']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 5 Buttons ****"))
-                return
-            elif fields['num_buttons'] == "6" and not self._config['BUTTONS_6']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 6 Buttons ****"))
-                return
-
-        # @TODO Activate PR #38
-        if False and 'year' in fields:
-            if fields['year'] < "1980" and not self._config['1970S']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1970s ****"))
-                return
-            elif fields['year'] < "1990" and not self._config['1980S']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1980s ****"))
-                return
-            elif fields['year'] < "2000" and not self._config['1990S']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 1990s ****"))
-                return
-            elif fields['year'] < "2010" and not self._config['2000S']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2000s ****"))
-                return
-            elif fields['year'] < "2020" and not self._config['2010S']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2010s ****"))
-                return
-            elif fields['year'] < "2030" and not self._config['2020S']:
-                self._printer.print("%s: %s" % (basename_mra, "**** Skipping 2020s ****"))
-                return
-
-        if 'rbf' not in fields:
-            self._printer.print("%s is ill-formed, please delete and download it again." % mra)
+        elif self._description['resolution'] == "24kHz" and not self._config['RESOLUTION_24KHZ']:
+            self.log_skipped("**** Skipping Resolution 24kHz ****")
+            return
+        elif self._description['resolution'] == "31kHz" and not self._config['RESOLUTION_31KHZ']:
+            self.log_skipped("**** Skipping Resolution 31kHz ****")
             return
 
-        fields['rbf'] = self.fix_core(fields['rbf'])
+        if self._description['rotation'] == '':
+            self._description['rotation'] = 0
 
-        basename_mra = mra_path.name
+        if self.skip_rotation(0, 'ROTATION_0', 'ROTATION_180') or \
+            self.skip_rotation(90, 'ROTATION_90', 'ROTATION_270') or \
+            self.skip_rotation(180, 'ROTATION_180', 'ROTATION_0') or \
+            self.skip_rotation(270, 'ROTATION_270', 'ROTATION_90'):
+                self.prepare_run()
+                self.create_rotation()
+                return
 
-        self._printer.print('%-44s' % basename_mra[0:44], end='')
-        self._printer.print(' %-10s' % fields['rbf'][0:10], end='')
-        self._printer.print(' %-4s' % fields['year'][0:4], end='')
-        self._printer.print(' %-10s' % fields['manufacturer'][0:10], end='')
-        self._printer.print(' %-8s' % fields['category'].replace('/', '')[0:8], end='')
+        if self._description['num_controllers'] == '':
+            self._description['num_controllers'] = 1
+
+        if len(self._description['num_controllers']) > 0 and len(set(self._description['num_controllers']) - set(self._config['NUM_CONTROLLERS_NOT_SUPPORTED'])) == 0:
+            self.log_skipped("**** Skipping controllers not supported ****")
+            return
+
+        if self._description['num_buttons'] > self._config['NUM_BUTTONS_MAXIMUM']:
+            self.log_skipped("**** Skipping buttons (#%s) not supported (Max: %s) ****" % (self._description['num_buttons'],self._config['NUM_BUTTONS_MAXIMUM']))
+            return
+
+        if len(self._description['move_inputs']) > 0 and len(set(self._description['move_inputs']) - set(self._config['MOVE_INPUTS_NOT_SUPPORTED'])) == 0:
+            self.log_skipped("**** Skipping move inputs not supported ****")
+            return
+
+        if len(self._description['special_controls']) > 0 and len(set(self._description['special_controls']) - set(self._config['SPECIAL_CONTROLS_NOT_SUPPORTED'])) == 0:
+            self.log_skipped("**** Skipping special controls not supported ****")
+            return
+
+        if isinstance(self._description['year'], int) and (self._description['year'] < self._config['YEAR_LOW'] or self._description['year'] > self._config['YEAR_HIGH']):
+            self.log_skipped("**** Skipping not fitting desired year range ****")
+            return
+
+        self.prepare_run()
+
+        if self._config['SKIPALTS'] and self._description['alternative'] == "yes":
+            if (self._description['homebrew'] != "yes" and self._description['bootleg'] != "yes") \
+            or (self._description['region'] != 'World' and self._description['region'] != 'USA' and self._description['region'] != 'Japan'):
+                self.create_region()
+
+            self.create_best_of()
+            self.create_bootleg()
+            self.create_homebrew()
+            return
+
+        self.create_alphabetic()
+        self.create_region()
+        self.create_core()
+        self.create_year()
+        self.create_category()
+        self.create_platform()
+        self.create_manufacturer()
+        self.create_series()
+        self.create_best_of()
+        self.create_resolution()
+        self.create_rotation()
+        self.create_num_controllers()
+        self.create_move_inputs()
+        self.create_special_controls()
+        self.create_num_buttons()
+        self.create_cocktail()
+        self.create_num_monitors()
+        self.create_bootleg()
+        self.create_homebrew()
+
+    def log_skipped(self, message):
+        if self._config['VERBOSE']:
+            self._printer.print("%s: %s" % (self._basename_mra, message))
+
+    def prepare_run(self):
+        rbf = self.fix_core(self._fields['rbf'])
+
+        self._printer.print('%-44s' % self._basename_mra[0:44], end='')
+        self._printer.print(' %-10s' % rbf[0:10], end='')
+        self._printer.print(' %-4s' % str(self._description['year'])[0:4], end='')
+        self._printer.print(' %-10s' % self._description['manufacturer'][0][0:10] if len(self._description['manufacturer']) > 0 else '', end='')
+        self._printer.print(' %-8s' % self._description['category'][0].replace('/', '')[0:8] if len(self._description['category']) > 0 else '', end='')
         self._printer.print()
 
-        fields['rbf'] = self.better_core_name(fields['rbf'])
+        self._description['rbf'] = self.better_core_name(rbf)
 
-        #####Create symlinks for Region#####
-        if fields['region'] != '':
-            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_7Region'], fields['region']))
+        if self._config['PREPEND_YEAR']:
+            special_char = '}' if isinstance(self._description['year'], int) and self._description['year'] < 2000 else '~'
+            self._year_name = "%s%s %s" % (special_char, str(self._description['year'])[-2:], self._basename_mra)
 
-        # @TODO Activate PR #38
-        if False and self._config['REGION_DIR']:
-            if 'region' in fields and fields['region'] != '':
-                if fields['region'] == "US":
-                    if self._config['VERBOSE']:
-                        self._printer.print("**** US Region detected - please update MRA Region to USA ****")
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Region'], "USA"))
-                else:    
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Region'], fields['region']))
-                if self._config['REGION_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Core", fields['rbf']))
-                    if fields['manufacturer'] != '':
-                        self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer']))
-                    if fields['manufacturer2'] != '':
-                        self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer']))
-                    if fields['manufacturer3'] != '':
-                        self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer']))
-                    if fields['platform'] != '':
-                        self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Platform", fields['platform']))
-                if self._config['CHRON_SUB_DIR']:
-                    if fields['region'] == "US":
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Region'], "USA", "Chronological"))
-                    else:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Chronological"))
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Core", fields['rbf'], "Chronological"))
-                        if fields['manufacturer'] != '':
-                            self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer'], "Chronological"))
-                        if fields['manufacturer2'] != '':
-                            self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer'], "Chronological"))
-                        if fields['manufacturer3'] != '':
-                            self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Manufacturer", fields['manufacturer'], "Chronological"))
-                        if fields['platform'] != '':
-                            self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/_%s/_%s/" % (self._config['ORGDIR_Region'], fields['region'], "Platform", fields['platform'], "Chronological"))
-            elif self._config['VERBOSE']:
-                self._printer.print("----%s: %s" % (basename_mra, "missing <region>"))
+    def create_symlink(self, directory):
+        try:
+            self._infra.make_symlink(self._mra_path, self._basename_mra, directory)
+            if self._config['PREPEND_YEAR']:
+                self._infra.make_symlink(self._mra_path, self._year_name, directory)
+        except FileExistsError:
+            pass
 
-        if skipping_alt:
-            return
+    def create_symlink_name_prefix(self, prefix, directory):
+        try:
+            self._infra.make_symlink(self._mra_path, "%s. %s" % (prefix, self._basename_mra), directory)
+            if self._config['PREPEND_YEAR']:
+                self._infra.make_symlink(self._mra_path, "%s. %s" % (prefix, self._year_name), directory)
+        except FileExistsError:
+            pass
 
-        # @TODO Activate PR #38
-        #####Create symlinks for A-Z######
-        if True or self._config['AZ_DIR']:
-            first_letter_char = ord(basename_mra.upper()[0])
+    # @TODO Needs to go away once dbs handle this correctly
+    def to_list(self, nolist):
+        if not isinstance(nolist, str):
+            return [nolist]
+        if nolist.strip() == '':
+            return []
+        else:
+            return nolist.split(',')
+
+    def impl_create_array_links(self, config_dir_check, description_field, orgdir):
+        if self._config[config_dir_check]:
+            for entry in self._description[description_field]:
+                self.create_symlink("%s/_%s/" % (self._config[orgdir], entry))
+
+    def impl_create_single_link(self, config_dir_check, description_field, orgdir):
+        if self._config[config_dir_check] and self._description[description_field] != '':
+            self.create_symlink("%s/_%s/" % (self._config[orgdir], self._description[description_field]))
+
+    def impl_create_bool_link(self, description_field, orgdir):
+        if self._description[description_field] == 'yes':
+            self.create_symlink("%s/" % self._config[orgdir])
+
+    def create_region(self):
+        self.impl_create_single_link('REGION_DIR', 'region', 'ORGDIR_Region')
+
+    def create_alphabetic(self):
+        if self._config['AZ_DIR']:
+            first_letter_char = ord(self._basename_mra.upper()[0])
             if between_chars(first_letter_char, '0', '9'):
-                self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_109'])
+                self.create_symlink(self._config['ORGDIR_09'])
             elif between_chars(first_letter_char, 'A', 'E'):
-                self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1AE'])
+                self.create_symlink(self._config['ORGDIR_AE'])
             elif between_chars(first_letter_char, 'F', 'K'):
-                self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1FK'])
+                self.create_symlink(self._config['ORGDIR_FK'])
             elif between_chars(first_letter_char, 'L', 'Q'):
-                self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1LQ'])
+                self.create_symlink(self._config['ORGDIR_LQ'])
             elif between_chars(first_letter_char, 'R', 'T'):
-                self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1RT'])
+                self.create_symlink(self._config['ORGDIR_RT'])
             elif between_chars(first_letter_char, 'U', 'Z'):
-                self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_1UZ'])
+                self.create_symlink(self._config['ORGDIR_UZ'])
 
-        # @TODO Activate PR #38
-        #####Create symlinks for Core#####
-        if True or self._config['CORE_DIR']:
-            if fields['rbf'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_2Core'], fields['rbf']))
+    def create_core(self):
+        self.impl_create_single_link('CORE_DIR', 'rbf', 'ORGDIR_Core')
 
-                # @TODO Activate PR #38
-                # Create chronological links inside core folder
-                if False and self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Core'], fields['rbf'], "Chronological"))
+    def create_year(self):
+        self.impl_create_single_link('YEAR_DIR', 'year', 'ORGDIR_Year')
 
-        #####Create symlinks for Chronological#####
-        if fields['year'] != '':
-            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_3Year'], fields['year']))
+        if self._config['YEAR_DIR'] and isinstance(self._description['year'], int):
+            if self._description['year'] < 1980:
+                self.create_symlink("%s/_%s/" % (self._config['ORGDIR_Year'], "The 1970s"))
 
-        # @TODO Activate PR #38
-        if False and self._config['CHRON_DIR']:
-            if fields['year'] != '':
-                if fields['year'] < "1980":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "1970s"))
-                    # Create chronological links inside decades folders
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "1970s", "Chronological"))
-                elif fields['year'] < "1990":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "1980s"))
-                    # Create chronological links inside decades folders
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "1980s", "Chronological"))
-                elif fields['year'] < "2000":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "1990s"))
-                    # Create chronological links inside decades folders
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "1990s", "Chronological"))
-                elif fields['year'] < "2010":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "2000s"))
-                    # Create chronological links inside decades folders
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "2000s", "Chronological"))
-                elif fields['year'] < "2020":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "2010s"))
-                    # Create chronological links inside decades folders
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "2010s", "Chronological"))
-                elif fields['year'] < "2030":
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Chron'], "2020s"))
-                    # Create chronological links inside decades folders
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Chron'], "2020s", "Chronological"))
-                # Create chronological links inside chronological folder
-                self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/" % self._config['ORGDIR_Chron'])
-            elif self._config['VERBOSE']:
-                self._printer.print("----%s: %s" % (basename_mra, "missing <year>"))
+            elif self._description['year'] < 1990:
+                self.create_symlink("%s/_%s/" % (self._config['ORGDIR_Year'], "The 1980s"))
 
-        #####Create symlinks for Manufacturer#####
-        if fields['manufacturer'] != '':
-            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_4Manufacturer'], fields['manufacturer']))
+            elif self._description['year'] < 2000:
+                self.create_symlink("%s/_%s/" % (self._config['ORGDIR_Year'], "The 1990s"))
 
-        # @TODO Activate PR #38
-        if False and self._config['MANUFACTURER_DIR']:
-            if fields['manufacturer'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer']))
-                # Create chronological links inside manufacturer
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer'], "Chronological"))
-            elif self._config['VERBOSE']:
-                self._printer.print("%s: %s" % (basename_mra, "missing <manufacturer>"))
-            if fields['manufacturer2'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer2']))
-                # Create chronological links inside manufacturer
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer2'], "Chronological"))
-            if fields['manufacturer3'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer3']))
-                # Create chronological links inside manufacturer
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Manufacturer'], fields['manufacturer3'], "Chronological"))
-            
+            elif self._description['year'] < 2010:
+                self.create_symlink("%s/_%s/" % (self._config['ORGDIR_Year'], "The 2000s"))
 
-        #####Create symlinks for Category#####
-        if fields['category'] != '':
-            self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_5Category'], fields['category']))
+            elif self._description['year'] < 2020:
+                self.create_symlink("%s/_%s/" % (self._config['ORGDIR_Year'], "The 2010s"))
 
-        # @TODO Activate PR #38
-        if False and self._config['CATEGORY_DIR']:
-            if fields['category'] != '':
-                if fields['category'] not in category_list and self._config['VERBOSE']:
-                    self._printer.print("----%s: %s" % (basename_mra, "non-standard <category>"))
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Category'], fields['category']))
-                # Create chronological links inside category
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Category'], fields['category'], "Chronological"))
-            elif self._config['VERBOSE']:
-                self._printer.print("----%s: %s" % (basename_mra, "missing <category>"))
+            elif self._description['year'] < 2030:
+                self.create_symlink("%s/_%s/" % (self._config['ORGDIR_Year'], "The 2020s"))
 
-        #####Create symlinks for Rotation#####
-        if fields['setname'] != '' and self._config['CACHED_DATA_ZIP'].is_file():
-            rotation = self.search_rotation(fields['setname'])
-            if rotation != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_6Rotation'], rotation))
+    def create_manufacturer(self):
+        self.impl_create_array_links('MANUFACTURER_DIR', 'manufacturer', 'ORGDIR_Manufacturer')
 
-        # @TODO Activate PR #38
-        #####Create symlinks for Rotation (MRA)#####
-        if False and self._config['ROTATION_DIR']:
-            if 'rotation' in fields:
-                if fields['rotation'] == 'horizontal':
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], "Horizontal"))
-                    # Create chronological links inside rotation folder
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Rotation'], fields['rotation'], "Chronological"))
-                elif fields['rotation'] == 'vertical (cw)' and fields['flip'] == 'no':
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], "Vertical (CW)"))
-                    # Create chronological links inside rotation folder
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Rotation'], fields['rotation'], "Chronological"))
-                elif fields['rotation'] == 'vertical (ccw)' and fields['flip'] == 'no':
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], "Vertical (CCW)"))
-                    # Create chronological links inside rotation folder
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Rotation'], fields['rotation'], "Chronological"))
-                elif fields['rotation'] == ('vertical (cw)' or 'vertical (ccw)') and fields['flip'] == 'yes':
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], "Vertical (Either)"))
-                    # Create chronological links inside rotation folder
-                    if self._config['CHRON_SUB_DIR']:
-                        self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Rotation'], "vertical (either)", "Chronological"))
-            elif fields['setname'] != '' and self._config['CACHED_DATA_ZIP'].is_file():
-                self._printer.print("%s: %s" % (basename_mra, "missing <rotation>"))
-                rotation = self.search_rotation(fields['setname'])
-                if rotation != '':
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Rotation'], rotation))
+    def create_category(self):
+        self.impl_create_array_links('CATEGORY_DIR', 'category', 'ORGDIR_Category')
 
-        #####Create symlinks for Resolution#####
-        if self._config['RESOLUTION_DIR']:
-            if 'resolution' in fields and fields['resolution'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Resolution'], fields['resolution']))
-                # Create chronological links inside resolution folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Resolution'], fields['resolution'], "Chronological"))
-            elif self._config['VERBOSE']:
-                self._printer.print("----%s: %s" % (basename_mra, "missing <resolution>"))
+    def create_rotation(self):
+        if self._config['ROTATION_DIR']:
+            self.create_rotation_symlink(  0, 180)
+            self.create_rotation_symlink( 90, 270)
+            self.create_rotation_symlink(180,   0)
+            self.create_rotation_symlink(270,  90)
 
-        #####Create symlinks for Series #####
-        if self._config['SERIES_DIR']:
-            if 'series' in fields and fields['series'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Series'], fields['series']))
-                # Create chronological links inside series folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Series'], fields['series'], "Chronological"))
+    def create_resolution(self):
+        self.impl_create_single_link('RESOLUTION_DIR', 'resolution', 'ORGDIR_Resolution')
 
-        #####Create symlinks for Platform #####
-        if self._config['PLATFORM_DIR']:
-            if 'platform' in fields and fields['platform'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Platform'], fields['platform']))
-                # Create chronological links inside platform folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Platform'], fields['platform'], "Chronological"))
+    def create_series(self):
+        self.impl_create_array_links('SERIES_DIR', 'series', 'ORGDIR_Series')
 
-        #####Create symlinks for Flip #####
-        if self._config['FLIP_DIR']:
-            if 'flip' in fields and fields['flip'] != '':
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Flip'], fields['flip']))
+    def create_platform(self):
+        self.impl_create_array_links('PLATFORM_DIR', 'platform', 'ORGDIR_Platform')
 
-        #####Create symlinks for Players #####
-        if self._config['PLAYERS_DIR']:
-            if 'players' in fields and fields['players'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Players'], fields['players']))
-                # Create chronological links inside players folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Players'], fields['players'], "Chronological"))
-            elif self._config['VERBOSE']:
-                self._printer.print("----%s: %s" % (basename_mra, "missing <players>"))
+    def create_num_controllers(self):
+        self.impl_create_array_links('NUM_CONTROLLERS_DIR', 'num_controllers', 'ORGDIR_NumControllers')
 
-        #####Create symlinks for Joystick #####
-        if self._config['JOYSTICK_DIR']:
-            if 'joystick' in fields and fields['joystick'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_Joystick'], fields['joystick']))
-                # Create chronological links inside joystick folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_Joystick'], fields['joystick'], "Chronological"))
-            elif self._config['VERBOSE']:
-                self._printer.print("----%s: %s" % (basename_mra, "missing <joystick>"))
+    def create_move_inputs(self):
+        self.impl_create_array_links('MOVE_INPUTS_DIR', 'move_inputs', 'ORGDIR_MoveInputs')
 
-        #####Create symlinks for Buttons #####
-        if self._config['BUTTONS_DIR']:
-            if 'num_buttons' in fields and fields['num_buttons'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_NumButtons'], fields['num_buttons']))
-                # Create chronological links inside buttons folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_NumButtons'], fields['num_buttons'], "Chronological"))      
-            elif self._config['VERBOSE']:
-                ####self._printer.print(fields['buttons'])
-                self._printer.print("----%s: %s" % (basename_mra, "missing <buttons>"))
+    def create_num_buttons(self):
+        self.impl_create_single_link('NUM_BUTTONS_DIR', 'num_buttons', 'ORGDIR_NumButtons')
 
-        #####Create symlinks for Special Controls #####
-        if self._config['SPECIAL_CONTROLS_DIR']:
-            if 'special_controls' in fields and fields['special_controls'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls']))
-                # Create chronological links inside controls folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls'], "Chronological"))
-            if 'special_controls_2' in fields and fields['special_controls_2'] != '':
-                self._infra.make_symlink(mra_path, basename_mra, "%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls_2']))
-                # Create chronological links inside controls folder
-                if self._config['CHRON_SUB_DIR']:
-                    self._infra.make_symlink(mra_path, "%s-%s" % (fields['year'], basename_mra), "%s/_%s/_%s/" % (self._config['ORGDIR_SpecialControls'], fields['special_controls_2'], "Chronological"))
+    def create_special_controls(self):
+        self.impl_create_array_links('SPECIAL_CONTROLS_DIR', 'special_controls', 'ORGDIR_SpecialControls')
 
-        #####Create symlinks for Bootleg #####
-        if self._config['BOOTLEG_DIR']:
-            if 'bootleg' in fields and fields['bootleg'] == 'yes':
-                self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_Bootleg'])
+    def create_best_of(self):
+        if self._config['BEST_OF_DIR']:
+            for best_of in self._description['best_of']:
+                if 'pos' in best_of:
+                    self.create_symlink_name_prefix(best_of['pos'], "%s/_%s/" % (self._config['ORGDIR_BestOf'], best_of['val']))
+                elif 'val'in best_of:
+                    self.create_symlink("%s/_%s/" % (self._config['ORGDIR_BestOf'], best_of['val']))
+                else:
+                    # @TODO This branch has to go once the db is updated
+                    self.create_symlink("%s/_%s/" % (self._config['ORGDIR_BestOf'], best_of))
 
-        #####Create symlinks for Homebrew #####
-        if self._config['HOMEBREW_DIR']:
-            if 'homebrew' in fields and fields['homebrew'] == 'yes':
-                self._infra.make_symlink(mra_path, basename_mra, self._config['ORGDIR_Homebrew'])
+    def create_cocktail(self):
+        self.impl_create_bool_link('cocktail', 'ORGDIR_Cocktail')
+
+    def create_num_monitors(self):
+        self.impl_create_single_link('NUM_MONITORS_DIR', 'num_monitors', 'ORGDIR_NumMonitors')
+
+    def create_bootleg(self):
+        self.impl_create_bool_link('bootleg', 'ORGDIR_Bootleg')
+
+    def create_homebrew(self):
+        self.impl_create_bool_link('homebrew', 'ORGDIR_Homebrew')
+
+    def create_rotation_symlink(self, condition, flip_condition):
+        if self._description['rotation'] == condition or (self._description['rotation'] == flip_condition and self._description['flip'] == 'yes'):
+            self.create_symlink("%s/_%s/" % (self._config['ORGDIR_Rotation'], self._config['ROTATION_DIRECTORIES'][condition]))
+
+    def skip_rotation(self, condition, config, flip_config):
+        if self._description['rotation'] == condition:
+            if not self._config[config]:
+                self.log_skipped("**** Skipping %s ****" % config)
+                return True
+            elif not self._config[flip_config] and self._description['flip'] != "yes":
+                self.log_skipped("**** Skipping %s + flip ****" % flip_config)
+                return True
+        
+        return False
 
     def fix_core(self, core_name):
         if core_name == "":
@@ -1331,28 +1046,20 @@ class ArcadeOrganizer:
 
         return core_name
 
-    def search_rotation(self, setname):
-        mame_rotation = self.rotations_dict.get(setname, {}).get('rotation')
-        return self._config['ROTATION_DIRECTORIES'].get(mame_rotation, '')
-
     def calculate_ini_options(self):
         return {
             'MRADIR' : self._config['MRADIR'],
             'ORGDIR' : self._config['ORGDIR'],
-            'SKIPALTS' : "true" if self._config['SKIPALTS'] else "false",
-            'INSTALL' : "true" if self._config['INSTALL'] else "false",
         }
 
         # @TODO Activate PR #38
         return {
             'MRADIR' : self._config['MRADIR'],
             'ORGDIR' : self._config['ORGDIR'],
-            'SKIPALTS' : "true" if self._config['SKIPALTS'] else "false",
-            'INSTALL' : "true" if self._config['INSTALL'] else "false",
             'AZ_DIR' : "true" if self._config['AZ_DIR'] else "false",
             'ALTERNATIVE' : "true" if self._config['ALTERNATIVE'] else "false",
-            'CHRON_DIR' : "true" if self._config['CHRON_DIR'] else "false",
-            'CHRON_SUB_DIR' : "true" if self._config['CHRON_SUB_DIR'] else "false",
+            'YEAR_DIR' : "true" if self._config['YEAR_DIR'] else "false",
+            'PREPEND_YEAR' : "true" if self._config['PREPEND_YEAR'] else "false",
             'PLAYERS_1' : "true" if self._config['PLAYERS_1'] else "false",
             'PLAYERS_2_ALT' : "true" if self._config['PLAYERS_2_ALT'] else "false",
             'PLAYERS_2_SIM' : "true" if self._config['PLAYERS_2_SIM'] else "false",
@@ -1366,7 +1073,7 @@ class ArcadeOrganizer:
             'BUTTONS_4' : "true" if self._config['BUTTONS_4'] else "false",
             'BUTTONS_5' : "true" if self._config['BUTTONS_5'] else "false",
             'BUTTONS_6' : "true" if self._config['BUTTONS_6'] else "false",
-            'BUTTONS_DIR' : "true" if self._config['BUTTONS_DIR'] else "false",
+            'NUM_BUTTONS_DIR' : "true" if self._config['NUM_BUTTONS_DIR'] else "false",
             'JOYSTICK_2H' : "true" if self._config['JOYSTICK_2H'] else "false",
             'JOYSTICK_2V' : "true" if self._config['JOYSTICK_2V'] else "false",
             'JOYSTICK_4' : "true" if self._config['JOYSTICK_4'] else "false",
@@ -1377,7 +1084,7 @@ class ArcadeOrganizer:
             'TILT_STICK' : "true" if self._config['TILT_STICK'] else "false",
             'TWIN_STICK' : "true" if self._config['TWIN_STICK'] else "false",
             'TANK_STICK' : "true" if self._config['TANK_STICK'] else "false",
-            'JOYSTICK_DIR' : "true" if self._config['JOYSTICK_DIR'] else "false",
+            'MOVE_INPUTS_DIR' : "true" if self._config['MOVE_INPUTS_DIR'] else "false",
             'RESOLUTION_DIR' : "true" if self._config['ROTATION_DIR'] else "false",
             'RESOLUTION_15KHZ' : "true" if self._config['RESOLUTION_15KHZ'] else "false",
             'RESOLUTION_24KHZ' : "true" if self._config['RESOLUTION_24KHZ'] else "false",
@@ -1391,7 +1098,7 @@ class ArcadeOrganizer:
             'FLIP_DIR' : "true" if self._config['FLIP_DIR'] else "false",
             'SPECIAL_CONTROLS_DIR' : "true" if self._config['SPECIAL_CONTROLS_DIR'] else "false",
             'REGION_DIR' : "true" if self._config['REGION_DIR'] else "false",
-            'REGION_SUB_DIR' : "true" if self._config['REGION_SUB_DIR'] else "false",
+            'REGION_SUB_DIRS' : "true" if self._config['REGION_SUB_DIRS'] else "false",
             'REGION_USA' : "true" if self._config['REGION_USA'] else "false",
             'REGION_JAPAN' : "true" if self._config['REGION_JAPAN'] else "false",
             'REGION_EUROPE' : "true" if self._config['REGION_EUROPE'] else "false",
@@ -1399,9 +1106,7 @@ class ArcadeOrganizer:
             'REGION_ASIA' : "true" if self._config['REGION_ASIA'] else "false",
             'REGION_BRAZIL' : "true" if self._config['REGION_BRAZIL'] else "false",
             'BOOTLEG' : "true" if self._config['BOOTLEG'] else "false",
-            'BOOTLEG_DIR' : "true" if self._config['BOOTLEG_DIR'] else "false",
             'HOMEBREW' : "true" if self._config['HOMEBREW'] else "false",
-            'HOMEBREW_DIR' : "true" if self._config['HOMEBREW_DIR'] else "false",
             '1970S' : "true" if self._config['1970S'] else "false",
             '1980S' : "true" if self._config['1980S'] else "false",
             '1990S' : "true" if self._config['1990S'] else "false",
@@ -1441,13 +1146,16 @@ class ArcadeOrganizer:
         for directory in self._infra.read_orgdir_file_folders():
             dir_set.add(directory)
 
+        for directory in self._infra.read_topdir_folders():
+            dir_set.add(directory)
+        
         return sorted(dir_set)
 
     @property
-    def rotations_dict(self):
-        if self._cached_rotations is None:
-            self._cached_rotations = self._infra.read_rotations()
-        return self._cached_rotations
+    def mad_dict(self):
+        if self._cached_db is None:
+            self._cached_db = self._infra.read_mad_db()
+        return self._cached_db
 
     def organize_all_mras(self):
         self._infra.make_directory(Path(self._config['ARCADE_ORGANIZER_WORK_PATH']))
@@ -1460,11 +1168,9 @@ class ArcadeOrganizer:
             self._printer.print("%s=%s" % (key, value))
         self._printer.print()
 
-        self._infra.install_standalone_script_if_needed()
+        self._infra.remove_any_previous_mad_db_files_in_tmp()
 
-        self._infra.remove_any_previous_rotation_files_in_tmp()
-
-        tmp_data_file = self._infra.download_aod_db_zip()
+        tmp_data_file = self._infra.download_mad_db_zip()
 
         last_ini_date, last_mra_date = self._infra.read_last_run_file()
 
@@ -1496,11 +1202,11 @@ class ArcadeOrganizer:
             if self._infra.are_files_different(tmp_data_file, cached_data_file):
                 self._infra.copy_file(tmp_data_file, cached_data_file)
                 from_scatch = True
-                self._printer.print("The rotations data.zip is new.")
+                self._printer.print("The MAD database is new.")
                 self._printer.print()
             self._infra.remove_file(tmp_data_file)
 
-        for directory in self._config['ORGDIR_DIRECTORIES']:
+        for directory in (list(self._config['ORGDIR_DIRECTORIES']) + self._infra.read_topdir_folders()):
             self._mra_finder.not_in_directory(directory)
 
         if not from_scatch:
@@ -1540,6 +1246,8 @@ class ArcadeOrganizer:
         for mra in updated_mras:
             self.organize_single_mra(mra)
 
+        self.organize_topdir()
+
         self._infra.write_orgdir_folders_file()
 
         self._infra.handle_orgdir_outside_mra_folder()
@@ -1554,7 +1262,7 @@ def run():
     config = make_config()
     with Printer(config) as printer:
         infra = Infrastructure(config, printer)
-        mra_finder = MraFinderNew(config, infra)
+        mra_finder = MraFinder(config, infra)
         ao = ArcadeOrganizer(config, infra, mra_finder, printer)
 
         if len(sys.argv) == 2 and sys.argv[1] == "--print-orgdir-folders":
