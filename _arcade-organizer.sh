@@ -100,6 +100,8 @@ def to_ini(value):
         return "true" if value else "false"
     if isinstance(value, BoolFlagPresence):
         return int(value)
+    if value is None:
+        return ''
     return value
 
 def make_config():
@@ -243,58 +245,6 @@ def make_config():
         180: "Horizontal (180)",
         270: "Vertical (CCW)",
     }
-
-    if True:
-        return config
-
-    # @TODO Activate PR #38
-    #####Misteraddons Organized Directories#####
-    config['ORGDIR_09'] = "%s/__0-9" % config['ORGDIR']
-    config['ORGDIR_AE'] = "%s/__A-E" % config['ORGDIR']
-    config['ORGDIR_FK'] = "%s/__F-K" % config['ORGDIR']
-    config['ORGDIR_LQ'] = "%s/__L-Q" % config['ORGDIR']
-    config['ORGDIR_RT'] = "%s/__R-T" % config['ORGDIR']
-    config['ORGDIR_UZ'] = "%s/__U-Z" % config['ORGDIR']
-    config['ORGDIR_Core'] = "%s/_Core" % config['ORGDIR']
-    config['ORGDIR_Chron'] = "%s/_Chronological" % config['ORGDIR']
-    config['ORGDIR_Manufacturer'] = "%s/_Manufacturer" % config['ORGDIR']
-    config['ORGDIR_Category'] = "%s/_Category" % config['ORGDIR']
-    config['ORGDIR_Rotation'] = "%s/_Rotation" % config['ORGDIR']
-    config['ORGDIR_Region'] = "%s/_Region" % config['ORGDIR']
-    config['ORGDIR_Series'] = "%s/_Series" % config['ORGDIR']
-    config['ORGDIR_Platform'] = "%s/_Platform" % config['ORGDIR']
-    config['ORGDIR_Flip'] = "%s/_Flip" % config['ORGDIR']
-    config['ORGDIR_Players'] = "%s/_Players" % config['ORGDIR']
-    config['ORGDIR_MoveInputs'] = "%s/_MoveInputs" % config['ORGDIR']
-    config['ORGDIR_NumButtons'] = "%s/_Buttons" % config['ORGDIR']
-    config['ORGDIR_SpecialControls'] = "%s/_Special Controls" % config['ORGDIR']
-
-
-    config['ORGDIR_DIRECTORIES'] = [
-        config['ORGDIR_09'],
-        config['ORGDIR_AE'],
-        config['ORGDIR_FK'],
-        config['ORGDIR_LQ'],
-        config['ORGDIR_RT'],
-        config['ORGDIR_UZ'],
-        config['ORGDIR_Core'],
-        config['ORGDIR_Chron'],
-        config['ORGDIR_Manufacturer'],
-        config['ORGDIR_Category'],
-        config['ORGDIR_Rotation'],
-        config['ORGDIR_Rotation'],
-        config['ORGDIR_Region'],
-        config['ORGDIR_Resolution'],
-        config['ORGDIR_Series'],
-        config['ORGDIR_Platform'],
-        config['ORGDIR_Flip'],
-        config['ORGDIR_Players'],
-        config['ORGDIR_MoveInputs'],
-        config['ORGDIR_NumButtons'],
-        config['ORGDIR_SpecialControls'],
-        config['ORGDIR_Bootleg'],
-        config['ORGDIR_Homebrew']
-    ]
 
     return config
 
