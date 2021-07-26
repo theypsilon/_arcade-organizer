@@ -1100,6 +1100,7 @@ class ArcadeOrganizer:
         self._infra.cache_names_file()
 
         self._printer.print("################################################################################")
+        self._printer.print('%s ver. by theypsilon' % self._config['ARCADE_ORGANIZER_VERSION'])
 
 def run():
     config = make_config()
