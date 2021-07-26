@@ -669,24 +669,19 @@ class ArcadeOrganizer:
                     splits = line.split(':', 1)
                     self._names_txt_dict[splits[0].upper()] = splits[1].strip()
 
-    def read_description(self, setname, keys):
-        description = { i : '' for i in keys }
-        mad_db = self.mad_dict.get(setname, None)
-
-        if mad_db is None:
-            return description
-
-        for key in keys:
-            description[key] = mad_db.get(key, '')
-
-        return description
+    def read_description(self, setname):
+        return self.mad_dict.get(setname, {})
 
 
     def organize_topdir(self):
-        if self._config['TOPDIR'] == 'platform':
+        if self._config['TOPDIR'] == 'platform' and Path(self._config['ORGDIR_Platform']).is_dir():
             for entry in os.scandir(self._config['ORGDIR_Platform']):
                 if entry.is_dir(follow_symlinks=False):
                     self._infra.make_symlink(Path(entry.path), entry.name, self._config['ORGDIR'])
+
+    def ensure_description_or_default(self, key, default):
+        if key not in self._description:
+            self._description[key] = default
 
     def organize_single_mra(self, mra_path):
 
@@ -697,43 +692,30 @@ class ArcadeOrganizer:
             'rbf',
         ])
 
-        self._description = self.read_description(self._fields['setname'], [
-            #'name',
-            'rotation',
-            'flip',
-            'resolution',
-            'region',
-            'homebrew',
-            'bootleg',
-            'year',
-            'manufacturer',
-            'platform',
-            'category',
-            'series',
-            'num_controllers',
-            'move_inputs',
-            'special_controls',
-            'num_buttons',
-            'num_monitors',
-            'cocktail',
-            'best_of',
-            'alternative'
-            # @TODO Activate PR #38
-            #'parent',
-        ])
+        self._description = self.read_description(self._fields['setname'])
 
-        # @TODO Redo once dbs handle name correctly
-        self._description['move_inputs'] = self.to_list(self._description['move_inputs'])
-        self._description['special_controls'] = self.to_list(self._description['special_controls'])
-        self._description['num_controllers'] = self.to_list(self._description['num_controllers'])
-        self._description['best_of'] = self.to_list(self._description['best_of'])
-        self._description['manufacturer'] = self.to_list(self._description['manufacturer'])
-        self._description['category'] = self.to_list(self._description['category'])
-        self._description['series'] = self.to_list(self._description['series'])
-        self._description['platform'] = self.to_list(self._description['platform'])
-
-        self._description['num_buttons'] = to_int(self._description['num_buttons'], 0)
-        self._description['year'] = to_int(self._description['year'], self._description['year'])
+        #self.ensure_description_or_default('name', ''),
+        self.ensure_description_or_default('rotation', 0)
+        self.ensure_description_or_default('flip', False)
+        self.ensure_description_or_default('resolution',  "15kHz")
+        self.ensure_description_or_default('region', '')
+        self.ensure_description_or_default('homebrew', False)
+        self.ensure_description_or_default('bootleg', False)
+        self.ensure_description_or_default('year', 9999)
+        self.ensure_description_or_default('manufacturer', [])
+        self.ensure_description_or_default('platform', [])
+        self.ensure_description_or_default('category', [])
+        self.ensure_description_or_default('series', [])
+        self.ensure_description_or_default('num_controllers', [1])
+        self.ensure_description_or_default('move_inputs', [])
+        self.ensure_description_or_default('special_controls', [])
+        self.ensure_description_or_default('num_buttons', 1)
+        self.ensure_description_or_default('num_monitors', 1)
+        self.ensure_description_or_default('cocktail', '')
+        self.ensure_description_or_default('best_of', [])
+        self.ensure_description_or_default('alternative', is_path_alternative(mra_path))
+        # @TODO Activate PR #38
+        #self.ensure_description_or_default('parent', ''),
 
         # @TODO Reactivate once dbs handle name correctly?
         #self._name = self._description['name']
@@ -741,25 +723,25 @@ class ArcadeOrganizer:
         #self._name = self._name.replace('*', '•')
         #self._name = self._name.replace('?', '¿')
 
+
         self._basename_mra = mra_path.name
 
-        if self._description['alternative'] == '':
-            self._description['alternative'] = "yes" if is_path_alternative(mra_path) else "no"
-
-        if self._description['homebrew'] == "yes":
+        if self._description['homebrew']:
             if self._config['HOMEBREW'] == BoolFlagPresence.DEACTIVATED:
                 self.log_skipped("**** Skipping Homebrew ****")
                 return
             elif self._config['HOMEBREW'] == BoolFlagPresence.ONLY_IN_OWN_FOLDER:
+                self.log_skipped("**** Only Homebrew ****")
                 self.prepare_run()
                 self.create_homebrew()
                 return
 
-        if self._description['bootleg'] == "yes":
+        if self._description['bootleg']:
             if self._config['BOOTLEG'] == BoolFlagPresence.DEACTIVATED:
                 self.log_skipped("**** Skipping Bootleg ****")
                 return
             elif self._config['BOOTLEG'] == BoolFlagPresence.ONLY_IN_OWN_FOLDER:
+                self.log_skipped("**** Only Bootleg ****")
                 self.prepare_run()
                 self.create_bootleg()
                 return
@@ -767,19 +749,17 @@ class ArcadeOrganizer:
         if self._description['region'] == "US":
             self._description['region'] = 'USA'
 
-        region_is_dev_preferred = self._description['alternative'] != "yes" and self._config['REGION_DEV_PREFERRED']
+        region_is_dev_preferred = not self._description['alternative'] and self._config['REGION_DEV_PREFERRED']
         region_matching_main = self._description['region'] == self._config['REGION_MAIN']
         if not region_is_dev_preferred and not region_matching_main:
             if self._config['REGION_OTHERS'] == BoolFlagPresence.DEACTIVATED:
                 self.log_skipped("**** Skipping Region ****")
                 return
             elif self._config['REGION_OTHERS'] == BoolFlagPresence.ONLY_IN_OWN_FOLDER:
+                self.log_skipped("**** Only Region ****")
                 self.prepare_run()
                 self.create_region()
                 return
-
-        if self._description['resolution'] == '':
-            self._description['resolution'] = "15kHz"
 
         if self._description['resolution'] == "15kHz" and not self._config['RESOLUTION_15KHZ']:
             self.log_skipped("**** Skipping Resolution 15kHz ****")
@@ -791,19 +771,14 @@ class ArcadeOrganizer:
             self.log_skipped("**** Skipping Resolution 31kHz ****")
             return
 
-        if self._description['rotation'] == '':
-            self._description['rotation'] = 0
-
         if self.skip_rotation(0, 'ROTATION_0', 'ROTATION_180') or \
             self.skip_rotation(90, 'ROTATION_90', 'ROTATION_270') or \
             self.skip_rotation(180, 'ROTATION_180', 'ROTATION_0') or \
             self.skip_rotation(270, 'ROTATION_270', 'ROTATION_90'):
+                self.log_skipped("**** Only Rotation ****")
                 self.prepare_run()
                 self.create_rotation()
                 return
-
-        if self._description['num_controllers'] == '':
-            self._description['num_controllers'] = 1
 
         if len(self._description['num_controllers']) > 0 and len(set(self._description['num_controllers']) - set(self._config['NUM_CONTROLLERS_NOT_SUPPORTED'])) == 0:
             self.log_skipped("**** Skipping controllers not supported ****")
@@ -827,8 +802,10 @@ class ArcadeOrganizer:
 
         self.prepare_run()
 
-        if self._config['SKIPALTS'] and self._description['alternative'] == "yes":
-            if (self._description['homebrew'] != "yes" and self._description['bootleg'] != "yes") \
+        if self._config['SKIPALTS'] and self._description['alternative']:
+            self.log_skipped("**** Only Alternative Fields ****")
+
+            if (not self._description['homebrew'] and not self._description['bootleg']) \
             or (self._description['region'] != 'World' and self._description['region'] != 'USA' and self._description['region'] != 'Japan'):
                 self.create_region()
 
@@ -893,26 +870,17 @@ class ArcadeOrganizer:
         except FileExistsError:
             pass
 
-    # @TODO Needs to go away once dbs handle this correctly
-    def to_list(self, nolist):
-        if not isinstance(nolist, str):
-            return [nolist]
-        if nolist.strip() == '':
-            return []
-        else:
-            return nolist.split(',')
-
     def impl_create_array_links(self, config_dir_check, description_field, orgdir):
         if self._config[config_dir_check]:
             for entry in self._description[description_field]:
                 self.create_symlink("%s/_%s/" % (self._config[orgdir], entry))
 
     def impl_create_single_link(self, config_dir_check, description_field, orgdir):
-        if self._config[config_dir_check] and self._description[description_field] != '':
+        if self._config[config_dir_check] and description_field in self._description:
             self.create_symlink("%s/_%s/" % (self._config[orgdir], self._description[description_field]))
 
     def impl_create_bool_link(self, description_field, orgdir):
-        if self._description[description_field] == 'yes':
+        if self._description[description_field]:
             self.create_symlink("%s/" % self._config[orgdir])
 
     def create_region(self):
@@ -1017,7 +985,7 @@ class ArcadeOrganizer:
         self.impl_create_bool_link('homebrew', 'ORGDIR_Homebrew')
 
     def create_rotation_symlink(self, condition, flip_condition):
-        if self._description['rotation'] == condition or (self._description['rotation'] == flip_condition and self._description['flip'] == 'yes'):
+        if self._description['rotation'] == condition or (self._description['rotation'] == flip_condition and self._description['flip']):
             self.create_symlink("%s/_%s/" % (self._config['ORGDIR_Rotation'], self._config['ROTATION_DIRECTORIES'][condition]))
 
     def skip_rotation(self, condition, config, flip_config):
