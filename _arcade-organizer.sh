@@ -30,9 +30,10 @@ import shutil
 import time
 import json
 import xml.etree.cElementTree as ET
-from enum import Enum
+from enum import IntEnum, unique
 
-class BoolFlagPresence(Enum):
+@unique
+class BoolFlagPresence(IntEnum):
     DEACTIVATED = 0
     ONLY_IN_OWN_FOLDER = 1
     EVERYWHERE = 2
@@ -94,9 +95,14 @@ def to_int(n, default):
             raise default
         return default
 
+def to_ini(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, BoolFlagPresence):
+        return int(value)
+    return value
+
 def make_config():
-    config = dict()
-    config['PRINT_SYMLINKS'] = os.getenv('PRINT_SYMLINKS', 'false') == 'true'
 
     original_script_path = subprocess.run('ps | grep "^ *%s " | grep -o "[^ ]*$"' % os.getppid(), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout.decode().strip()
     if original_script_path == '-bash':
@@ -104,11 +110,12 @@ def make_config():
 
     INIFILE=Path(original_script_path).with_suffix('.ini').absolute()
 
-    config["ini_file_path"] = Path(INIFILE)
 
-    ini_parser = IniParser(config["ini_file_path"])
+    ini_file_path = Path(INIFILE)
+    ini_parser = IniParser(ini_file_path)
     ini_parser.initialize()
 
+    config = dict()
     config['MAD_DB'] = ini_parser.get_string('MAD_DB', "https://raw.githubusercontent.com/theypsilon/BetaMAD/db/mad_db.json.zip")
     config['MRADIR'] = ini_parser.get_string('MRADIR', "/media/fat/_Arcade/")
     config['ORGDIR'] = ini_parser.get_string('ORGDIR', "/media/fat/_Arcade/_Organized")
@@ -117,7 +124,6 @@ def make_config():
     config['AZ_DIR'] = ini_parser.get_bool('AZ_DIR', True)
     
     config['REGION_MAIN'] = ini_parser.get_string('REGION_MAIN', 'DEV PREFERRED')
-    config['REGION_DEV_PREFERRED'] = config['REGION_MAIN'] == 'DEV PREFERRED'
     config['REGION_OTHERS'] = ini_parser.get_bool_flag_presence('REGION_OTHERS', BoolFlagPresence.ONLY_IN_OWN_FOLDER)
 
     config['RESOLUTION_15KHZ'] = ini_parser.get_bool('RESOLUTION_15KHZ', True)
@@ -166,6 +172,11 @@ def make_config():
     #config['TANK_STICK'] = ini_parser.get_bool('TANK_STICK', True)
     #config['POSITIONAL_STICK'] = ini_parser.get_bool('POSITIONAL_STICK', True)
     #config['TILT_STICK'] = ini_parser.get_bool('TILT_STICK', True)
+
+    config['INI_KEYS'] = list(config)
+    config['INI_FILE_PATH'] = ini_file_path
+    config['PRINT_SYMLINKS'] = os.getenv('PRINT_SYMLINKS', 'false') == 'true'
+    config['REGION_DEV_PREFERRED'] = config['REGION_MAIN'] == 'DEV PREFERRED'
 
     ###############################
     config['ARCADE_ORGANIZER_VERSION'] = "2.0"
@@ -428,12 +439,12 @@ class Infrastructure:
             self._remove_broken_symlinks(directory)
 
     def get_ini_date(self):
-        ini_file_path = self._config['ini_file_path']
+        ini_file_path = self._config['INI_FILE_PATH']
         self._printer.print("Reading INI (%s):" % ini_file_path.name)
 
         ini_date = ''
         if ini_file_path.is_file():
-            ctime = datetime_from_ctime(self._config['ini_file_path'])
+            ctime = datetime_from_ctime(self._config['INI_FILE_PATH'])
             ini_date = ctime.strftime('%Y-%m-%dT%H:%M:%SZ')
             self._printer.print("OK")
         else:
@@ -1013,97 +1024,10 @@ class ArcadeOrganizer:
             return self._names_txt_dict[upper_core]
 
         return core_name
+        
 
     def calculate_ini_options(self):
-        return {
-            'MRADIR' : self._config['MRADIR'],
-            'ORGDIR' : self._config['ORGDIR'],
-        }
-
-        # @TODO Activate PR #38
-        return {
-            'MRADIR' : self._config['MRADIR'],
-            'ORGDIR' : self._config['ORGDIR'],
-            'AZ_DIR' : "true" if self._config['AZ_DIR'] else "false",
-            'ALTERNATIVE' : "true" if self._config['ALTERNATIVE'] else "false",
-            'YEAR_DIR' : "true" if self._config['YEAR_DIR'] else "false",
-            'PREPEND_YEAR' : "true" if self._config['PREPEND_YEAR'] else "false",
-            'PLAYERS_1' : "true" if self._config['PLAYERS_1'] else "false",
-            'PLAYERS_2_ALT' : "true" if self._config['PLAYERS_2_ALT'] else "false",
-            'PLAYERS_2_SIM' : "true" if self._config['PLAYERS_2_SIM'] else "false",
-            'PLAYERS_3' : "true" if self._config['PLAYERS_3'] else "false",
-            'PLAYERS_4' : "true" if self._config['PLAYERS_4'] else "false",
-            'PLAYERS_5' : "true" if self._config['PLAYERS_5'] else "false",
-            'PLAYERS_6' : "true" if self._config['PLAYERS_6'] else "false",
-            'BUTTONS_1' : "true" if self._config['BUTTONS_1'] else "false",
-            'BUTTONS_2' : "true" if self._config['BUTTONS_2'] else "false",
-            'BUTTONS_3' : "true" if self._config['BUTTONS_3'] else "false",
-            'BUTTONS_4' : "true" if self._config['BUTTONS_4'] else "false",
-            'BUTTONS_5' : "true" if self._config['BUTTONS_5'] else "false",
-            'BUTTONS_6' : "true" if self._config['BUTTONS_6'] else "false",
-            'NUM_BUTTONS_DIR' : "true" if self._config['NUM_BUTTONS_DIR'] else "false",
-            'JOYSTICK_2H' : "true" if self._config['JOYSTICK_2H'] else "false",
-            'JOYSTICK_2V' : "true" if self._config['JOYSTICK_2V'] else "false",
-            'JOYSTICK_4' : "true" if self._config['JOYSTICK_4'] else "false",
-            'JOYSTICK_8' : "true" if self._config['JOYSTICK_8'] else "false",
-            'SPINNER' : "true" if self._config['SPINNER'] else "false",
-            'TRACKBALL' : "true" if self._config['TRACKBALL'] else "false",
-            'POSITIONAL_STICK' : "true" if self._config['POSITIONAL_STICK'] else "false",
-            'TILT_STICK' : "true" if self._config['TILT_STICK'] else "false",
-            'TWIN_STICK' : "true" if self._config['TWIN_STICK'] else "false",
-            'TANK_STICK' : "true" if self._config['TANK_STICK'] else "false",
-            'MOVE_INPUTS_DIR' : "true" if self._config['MOVE_INPUTS_DIR'] else "false",
-            'RESOLUTION_DIR' : "true" if self._config['ROTATION_DIR'] else "false",
-            'RESOLUTION_15KHZ' : "true" if self._config['RESOLUTION_15KHZ'] else "false",
-            'RESOLUTION_24KHZ' : "true" if self._config['RESOLUTION_24KHZ'] else "false",
-            'RESOLUTION_31KHZ' : "true" if self._config['RESOLUTION_31KHZ'] else "false",
-            'ROTATION_DIR' : "true" if self._config['ROTATION_DIR'] else "false",
-            'ROTATION_0' : "true" if self._config['ROTATION_0'] else "false",
-            'ROTATION_90' : "true" if self._config['ROTATION_90'] else "false",
-            'ROTATION_180' : "true" if self._config['ROTATION_180'] else "false",
-            'ROTATION_270' : "true" if self._config['ROTATION_270'] else "false",
-            'SERIES_DIR' : "true" if self._config['SERIES_DIR'] else "false",
-            'FLIP_DIR' : "true" if self._config['FLIP_DIR'] else "false",
-            'SPECIAL_CONTROLS_DIR' : "true" if self._config['SPECIAL_CONTROLS_DIR'] else "false",
-            'REGION_DIR' : "true" if self._config['REGION_DIR'] else "false",
-            'REGION_SUB_DIRS' : "true" if self._config['REGION_SUB_DIRS'] else "false",
-            'REGION_USA' : "true" if self._config['REGION_USA'] else "false",
-            'REGION_JAPAN' : "true" if self._config['REGION_JAPAN'] else "false",
-            'REGION_EUROPE' : "true" if self._config['REGION_EUROPE'] else "false",
-            'REGION_WORLD' : "true" if self._config['REGION_WORLD'] else "false",
-            'REGION_ASIA' : "true" if self._config['REGION_ASIA'] else "false",
-            'REGION_BRAZIL' : "true" if self._config['REGION_BRAZIL'] else "false",
-            'BOOTLEG' : "true" if self._config['BOOTLEG'] else "false",
-            'HOMEBREW' : "true" if self._config['HOMEBREW'] else "false",
-            '1970S' : "true" if self._config['1970S'] else "false",
-            '1980S' : "true" if self._config['1980S'] else "false",
-            '1990S' : "true" if self._config['1990S'] else "false",
-            '2000S' : "true" if self._config['2000S'] else "false",
-            '2010S' : "true" if self._config['2010S'] else "false",
-            '2020S' : "true" if self._config['2020S'] else "false",
-            'CATEGORY_ACTION' : "true" if self._config['CATEGORY_ACTION'] else "false",
-            'CATEGORY_ARENA' : "true" if self._config['CATEGORY_ARENA'] else "false",
-            'CATEGORY_BALL_PADDLE' : "true" if self._config['CATEGORY_BALL_PADDLE'] else "false",
-            'CATEGORY_BEAT_EM_UP' : "true" if self._config['CATEGORY_BEAT_EM_UP'] else "false",
-            'CATEGORY_FIGHTING' : "true" if self._config['CATEGORY_FIGHTING'] else "false",
-            'CATEGORY_GAMBLING' : "true" if self._config['CATEGORY_GAMBLING'] else "false",
-            'CATEGORY_GRID_MAZE' : "true" if self._config['CATEGORY_GRID_MAZE'] else "false",
-            'CATEGORY_LANDER' : "true" if self._config['CATEGORY_LANDER'] else "false",
-            'CATEGORY_MAHJONG' : "true" if self._config['CATEGORY_MAHJONG'] else "false",
-            'CATEGORY_MIXED' : "true" if self._config['CATEGORY_MIXED'] else "false",
-            'CATEGORY_PLATFORM' : "true" if self._config['CATEGORY_PLATFORM'] else "false",
-            'CATEGORY_PUZZLE' : "true" if self._config['CATEGORY_PUZZLE'] else "false",
-            'CATEGORY_PUZZLE_PLATFORM' : "true" if self._config['CATEGORY_PUZZLE_PLATFORM'] else "false",
-            'CATEGORY_QUIZ' : "true" if self._config['CATEGORY_QUIZ'] else "false",
-            'CATEGORY_RUN_N_GUN_HOR' : "true" if self._config['CATEGORY_RUN_N_GUN_HOR'] else "false",
-            'CATEGORY_RUN_N_GUN_VER' : "true" if self._config['CATEGORY_RUN_N_GUN_VER'] else "false",
-            'CATEGORY_SHOOTER_GALLERY' : "true" if self._config['CATEGORY_SHOOTER_GALLERY'] else "false",
-            'CATEGORY_SHOOTER_HOR' : "true" if self._config['CATEGORY_SHOOTER_ISO'] else "false",
-            'CATEGORY_SHOOTER_ISO' : "true" if self._config['CATEGORY_SHOOTER_MULTI'] else "false",
-            'CATEGORY_SHOOTER_MULTI' : "true" if self._config['CATEGORY_SHOOTER_TUBE'] else "false",
-            'CATEGORY_SHOOTER_VER' : "true" if self._config['CATEGORY_SHOOTER_VER'] else "false",
-            'CATEGORY_SPORTS' : "true" if self._config['CATEGORY_SPORTS'] else "true"
-        }
+        return {key: to_ini(self._config[key]) for key in sorted(self._config['INI_KEYS'])}
 
     def calculate_orgdir_folders(self):
         dir_set=set()
