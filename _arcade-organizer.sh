@@ -1005,6 +1005,7 @@ class ArcadeOrganizer:
         ini_date = self._infra.get_ini_date()
 
         self._printer.print()
+        self._printer.print('Arcade Organizer %s' % self._config['ARCADE_ORGANIZER_VERSION'])
         self._printer.print('Arguments:')
         for key, value in sorted(self.calculate_ini_options().items()):
             self._printer.print("%s=%s" % (key, value))
