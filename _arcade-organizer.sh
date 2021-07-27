@@ -472,6 +472,10 @@ class Infrastructure:
         dirs = []
         if self._config['TOPDIR'] == 'platform':
             dirs = list(self._scan_folders(self._config['ORGDIR_Platform']))
+        elif self._config['TOPDIR'] == 'core':
+            dirs = list(self._scan_folders(self._config['ORGDIR_Core']))
+        elif self._config['TOPDIR'] == 'year':
+            dirs = list(self._scan_folders(self._config['ORGDIR_Year']))
 
         intersection = self._make_pathstr_names_set(files) & self._make_pathstr_names_set(dirs)
 
@@ -638,6 +642,14 @@ class ArcadeOrganizer:
     def organize_topdir(self):
         if self._config['TOPDIR'] == 'platform' and Path(self._config['ORGDIR_Platform']).is_dir():
             for entry in os.scandir(self._config['ORGDIR_Platform']):
+                if entry.is_dir(follow_symlinks=False):
+                    self._infra.make_symlink(Path(entry.path), entry.name, self._config['ORGDIR'])
+        elif self._config['TOPDIR'] == 'core' and Path(self._config['ORGDIR_Core']).is_dir():
+            for entry in os.scandir(self._config['ORGDIR_Core']):
+                if entry.is_dir(follow_symlinks=False):
+                    self._infra.make_symlink(Path(entry.path), entry.name, self._config['ORGDIR'])
+        elif self._config['TOPDIR'] == 'year' and Path(self._config['ORGDIR_Year']).is_dir():
+            for entry in os.scandir(self._config['ORGDIR_Year']):
                 if entry.is_dir(follow_symlinks=False):
                     self._infra.make_symlink(Path(entry.path), entry.name, self._config['ORGDIR'])
 
