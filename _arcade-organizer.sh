@@ -118,7 +118,7 @@ def make_config():
     ini_parser.initialize()
 
     config = dict()
-    config['MAD_DB'] = ini_parser.get_string('MAD_DB', "https://raw.githubusercontent.com/theypsilon/BetaMAD/db/mad_db.json.zip")
+    config['MAD_DB'] = ini_parser.get_string('MAD_DB', "https://raw.githubusercontent.com/theypsilon/MAD_Database_MiSTer/db/mad_db.json.zip")
     config['MRADIR'] = ini_parser.get_string('MRADIR', "/media/fat/_Arcade/")
     config['ORGDIR'] = ini_parser.get_string('ORGDIR', "/media/fat/_Arcade/_Organized")
     config['SKIPALTS'] = ini_parser.get_bool('SKIPALTS', True)
