@@ -145,6 +145,7 @@ def make_config():
     config['YEAR_LOW'] = ini_parser.get_int('YEAR_LOW', 0)
     config['YEAR_HIGH'] = ini_parser.get_int('YEAR_LOW', 9999)
     config['PREPEND_YEAR'] = ini_parser.get_bool('PREPEND_YEAR', False)
+    config['DECADES_DIR'] = ini_parser.get_bool('DECADES_DIR', True)
 
     config['BOOTLEG'] = ini_parser.get_bool_flag_presence('BOOTLEG', BoolFlagPresence.ONLY_IN_OWN_FOLDER)
     config['HOMEBREW'] = ini_parser.get_bool_flag_presence('HOMEBREW', BoolFlagPresence.ONLY_IN_OWN_FOLDER)
@@ -869,7 +870,7 @@ class ArcadeOrganizer:
     def create_year(self):
         self.impl_create_single_link('YEAR_DIR', 'year', 'ORGDIR_Year')
 
-        if self._config['YEAR_DIR'] and isinstance(self._description['year'], int):
+        if self._config['YEAR_DIR'] and isinstance(self._description['year'], int) and self._config['DECADES_DIR']:
             if self._description['year'] < 1980:
                 self.create_symlink("%s/_%s/" % (self._config['ORGDIR_Year'], "The 1970s"))
 
