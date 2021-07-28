@@ -810,7 +810,9 @@ class ArcadeOrganizer:
 
     def log_skipped(self, message):
         if self._config['VERBOSE']:
-            self._printer.print("%s: %s" % (self._basename_mra, message))
+            log_message = "%s: %s" % (self._basename_mra, message)
+            self._printer.log(log_message)
+            self._printer.print(log_message)
 
     def prepare_run(self):
         rbf = self.fix_core(self._fields['rbf'])
