@@ -860,6 +860,9 @@ class ArcadeOrganizer:
             self.create_symlink("%s/" % self._config[orgdir])
 
     def create_region(self):
+        if 'region' in self._description and self._description['region'].strip() == '':
+            return
+
         self.impl_create_single_link('REGION_DIR', 'region', 'ORGDIR_Region')
 
     def create_alphabetic(self):
