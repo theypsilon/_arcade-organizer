@@ -182,8 +182,15 @@ def make_config():
     config['REGION_DEV_PREFERRED'] = config['REGION_MAIN'] == 'DEV PREFERRED'
 
     ###############################
+
+    CACHE_ARCADE_ORGANIZER_PATH = "/media/fat/Scripts/.cache/arcade-organizer"
+    CONFIG_ARCADE_ORGANIZER_PATH = "/media/fat/Scripts/.config/arcade-organizer"
+    if Path(CACHE_ARCADE_ORGANIZER_PATH).is_dir():
+        Path("/media/fat/Scripts/.config").mkdir(parents=True, exist_ok=True)
+        shutil.move(CACHE_ARCADE_ORGANIZER_PATH, CONFIG_ARCADE_ORGANIZER_PATH)
+
     config['ARCADE_ORGANIZER_VERSION'] = "2.0"
-    config['ARCADE_ORGANIZER_WORK_PATH'] = os.getenv('ARCADE_ORGANIZER_WORK_PATH', "/media/fat/Scripts/.cache/arcade-organizer")
+    config['ARCADE_ORGANIZER_WORK_PATH'] = os.getenv('ARCADE_ORGANIZER_WORK_PATH', "/media/fat/Scripts/.config/arcade-organizer")
     config['ARCADE_ORGANIZER_NAMES_TXT'] = Path(os.getenv('ARCADE_ORGANIZER_NAMES_TXT', "/media/fat/names.txt"))
     config['CACHED_DATA_ZIP'] = Path("%s/data.zip" % config['ARCADE_ORGANIZER_WORK_PATH'])
     config['ORGDIR_FOLDERS_FILE'] = Path("%s/orgdir-folders" % config['ARCADE_ORGANIZER_WORK_PATH'])
