@@ -124,7 +124,8 @@ def make_config():
     config['SKIPALTS'] = ini_parser.get_bool('SKIPALTS', True)
     config['VERBOSE'] = ini_parser.get_bool('VERBOSE', False)
     config['AZ_DIR'] = ini_parser.get_bool('AZ_DIR', True)
-    
+    config['ARCADE_OFFSET_DIRECTORY'] = "%s_Arcade Offset" % config['MRADIR']
+
     config['REGION_MAIN'] = ini_parser.get_string('REGION_MAIN', 'DEV PREFERRED')
     config['REGION_OTHERS'] = ini_parser.get_bool_flag_presence('REGION_OTHERS', BoolFlagPresence.ONLY_IN_OWN_FOLDER)
 
@@ -233,6 +234,7 @@ def make_config():
     config['ORGDIR_Enhancements'] = "%s/_3 Enhancements" % config['ORGDIR_ExtraSoftware']
     config['ORGDIR_Translations'] = "%s/_4 Translations" % config['ORGDIR_ExtraSoftware']
     config['ORGDIR_Hacks'] = "%s/_5 Hacks" % config['ORGDIR_ExtraSoftware']
+
 
     config['ORGDIR_DIRECTORIES'] = [
         config['ORGDIR_09'],
@@ -1074,6 +1076,7 @@ class ArcadeOrganizer:
                 self._printer.print()
             self._infra.remove_file(tmp_data_file)
 
+        self._mra_finder.not_in_directory(self._config['ARCADE_OFFSET_DIRECTORY'])
         for directory in (list(self._config['ORGDIR_DIRECTORIES']) + self._infra.read_topdir_folders()):
             self._mra_finder.not_in_directory(directory)
 
