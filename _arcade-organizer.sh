@@ -678,6 +678,7 @@ class ArcadeOrganizer:
         self._description = self.read_description(self._fields['setname'])
 
         #self.ensure_description_or_default('name', ''),
+        self.ensure_description_or_default('file', mra_path.name)
         self.ensure_description_or_default('rotation', 0)
         self.ensure_description_or_default('flip', False)
         self.ensure_description_or_default('resolution',  "15kHz")
@@ -707,7 +708,7 @@ class ArcadeOrganizer:
         #self._name = self._name.replace('?', '¿')
 
 
-        self._basename_mra = mra_path.name
+        self._basename_mra = self._description['file']
 
         if self._description['homebrew']:
             if self._config['HOMEBREW'] == BoolFlagPresence.DEACTIVATED:
