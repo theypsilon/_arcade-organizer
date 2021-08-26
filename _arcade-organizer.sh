@@ -190,7 +190,7 @@ def make_config():
         Path("/media/fat/Scripts/.config").mkdir(parents=True, exist_ok=True)
         shutil.move(CACHE_ARCADE_ORGANIZER_PATH, CONFIG_ARCADE_ORGANIZER_PATH)
 
-    config['ARCADE_ORGANIZER_VERSION'] = "2.0"
+    config['ARCADE_ORGANIZER_VERSION'] = "2.0_b1"
     config['ARCADE_ORGANIZER_WORK_PATH'] = os.getenv('ARCADE_ORGANIZER_WORK_PATH', "/media/fat/Scripts/.config/arcade-organizer")
     config['ARCADE_ORGANIZER_NAMES_TXT'] = Path(os.getenv('ARCADE_ORGANIZER_NAMES_TXT', "/media/fat/names.txt"))
     config['CACHED_DATA_ZIP'] = Path("%s/data.zip" % config['ARCADE_ORGANIZER_WORK_PATH'])
@@ -418,16 +418,19 @@ class Infrastructure:
     def read_last_run_file(self):
         last_ini_date = ''
         last_mra_date = ''
+        last_version = ''
         if self._last_run_path.is_file():
             with self._last_run_path.open() as f:
                 content = f.readlines()
                 content = [x.strip() for x in content]
+                if len(content) > 0:
+                    last_version = content[0]
                 if len(content) > 1:
                     last_ini_date = content[1]
                 if len(content) > 2:
                     last_mra_date = content[2]
 
-        return [last_ini_date, last_mra_date]
+        return [last_version, last_ini_date, last_mra_date]
 
     def write_last_run_file(self, ini_date, mra_date):
         with self._last_run_path.open("w") as f:
@@ -1043,9 +1046,14 @@ class ArcadeOrganizer:
 
         tmp_data_file = self._infra.download_mad_db_zip()
 
-        last_ini_date, last_mra_date = self._infra.read_last_run_file()
+        last_version, last_ini_date, last_mra_date = self._infra.read_last_run_file()
 
         from_scatch = False
+
+        if self._config['ARCADE_ORGANIZER_VERSION'] != last_version:
+            from_scatch = True
+            self._printer.print("Different AO version detected.")
+            self._printer.print()
 
         if self._infra.check_if_orgdir_directories_are_missing():
             from_scatch = True
