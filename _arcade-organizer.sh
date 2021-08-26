@@ -141,7 +141,7 @@ def make_config():
 
     config['MOVE_INPUTS_NOT_SUPPORTED'] = ini_parser.get_str_list('MOVE_INPUTS_NOT_SUPPORTED', [])
     config['SPECIAL_CONTROLS_NOT_SUPPORTED'] = ini_parser.get_str_list('SPECIAL_CONTROLS_NOT_SUPPORTED', [])
-    config['NUM_CONTROLLERS_NOT_SUPPORTED'] = ini_parser.get_int_list('NUM_CONTROLLERS_NOT_SUPPORTED', [])
+    config['PLAYERS_NOT_SUPPORTED'] = ini_parser.get_int_list('PLAYERS_NOT_SUPPORTED', [])
     config['NUM_BUTTONS_MAXIMUM'] = ini_parser.get_int('NUM_BUTTONS_MAXIMUM', 9999)
     config['YEAR_LOW'] = ini_parser.get_int('YEAR_LOW', 0)
     config['YEAR_HIGH'] = ini_parser.get_int('YEAR_LOW', 9999)
@@ -157,7 +157,7 @@ def make_config():
     config['YEAR_DIR'] = ini_parser.get_bool('YEAR_DIR', True)
     config['NUM_BUTTONS_DIR'] = ini_parser.get_bool('NUM_BUTTONS_DIR', True)
     config['MOVE_INPUTS_DIR'] = ini_parser.get_bool('MOVE_INPUTS_DIR', True)
-    config['NUM_CONTROLLERS_DIR'] = ini_parser.get_bool('NUM_CONTROLLERS_DIR', True)
+    config['PLAYERS_DIR'] = ini_parser.get_bool('PLAYERS_DIR', True)
     config['CORE_DIR'] = ini_parser.get_bool('CORE_DIR', True)
     config['MANUFACTURER_DIR'] = ini_parser.get_bool('MANUFACTURER_DIR', True)
     config['CATEGORY_DIR'] = ini_parser.get_bool('CATEGORY_DIR', True)
@@ -225,7 +225,7 @@ def make_config():
     config['ORGDIR_MoveInputs'] = "%s/_3 Move Inputs" % config['ORGDIR_VideoNInputs']
     config['ORGDIR_NumButtons'] = "%s/_4 Num Buttons" % config['ORGDIR_VideoNInputs']
     config['ORGDIR_SpecialControls'] = "%s/_5 Special Inputs" % config['ORGDIR_VideoNInputs']
-    config['ORGDIR_NumControllers'] = "%s/_6 Num Controllers" % config['ORGDIR_VideoNInputs']
+    config['ORGDIR_Players'] = "%s/_6 Players" % config['ORGDIR_VideoNInputs']
     config['ORGDIR_Cocktail'] = "%s/_7 Cocktail" % config['ORGDIR_VideoNInputs']
     config['ORGDIR_NumMonitors'] = "%s/_8 Num Monitors" % config['ORGDIR_VideoNInputs']
 
@@ -693,7 +693,7 @@ class ArcadeOrganizer:
         self.ensure_description_or_default('platform', [])
         self.ensure_description_or_default('category', [])
         self.ensure_description_or_default('series', [])
-        self.ensure_description_or_default('num_controllers', [1])
+        self.ensure_description_or_default('players', '1')
         self.ensure_description_or_default('move_inputs', [])
         self.ensure_description_or_default('special_controls', [])
         self.ensure_description_or_default('num_buttons', 1)
@@ -767,8 +767,8 @@ class ArcadeOrganizer:
                 self.create_rotation()
                 return
 
-        if len(self._description['num_controllers']) > 0 and len(set(self._description['num_controllers']) - set(self._config['NUM_CONTROLLERS_NOT_SUPPORTED'])) == 0:
-            self.log_skipped("**** Skipping controllers not supported ****")
+        if self._description['players'] in self._config['PLAYERS_NOT_SUPPORTED']:
+            self.log_skipped("**** Skipping players not supported ****")
             return
 
         if self._description['num_buttons'] > self._config['NUM_BUTTONS_MAXIMUM']:
@@ -812,7 +812,7 @@ class ArcadeOrganizer:
         self.create_best_of()
         self.create_resolution()
         self.create_rotation()
-        self.create_num_controllers()
+        self.create_players()
         self.create_move_inputs()
         self.create_special_controls()
         self.create_num_buttons()
@@ -941,8 +941,8 @@ class ArcadeOrganizer:
     def create_platform(self):
         self.impl_create_array_links('PLATFORM_DIR', 'platform', 'ORGDIR_Platform')
 
-    def create_num_controllers(self):
-        self.impl_create_array_links('NUM_CONTROLLERS_DIR', 'num_controllers', 'ORGDIR_NumControllers')
+    def create_players(self):
+        self.impl_create_array_links('PLAYERS_DIR', 'players', 'ORGDIR_Players')
 
     def create_move_inputs(self):
         self.impl_create_array_links('MOVE_INPUTS_DIR', 'move_inputs', 'ORGDIR_MoveInputs')
