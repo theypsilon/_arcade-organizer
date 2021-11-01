@@ -752,6 +752,7 @@ amerihok,ROT0
 amidar,ROT90
 amidar1,ROT90
 amidarb,ROT90
+amidarc,ROT90
 amidaro,ROT90
 amidars,ROT90
 amidaru,ROT90
@@ -1220,6 +1221,7 @@ astyanax,ROT0
 astyanaxa,ROT0
 asuka,ROT270
 asukaj,ROT270
+asukaja,ROT270
 asurabld,ROT0
 asurabus,ROT0
 asurabusj,ROT0
@@ -1967,6 +1969,7 @@ bnzai_g3,ROT0
 bnzai_l1,ROT0
 bnzai_l3,ROT0
 bnzai_pa,ROT0
+boatrace,ROT0
 bobdolly,ROT0
 boblbobl,ROT0
 boblcave,ROT0
@@ -2218,6 +2221,7 @@ bubsys,ROT0
 bucaneer,ROT0
 bucaneeru,ROT0
 bucaner,ROT90
+bucanera,ROT90
 buccanrs,ROT0
 buccanrsa,ROT0
 buccanrsb,ROT0
@@ -2710,6 +2714,7 @@ circuso,ROT0
 circusp,ROT0
 cischeat,ROT0
 citalcup,ROT0
+cityatta,ROT90
 citybomb,ROT270
 citybombj,ROT270
 citycon,ROT0
@@ -3037,8 +3042,9 @@ cosmccop,ROT0
 cosmic,ROT0
 cosmica,ROT270
 cosmica1,ROT270
-cosmica2,ROT270
-cosmica3,ROT270
+cosmica22,ROT270
+cosmica23,ROT270
+cosmica2a,ROT270
 cosmicg,ROT270
 cosmicgi,ROT270
 cosmicin,ROT270
@@ -5858,6 +5864,8 @@ flipshot,ROT0
 flipull,ROT0
 flkatck,ROT90
 flkatcka,ROT90
+floritas,ROT90
+floritasm,ROT90
 flower,ROT0
 flowerj,ROT0
 flsbeats,ROT0
@@ -7034,7 +7042,6 @@ gtrfrksuc,ROT0
 gtroppo,ROT0
 gtroyal,ROT0
 gts1,ROT0
-gts1s,ROT0
 gtsers1,ROT0
 gtsers10,ROT0
 gtsers11,ROT0
@@ -7136,6 +7143,7 @@ gutangtn,ROT90
 guts,ROT0
 gutsn,ROT0
 guttangt,ROT90
+guttangts3,ROT90
 guwange,ROT270
 guwanges,ROT270
 guzzler,ROT90
@@ -7744,6 +7752,7 @@ iceclimb,ROT0
 iceclimba,ROT0
 iceclmrd,ROT0
 icecold,ROT0
+icecoldf,ROT0
 icefever,ROT0
 icemania,ROT0
 ichiban,ROT0
@@ -9462,6 +9471,8 @@ jjsquawkb2,ROT0
 jjsquawko,ROT0
 jkrmast,ROT0
 jkrmasta,ROT0
+jlasvegas,ROT0
+jlasvegasa,ROT0
 jleague,ROT0
 jleagueo,ROT0
 jm_05r,ROT0
@@ -9822,6 +9833,7 @@ kingrt66,ROT0
 kingrt66p,ROT0
 kingt_l1,ROT0
 kingtut,ROT0
+kingyo,ROT0
 kingyoch,ROT0
 kinniku,ROT0
 kinniku2,ROT0
@@ -9937,6 +9949,7 @@ kokoroj,ROT0
 kokoroj2,ROT0
 kollon,ROT0
 kollonc,ROT0
+komemokos,ROT270
 komocomo,ROT0
 konam80a,ROT90
 konam80j,ROT90
@@ -13291,6 +13304,7 @@ maniacsqs,ROT0
 maniacsqu,ROT0
 manicpnc,ROT0
 manohman,ROT0
+manpuku,ROT0
 manxtt,ROT0
 manxttc,ROT0
 manybloc,ROT270
@@ -13559,6 +13573,7 @@ metamrphe,ROT0
 metamrphj,ROT0
 metamrphu,ROT0
 meteor,ROT270
+meteora,ROT90
 meteorbl,ROT0
 meteorho,ROT0
 meteorite,ROT0
@@ -15028,6 +15043,7 @@ pacmanbl,ROT270
 pacmanbla,ROT270
 pacmanblb,ROT90
 pacmanblc,ROT270
+pacmanblci,ROT270
 pacmanblv,ROT270
 pacmanf,ROT90
 pacmanfm,ROT90
@@ -15378,6 +15394,7 @@ pengo2u,ROT90
 pengo3u,ROT90
 pengo4,ROT90
 pengo5,ROT90
+pengo6,ROT90
 pengob,ROT90
 pengojpm,ROT90
 pengomc1,ROT90
@@ -23148,6 +23165,7 @@ sfz2alb,ROT0
 sfz2ald,ROT0
 sfz2alh,ROT0
 sfz2alj,ROT0
+sfz2alr1,ROT0
 sfz2b,ROT0
 sfz2br1,ROT0
 sfz2h,ROT0
@@ -23656,6 +23674,7 @@ smleague,ROT0
 smlg99,ROT0
 smman,ROT0
 smooncrs,ROT90
+smoto13,ROT0
 smoto16,ROT0
 smoto20,ROT0
 smotor,ROT0
@@ -24378,7 +24397,6 @@ spbactn,ROT90
 spbactnj,ROT90
 spbactnp,ROT90
 spcdrag,ROT90
-spcdraga,ROT90
 spceking,ROT270
 spcenctr,ROT0
 spcewarl,ROT270
@@ -24434,6 +24452,7 @@ spectrm4,ROT0
 speedatk,ROT0
 speedbal,ROT270
 speedbala,ROT270
+speedbsk,ROT0
 speeddrp,ROT0
 speeddrv,ROT0
 speedrcr,ROT0
@@ -27358,6 +27377,7 @@ winrun,ROT0
 winrun91,ROT0
 winrungp,ROT0
 winspike,ROT0
+winspikea,ROT0
 winspikej,ROT0
 wintbob,ROT0
 winterht,ROT0
