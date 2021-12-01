@@ -80,6 +80,7 @@
 3countb,ROT0
 3dobios,ROT0
 3in1semi,ROT0
+3in1semia,ROT0
 3kokushi,ROT0
 3lilpigs,ROT0
 3on3dunk,ROT0
@@ -99,6 +100,7 @@
 48in1,ROT90
 48in1a,ROT90
 48in1b,ROT90
+48in1c,ROT90
 4dwarrio,ROT0
 4enlinea,ROT0
 4enlineb,ROT0
@@ -3078,6 +3080,7 @@ couplei,ROT0
 couplep,ROT0
 cowboy,ROT0
 cowboy2,ROT0
+cowboya,ROT0
 cowrace,ROT0
 cowtipp,ROT270
 cowtippa,ROT270
@@ -3986,6 +3989,7 @@ dm_lx3,ROT0
 dm_lx4,ROT0
 dm_pa2,ROT0
 dm_px5,ROT0
+dmainevent,ROT0
 dmdfever,ROT0
 dmndrby,ROT0
 dmndrbya,ROT0
@@ -5877,6 +5881,7 @@ flytiger,ROT270
 flytigera,ROT270
 fmaniac3,ROT0
 fncywld,ROT0
+fnf,ROT0
 fnkyfish,ROT90
 fnshark,ROT270
 foathens,ROT0
@@ -6901,6 +6906,7 @@ growla,ROT0
 growlp,ROT0
 growlu,ROT0
 grudge,ROT0
+grudgei,ROT0
 grudgep,ROT0
 gryzor,ROT90
 gryzor1,ROT90
@@ -7065,6 +7071,7 @@ gtsupreme,ROT0
 guab,ROT0
 guardian,ROT0
 guiness,ROT0
+guitarheroac,ROT0
 gulfstrm,ROT270
 gulfstrma,ROT270
 gulfstrmb,ROT270
@@ -7633,6 +7640,7 @@ hottop,ROT0
 hottopa,ROT0
 hotwheel,ROT0
 hourouki,ROT0
+houseball,ROT0
 househrt,ROT0
 housemn2,ROT0
 housemnq,ROT0
@@ -13330,6 +13338,7 @@ markham,ROT0
 marmagic,ROT0
 marmagicu,ROT0
 marmagicua,ROT0
+marqueen,ROT0
 mars,ROT90
 marsarf,ROT90
 marsp,ROT0
@@ -13714,6 +13723,7 @@ miraxa,ROT90
 mirco21,ROT0
 mirderby,ROT0
 mirninja,ROT0
+mirninjaa,ROT0
 mirworld,ROT0
 misdraw,ROT0
 misncrft,ROT90
@@ -14320,7 +14330,9 @@ mushi2k5,ROT0
 mushi2k61,ROT0
 mushi2k62,ROT0
 mushik2e,ROT0
+mushik2k,ROT0
 mushik4e,ROT0
+mushikc,ROT0
 mushike,ROT0
 mushikeo,ROT0
 mushikep,ROT0
@@ -16369,6 +16381,7 @@ popflamea,ROT90
 popflameb,ROT90
 popflamen,ROT90
 popn1,ROT0
+popn1a,ROT0
 popn1j,ROT0
 popn1k,ROT0
 popn2,ROT0
@@ -17204,6 +17217,7 @@ rbislande,ROT0
 rbislando,ROT0
 rblaster,ROT0
 rbmk,ROT0
+rbowlorama,ROT0
 rbspm,ROT0
 rbtapper,ROT0
 rcasino,ROT270
@@ -24419,6 +24433,7 @@ spclordsg,ROT0
 spcmission,ROT90
 spcpnthr,ROT0
 spcpokan,ROT0
+spcpoker,ROT0
 spcpostn,ROT90
 spcrider,ROT0
 spcrocks,ROT0
@@ -24683,6 +24698,7 @@ ssf2tu,ROT0
 ssf2tur1,ROT0
 ssf2u,ROT0
 ssf2ud,ROT0
+ssf2us2,ROT0
 ssf2xj,ROT0
 ssf2xjr1,ROT0
 ssf2xjr1d,ROT0
@@ -24898,6 +24914,7 @@ stoneage,ROT0
 stonebal,ROT0
 stonebal2,ROT0
 stonebal2o,ROT0
+stop,ROT0
 storm,ROT0
 storming,ROT270
 storminga,ROT270
@@ -25768,6 +25785,7 @@ tmnt24pu,ROT0
 tmnt2a,ROT0
 tmnt2pj,ROT0
 tmnt2po,ROT0
+tmnt_101,ROT0
 tmnt_103,ROT0
 tmnt_104,ROT0
 tmnt_104g,ROT0
