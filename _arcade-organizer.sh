@@ -1001,7 +1001,10 @@ class ArcadeOrganizer:
             return ""
 
         upper_core = core_name.upper()
-        if upper_core in self._names_txt_dict:
+        arcade_core_name = 'ARCADE_%s' % upper_core
+        if arcade_core_name in self._names_txt_dict:
+            return self._names_txt_dict[arcade_core_name]
+        elif upper_core in self._names_txt_dict:
             return self._names_txt_dict[upper_core]
 
         return core_name
