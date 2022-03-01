@@ -1284,6 +1284,7 @@ atrwild,ROT0
 attack,ROT0
 attackf,ROT0
 attackfc,ROT0
+attackfcu,ROT0
 attckexd,ROT0
 attckexd2,ROT0
 attckufo,ROT270
@@ -1771,6 +1772,7 @@ bking,ROT270
 bking2,ROT90
 bking3,ROT90
 bkrtmaq,ROT0
+bkungfu,ROT0
 black,ROT0
 black100,ROT0
 black100s,ROT0
@@ -1975,6 +1977,7 @@ bnzai_g3,ROT0
 bnzai_l1,ROT0
 bnzai_l3,ROT0
 bnzai_pa,ROT0
+boasorte,ROT0
 boatrace,ROT0
 bobdolly,ROT0
 boblbobl,ROT0
@@ -2113,6 +2116,7 @@ brixian,ROT0
 brkball,ROT0
 brkblast,ROT0
 brkthru,ROT0
+brkthrubl,ROT0
 brkthruj,ROT0
 brkthrut,ROT0
 brod,ROT0
@@ -2176,6 +2180,7 @@ btippers,ROT0
 btlecity,ROT0
 btlfield,ROT90
 btlfieldb,ROT90
+btlfront,ROT0
 btlkroad,ROT0
 btlkroadk,ROT0
 btltryst,ROT0
@@ -2570,6 +2575,7 @@ cgang,ROT0
 cgangpzl,ROT0
 cgangpzlj,ROT0
 cgidjp,ROT0
+cgip23b,ROT0
 cgip30cs,ROT0
 cgold,ROT0
 cgold2,ROT0
@@ -2648,6 +2654,7 @@ chewheel,ROT0
 chewing,ROT90
 chexx83,ROT270
 cheyenne,ROT0
+chicgum,ROT0
 chicken,ROT0
 chickna5,ROT0
 chickna5ql,ROT0
@@ -2729,6 +2736,7 @@ citycona,ROT0
 citylove,ROT0
 cityslck,ROT0
 cj3play,ROT0
+cjbj,ROT0
 cjddzsp,ROT0
 cjdh2,ROT0
 cjdh2a,ROT0
@@ -2795,6 +2803,7 @@ clowndwn,ROT0
 clowns,ROT0
 clowns1,ROT0
 clpoker,ROT0
+clrmatch,ROT0
 clshroad,ROT0
 clshroadd,ROT0
 clshroads,ROT0
@@ -2897,6 +2906,7 @@ cocoloco,ROT90
 cocolocoa,ROT90
 cocolocob,ROT90
 code1d,ROT0
+code1da,ROT0
 code1db,ROT0
 coh1000a,ROT0
 coh1000c,ROT0
@@ -2986,6 +2996,7 @@ commandou2,ROT270
 commandw,ROT0
 commsega,ROT90
 comotion,ROT0
+comotionp,ROT0
 compgolf,ROT0
 compgolfo,ROT0
 complexx,ROT270
@@ -3343,6 +3354,7 @@ ctisland2,ROT270
 ctisland3,ROT270
 ctomaday,ROT0
 ctornado,ROT270
+ctower,ROT270
 ctribe,ROT0
 ctribeb,ROT0
 ctribeb2,ROT0
@@ -3420,6 +3432,7 @@ cybotsu,ROT0
 cybotsud,ROT0
 cybrcomm,ROT0
 cybrcycc,ROT0
+cybrcyccj,ROT0
 cybrnaut,ROT0
 cybsled,ROT0
 cybsleda,ROT0
@@ -3837,8 +3850,9 @@ destryera,ROT90
 detatwin,ROT90
 detest,ROT0
 deucesw2,ROT0
-devilfsg,ROT270
 devilfsh,ROT90
+devilfshg,ROT270
+devilfshgb,ROT270
 devilw,ROT0
 devstors,ROT90
 devstors2,ROT90
@@ -3874,6 +3888,7 @@ diamondpg,ROT0
 dibif727,ROT0
 dibif743,ROT0
 dibifuca,ROT0
+dicegame,ROT0
 diehard,ROT0
 dietgo,ROT0
 dietgoe,ROT0
@@ -4189,6 +4204,7 @@ drgnunit,ROT0
 drgnwrld,ROT0
 drgnwrldv10c,ROT0
 drgnwrldv11h,ROT0
+drgnwrldv11ha,ROT0
 drgnwrldv20j,ROT0
 drgnwrldv21,ROT0
 drgnwrldv21j,ROT0
@@ -5454,6 +5470,7 @@ exsafarb,ROT0
 exsafarc,ROT0
 extdwnhl,ROT0
 exterm,ROT0
+extradrw,ROT0
 extrmatn,ROT270
 extrmatnj,ROT270
 extrmatnu,ROT270
@@ -5510,6 +5527,7 @@ faceoff,ROT180
 faceoffh,ROT270
 faeton,ROT0
 faeton6d,ROT0
+failgate,ROT270
 fairyl2,ROT0
 fairyl2a,ROT0
 fairyl2b,ROT0
@@ -5521,6 +5539,7 @@ falcnwldc,ROT0
 falcon,ROT90
 falconz,ROT90
 famibox,ROT0
+famistat,ROT0
 famlyfun,ROT0
 fantasia,ROT90
 fantasiaa,ROT90
@@ -6059,6 +6078,8 @@ fruitsmg,ROT0
 fruitstb,ROT0
 fruitstba,ROT0
 fruitstr,ROT0
+fruitwld,ROT0
+fruitwlda,ROT0
 fs_la5,ROT0
 fs_lx2,ROT0
 fs_lx3,ROT0
@@ -6298,6 +6319,8 @@ gambjack,ROT0
 gambl186,ROT0
 gambl186a,ROT0
 gambl186b,ROT0
+gambl186c,ROT0
+gambl186d,ROT0
 gambler,ROT0
 gamecst2,ROT0
 gamecstl,ROT0
@@ -7725,6 +7748,7 @@ hottopa,ROT0
 hotwheel,ROT0
 hourouki,ROT0
 houseball,ROT0
+housecard,ROT0
 househrt,ROT0
 housemn2,ROT0
 housemnq,ROT0
@@ -7849,6 +7873,7 @@ icefever,ROT0
 icemania,ROT0
 ichiban,ROT0
 ichir,ROT0
+ichirbl,ROT0
 ichirj,ROT0
 ichirjbl,ROT0
 ichirk,ROT0
@@ -9708,6 +9733,7 @@ jubileep,ROT0
 juju,ROT0
 jujub,ROT0
 jujuba,ROT180
+jumanji,ROT0
 jumpbean,ROT0
 jumpbug,ROT90
 jumpbugb,ROT90
@@ -10162,6 +10188,7 @@ kpython,ROT0
 kram,ROT0
 kram2,ROT0
 kram3,ROT0
+krokha,ROT0
 kroozr,ROT0
 krull,ROT270
 krullp,ROT0
@@ -10170,10 +10197,10 @@ ktiger,ROT270
 ktiger2,ROT270
 kuhga,ROT270
 kungfu,ROT0
+kungfua,ROT0
 kungfub,ROT0
 kungfub2,ROT0
 kungfum,ROT0
-kungfum2,ROT0
 kungfumd,ROT0
 kungfur,ROT0
 kungfut,ROT0
@@ -13249,6 +13276,7 @@ ma7556,ROT0
 ma7558,ROT0
 mac2bios,ROT0
 mac_1808,ROT0
+mac_zois,ROT0
 macattck,ROT0
 mace,ROT0
 macea,ROT0
@@ -13315,6 +13343,7 @@ magibombb,ROT0
 magibombc,ROT0
 magibombd,ROT0
 magibombe,ROT0
+magibombf,ROT0
 magic,ROT0
 magic10,ROT0
 magic102,ROT0
@@ -13363,6 +13392,7 @@ magoddsb,ROT0
 magoddsc,ROT0
 magoddsd,ROT0
 magreel,ROT0
+magslot,ROT0
 magspeed,ROT0
 magspot,ROT270
 magspot2,ROT270
@@ -13388,6 +13418,7 @@ mainsnk,ROT180
 majest12j,ROT270
 majest12u,ROT270
 majest12ua,ROT270
+majest12ub,ROT270
 majorpkr,ROT0
 majorpkra,ROT0
 majorpkrb,ROT0
@@ -13804,6 +13835,7 @@ midnruna,ROT0
 midnruna2,ROT0
 midnrunj,ROT0
 midres,ROT0
+midres2,ROT0
 midresb,ROT0
 midresbj,ROT0
 midresj,ROT0
@@ -13848,6 +13880,7 @@ minimonya,ROT0
 minimonyb,ROT0
 minisupf,ROT0
 minivadr,ROT0
+minnadk,ROT0
 mirage,ROT0
 mirax,ROT90
 miraxa,ROT90
@@ -14550,6 +14583,7 @@ myqbert,ROT270
 mystarr,ROT0
 mystcast,ROT0
 mystcasta,ROT0
+mysteria,ROT0
 mysteycm,ROT0
 mysteycmu,ROT0
 mystgard,ROT0
@@ -14729,6 +14763,7 @@ newsa,ROT0
 newsin7,ROT90
 newsin7a,ROT90
 newtangl,ROT0
+newtiger,ROT0
 newufo,ROT0
 newufo_nfl,ROT0
 newufo_sonic,ROT0
@@ -16422,6 +16457,7 @@ pltkids,ROT0
 pltkidsa,ROT0
 plumppop,ROT0
 plusalph,ROT270
+plutus,ROT0
 plycntrchtr,ROT0
 plygonet,ROT90
 pma,ROT0
@@ -16459,6 +16495,7 @@ pokoachu,ROT0
 pokonl97,ROT0
 pokonyan,ROT0
 pokrdice,ROT90
+pokrwild,ROT0
 polar,ROT0
 polaris,ROT270
 polarisa,ROT270
@@ -17524,6 +17561,7 @@ redrobin,ROT90
 redufo,ROT270
 redufob,ROT90
 redufob2,ROT90
+redufob3,ROT90
 reelemin,ROT0
 reeleminr,ROT0
 reelfun,ROT0
@@ -17728,6 +17766,7 @@ roadrunn,ROT0
 roadrunn1,ROT0
 roadrunn2,ROT0
 roadrunr,ROT0
+roadstar,ROT0
 roadtrip,ROT0
 robadv,ROT0
 robadv2,ROT0
@@ -17975,6 +18014,7 @@ rungunuad,ROT0
 rungunud,ROT0
 runpuppy,ROT0
 ruprup,ROT0
+rush,ROT0
 rushatck,ROT0
 rushbets,ROT0
 rushcrsh,ROT270
@@ -18109,6 +18149,7 @@ saturnzi,ROT270
 sauro,ROT0
 sauroa,ROT0
 saurob,ROT0
+saurobl,ROT0
 saurop,ROT0
 saurorr,ROT0
 savagere,ROT0
@@ -18129,6 +18170,8 @@ sbasketg,ROT90
 sbasketh,ROT90
 sbbros,ROT0
 sbdk,ROT270
+sbhoei,ROT90
+sbhoeia,ROT90
 sbishi,ROT0
 sbishik,ROT0
 sbishika,ROT0
@@ -18164,6 +18207,7 @@ sbuk3a,ROT0
 sbuk5,ROT0
 sburners,ROT0
 sbxc,ROT0
+sc2in1,ROT0
 sc4a40,ROT0
 sc4a40a,ROT0
 sc4a40b,ROT0
@@ -23033,6 +23077,7 @@ scramce,ROT90
 scrammr,ROT90
 scrampt,ROT90
 scramrf,ROT90
+scratch,ROT0
 screenp1,ROT0
 screenp1a,ROT0
 screenp2,ROT0
@@ -24718,6 +24763,7 @@ spinner,ROT270
 spirit,ROT0
 spirit76,ROT0
 spitboss,ROT0
+spk100,ROT0
 spk102ua,ROT0
 spk114it,ROT0
 spk115it,ROT0
@@ -24757,6 +24803,7 @@ spool99a,ROT0
 spool99b,ROT0
 spool99c,ROT0
 sport2k,ROT0
+sportmem,ROT0
 spotty,ROT0
 sprbreak,ROT0
 sprbreaka,ROT0
@@ -25160,6 +25207,7 @@ strikext,ROT0
 strikext_100,ROT0
 striv,ROT270
 strivf,ROT270
+strker,ROT0
 strkfgtr,ROT0
 strkfgtrj,ROT0
 strkforc,ROT0
@@ -26001,6 +26049,7 @@ tmntu,ROT0
 tmntua,ROT0
 tmntub,ROT0
 tmntuc,ROT0
+tmntucbl,ROT0
 tmosh,ROT0
 tmoshs,ROT0
 tmoshsp,ROT0
@@ -26052,6 +26101,7 @@ tokyocopi,ROT0
 tokyocopk,ROT0
 tokyogal,ROT180
 tokyowar,ROT0
+tokyowarj,ROT0
 tom_06,ROT0
 tom_10f,ROT0
 tom_12,ROT0
@@ -26157,6 +26207,7 @@ toukon3,ROT0
 toukon4,ROT0
 tour4000,ROT0
 tour4010,ROT0
+toureiff,ROT0
 tourpgum,ROT0
 toursol,ROT0
 toursol1,ROT0
@@ -26541,6 +26592,11 @@ unkch2,ROT0
 unkch3,ROT0
 unkch4,ROT0
 unkct,ROT0
+unkfr004,ROT0
+unkfr004a,ROT0
+unkfr004b,ROT0
+unkfr004c,ROT0
+unkfr009,ROT0
 unkh8gam,ROT0
 unkhorse,ROT270
 unkhpslt,ROT0
@@ -26551,11 +26607,14 @@ unkm1,ROT0
 unkpacg,ROT0
 unkpacga,ROT0
 unkpacgb,ROT0
+unkpacgc,ROT0
+unkpmc,ROT0
 unkpoker,ROT0
 unkrfslt,ROT0
 unks10md,ROT0
 unksig,ROT0
 unksiga,ROT0
+unksmk,ROT0
 unkte06,ROT0
 unomedal,ROT0
 unsquad,ROT0
@@ -27181,6 +27240,7 @@ viofightu,ROT0
 viostorm,ROT0
 viostorma,ROT0
 viostormab,ROT0
+viostormabbl,ROT0
 viostormeb,ROT0
 viostormj,ROT0
 viostormu,ROT0
@@ -27861,6 +27921,7 @@ ww_p1,ROT0
 ww_p8,ROT0
 wwallyj,ROT0
 wwallyja,ROT0
+wwallyja3p,ROT0
 wwallyjad,ROT0
 wwallyjd,ROT0
 wwaratah,ROT0
@@ -28000,6 +28061,7 @@ yamyamk,ROT0
 yanchamr,ROT0
 yankeedo,ROT270
 yarunara,ROT180
+yattrmnp,ROT0
 yellowcbb,ROT270
 yellowcbj,ROT270
 yesnoj,ROT0
