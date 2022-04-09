@@ -62,7 +62,7 @@ Can be run to delete all the Arcade Organizer folders
 
 Download the update_arcade-organizer.sh to the Scripts directory and run.
 
-Alternately, run the update_all.sh script, and press Up on the keyboard to enter options, and access the arcade organizer suboptions which will look like this:
+Alternately, run the [update_all.sh script](https://github.com/theypsilon/Update_All_MiSTer), and press Up on the keyboard to enter options, and access the arcade organizer suboptions which will look like this:
 
 ![screnshot of arcade organizer options in update all menu](https://i.imgur.com/MKGfco5.png)
 
