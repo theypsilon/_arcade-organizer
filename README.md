@@ -95,6 +95,6 @@ Add the following line to the ini file to set a directory for Organized files: `
 A: NO, This script will not clober files you already have.
 
 
-**Q: What If I get new MRA/Core files? **
+**Q: What If I get new MRA/Core files?**
 
 A: You need to re-run the script to have them included in the Organized files.
