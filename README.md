@@ -1,12 +1,10 @@
-# _arcade-organizer
+# _arcade-organizer [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/josembarroso.svg?style=social&label=Follow%20%40josembarroso)](https://twitter.com/josembarroso) <span class="badge-buymeacoffee"><a href="https://ko-fi.com/theypsilon" title="Buy Me a Coffee at ko-fi.com'"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg" alt="Buy Me a Coffee at ko-fi.com'" /></a></span>
 
 A simple script to automate organizing MiSTer's \_Arcade directory based on your MRA files.
 
 These scripts do not duplicate any cores or mra files; only soft symlinks are used.
 
 _Note: These sylinks only work on MiSTer. If you mount your SD card outside of MiSTer, these symlinks will not work._
-
-## Features
 
 This script looks at what MRA files you have, and the information in them, to organize MiSTer's `\_Arcade` directory. 
 
@@ -23,6 +21,8 @@ _Organized
 ├── _3 Manufacturer
 └── _4 Category
 ```
+
+## Features
 
 **You can browse by:**
 
