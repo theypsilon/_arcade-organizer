@@ -78,7 +78,7 @@ _and_
 
 a DEFAULT LOCATION for `\_Organized` at `/media/fat/_Arcade/_Organized`
 
-If your `\_Arcade` directory is in a diffrent location you MUST use a `/media/fat/Scripts/update_arcade-organizer.ini` file 
+If your `\_Arcade` directory is in a different location you MUST use a `/media/fat/Scripts/update_arcade-organizer.ini` file 
 
 If you're not using the default locations for `\_Arcade` and `\_Organized`, you must add their locations in `/media/fat/Scripts/update_arcade-organizer.ini` 
 
