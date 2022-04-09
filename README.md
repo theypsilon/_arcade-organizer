@@ -40,15 +40,19 @@ _Organized
 * Homebrew
 * Bootleg.
 
-**"Top Additional Directories" toggle**
+**"Top Additional Directories" toggle:**
 
 Allows you to include the extra folders that you choose in the top level of the organized directory: Platform, Core, Year
 
-**"Chronological Sorting at the Botom" toggle**
+**"Chronological Sorting at the Botom" toggle:**
 
 By enabling this, every directory will include an additional chronologically sorted index at the bottom of the list.
 
-**MAD metadata support**
+**_Clean Folders_ sub-script:**
+
+Can be run to delete all the Arcade Organizer folders
+
+**MAD metadata support:**
 
 - Support for the MAD metadata format allows improving the metadata of a game without having to change the game's MRA, being thus more flexible and lightweight.
 - MAD database option: The new MAD_DB ini field allows you to you use different MAD databases with different metadata (for example, different categories).
