@@ -332,7 +332,8 @@ class Infrastructure:
         self._tmp_data_zip_path = Path(self._config['TMP_DATA_ZIP'])
 
     def make_symlink(self, mra_path, name, directory):
-        target = Path("%s/%s" % (directory, name))
+        target_str = "%s/%s" % (directory, name)
+        target = Path(target_str.replace(':', '-'))
         if target.is_file() or target.is_symlink():
             return
         try:
