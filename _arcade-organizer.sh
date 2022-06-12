@@ -125,6 +125,7 @@ def make_config():
     config['VERBOSE'] = ini_parser.get_bool('VERBOSE', False)
     config['AZ_DIR'] = ini_parser.get_bool('AZ_DIR', True)
     config['ARCADE_OFFSET_DIRECTORY'] = "%s_Arcade Offset" % config['MRADIR']
+    config['NO_SYMLINKS'] = ini_parser.get_bool('NO_SYMLINKS', False)
 
     config['REGION_MAIN'] = ini_parser.get_string('REGION_MAIN', 'DEV PREFERRED')
     config['REGION_OTHERS'] = ini_parser.get_bool_flag_presence('REGION_OTHERS', BoolFlagPresence.ONLY_IN_OWN_FOLDER)
@@ -346,7 +347,11 @@ class Infrastructure:
         if self._config['PRINT_SYMLINKS']:
             self._printer.print("make_symlink: src %s dst %s" % (src, dst))
         else:
-            os.symlink(src, dst)
+            if self._config['NO_SYMLINKS']:
+                shutil.copy(src, dst)
+            else:
+                os.symlink(src, dst)
+		
 
     def download_mad_db_zip(self):
         self._printer.print("Downloading Mister Arcade Descriptions database")
