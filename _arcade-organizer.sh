@@ -111,7 +111,9 @@ def make_config():
         original_script_path = sys.argv[0]
 
     INIFILE=Path(original_script_path).with_suffix('.ini').absolute()
-
+    env_inifile = os.getenv('INI_FILE', None)
+    if env_inifile is not None:
+	INIFILE = env_inifile
 
     ini_file_path = Path(INIFILE)
     ini_parser = IniParser(ini_file_path)
