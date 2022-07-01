@@ -113,7 +113,7 @@ def make_config():
     INIFILE=Path(original_script_path).with_suffix('.ini').absolute()
     env_inifile = os.getenv('INI_FILE', None)
     if env_inifile is not None:
-	INIFILE = env_inifile
+        INIFILE = env_inifile
 
     ini_file_path = Path(INIFILE)
     ini_parser = IniParser(ini_file_path)
