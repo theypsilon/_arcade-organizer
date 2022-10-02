@@ -112,7 +112,8 @@ def make_config():
     try:
         INIFILE=Path(original_script_path).with_suffix('.ini').absolute()
     except ValueError as _:
-        pass
+        INIFILE = 'wrong_ini_file'
+
     env_inifile = os.getenv('INI_FILE', None)
     if env_inifile is not None:
         INIFILE = env_inifile
