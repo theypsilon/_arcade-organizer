@@ -109,8 +109,10 @@ def make_config():
     original_script_path = subprocess.run('ps | grep "^ *%s " | grep -o "[^ ]*$"' % os.getppid(), shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout.decode().strip()
     if original_script_path == '-bash':
         original_script_path = sys.argv[0]
-
-    INIFILE=Path(original_script_path).with_suffix('.ini').absolute()
+    try:
+        INIFILE=Path(original_script_path).with_suffix('.ini').absolute()
+    except ValueError as _:
+	pass
     env_inifile = os.getenv('INI_FILE', None)
     if env_inifile is not None:
         INIFILE = env_inifile
