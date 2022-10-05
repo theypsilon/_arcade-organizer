@@ -955,7 +955,7 @@ class ArcadeOrganizer:
         self.impl_create_array_links('PLATFORM_DIR', 'platform', 'ORGDIR_Platform')
 
     def create_players(self):
-        self.impl_create_array_links('PLAYERS_DIR', 'players', 'ORGDIR_Players')
+        self.impl_create_single_link('PLAYERS_DIR', 'players', 'ORGDIR_Players')
 
     def create_move_inputs(self):
         self.impl_create_array_links('MOVE_INPUTS_DIR', 'move_inputs', 'ORGDIR_MoveInputs')
