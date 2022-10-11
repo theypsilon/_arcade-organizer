@@ -874,6 +874,8 @@ class ArcadeOrganizer:
 
     def impl_create_array_links(self, config_dir_check, description_field, orgdir):
         if self._config[config_dir_check]:
+            if not isinstance(self._description[description_field], list):
+                self._description[description_field] = [self._description[description_field]]
             for entry in self._description[description_field]:
                 self.create_symlink("%s/_%s/" % (self._config[orgdir], entry))
 
