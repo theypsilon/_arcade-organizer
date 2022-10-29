@@ -692,6 +692,7 @@ class ArcadeOrganizer:
         ])
 
         if self._fields['setname'].strip() == '':
+            self._basename_mra = str(Path(mra_path).name)
             self.log_skipped("**** Skipping empty setname ****")
             return
 
