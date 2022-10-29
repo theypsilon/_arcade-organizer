@@ -690,6 +690,10 @@ class ArcadeOrganizer:
             'setname',
             'rbf',
         ])
+	
+	if self._fields['setname'].strip() == '':
+            self.log_skipped("**** Skipping empty setname ****")
+            return
 
         self._description = self.read_description(self._fields['setname'])
 
