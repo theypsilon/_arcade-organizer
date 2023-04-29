@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2020, 2021 Andrew Moore "amoore2600", José Manuel Barroso Galindo "theypsilon"
+# Copyright (C) 2020-2023 Andrew Moore "amoore2600", José Manuel Barroso Galindo "theypsilon"
 # This file is part of the Arcade Organizer
 #
 # Arcade Organizer is free software: you can redistribute it and/or modify
