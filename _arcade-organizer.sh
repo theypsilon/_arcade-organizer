@@ -333,6 +333,10 @@ class Infrastructure:
         self._config = config
         self._printer = printer
         self._init_private_variables()
+        self._os_errors = []
+
+    def errors(self):
+        return self._os_errors
 
     def _init_private_variables(self):
         self._last_run_path = Path("%s/last_run" % self._config['ARCADE_ORGANIZER_WORK_PATH'])
@@ -354,11 +358,16 @@ class Infrastructure:
         if self._config['PRINT_SYMLINKS']:
             self._printer.print("make_symlink: src %s dst %s" % (src, dst))
         else:
-            if self._config['NO_SYMLINKS']:
-                shutil.copy(src, dst)
-            else:
-                os.symlink(src, dst)
-		
+            try:
+                if self._config['NO_SYMLINKS']:
+                    shutil.copy(src, dst)
+                else:
+                    os.symlink(src, dst)
+            except FileExistsError:
+                pass
+            except OSError as e:
+                self._printer.log("Line %s || %s (%s)" % (lineno(), e, mra_path))
+                self._os_errors.append((mra_path, e))
 
     def download_mad_db_zip(self):
         self._printer.print("Downloading Mister Arcade Descriptions database")
@@ -862,20 +871,14 @@ class ArcadeOrganizer:
             self._year_name = "%s%s %s" % (special_char, str(self._description['year'])[-2:], self._basename_mra)
 
     def create_symlink(self, directory):
-        try:
-            self._infra.make_symlink(self._mra_path, self._basename_mra, directory)
-            if self._config['PREPEND_YEAR']:
-                self._infra.make_symlink(self._mra_path, self._year_name, directory)
-        except FileExistsError:
-            pass
+        self._infra.make_symlink(self._mra_path, self._basename_mra, directory)
+        if self._config['PREPEND_YEAR']:
+            self._infra.make_symlink(self._mra_path, self._year_name, directory)
 
     def create_symlink_name_prefix(self, prefix, directory):
-        try:
-            self._infra.make_symlink(self._mra_path, "%s. %s" % (prefix, self._basename_mra), directory)
-            if self._config['PREPEND_YEAR']:
-                self._infra.make_symlink(self._mra_path, "%s. %s" % (prefix, self._year_name), directory)
-        except FileExistsError:
-            pass
+        self._infra.make_symlink(self._mra_path, "%s. %s" % (prefix, self._basename_mra), directory)
+        if self._config['PREPEND_YEAR']:
+            self._infra.make_symlink(self._mra_path, "%s. %s" % (prefix, self._year_name), directory)
 
     def impl_create_array_links(self, config_dir_check, description_field, orgdir):
         if self._config[config_dir_check]:
@@ -1186,6 +1189,10 @@ def run():
 
         else:
             ao.organize_all_mras()
+
+        if len(infra.errors()) > 0:
+            printer.print("")
+            printer.print("There were errors in some symlinks. Check the logs to report them to the maintainers.")
 
 
 if __name__ == '__main__':
