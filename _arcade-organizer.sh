@@ -1190,9 +1190,12 @@ def run():
         else:
             ao.organize_all_mras()
 
-        if len(infra.errors()) > 0:
+        errors_amount = len(infra.errors())
+        if errors_amount > 0:
             printer.print("")
-            printer.print("There were errors in some symlinks. Check the logs to report them to the maintainers.")
+            printer.print("There were " + str(errors_amount) + " errors in some symlinks. Check the logs to report them to the maintainers.")
+            if errors_amount > 500:
+                exit(1)
 
 
 if __name__ == '__main__':
