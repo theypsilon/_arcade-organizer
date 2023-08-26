@@ -202,7 +202,7 @@ def make_config():
     config['ARCADE_ORGANIZER_WORK_PATH'] = os.getenv('ARCADE_ORGANIZER_WORK_PATH', "/media/fat/Scripts/.config/arcade-organizer")
     names_txt_file = os.getenv('ARCADE_ORGANIZER_NAMES_TXT', "/media/fat/Scripts/.config/arcade_names/arcade_names.txt")
     if names_txt_file == "/media/fat/names.txt":
-        names_txt_file = "/media/fat/Scripts/.cache/arcade_names/arcade_names.txt"
+        names_txt_file = "/media/fat/Scripts/.config/arcade_names/arcade_names.txt"
     config['ARCADE_ORGANIZER_NAMES_TXT'] = Path(names_txt_file)
     config['CACHED_DATA_ZIP'] = Path("%s/data.zip" % config['ARCADE_ORGANIZER_WORK_PATH'])
     config['ORGDIR_FOLDERS_FILE'] = Path("%s/orgdir-folders" % config['ARCADE_ORGANIZER_WORK_PATH'])
