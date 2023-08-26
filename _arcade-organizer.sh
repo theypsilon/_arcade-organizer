@@ -1096,7 +1096,7 @@ class ArcadeOrganizer:
 
         if self._infra.check_if_names_txt_is_new():
             from_scatch = True
-            self._printer.print("The installed names.txt is new.")
+            self._printer.print("The installed arcade_names.txt is new.")
             self._printer.print()
 
         if ini_date != last_ini_date:
