@@ -383,7 +383,10 @@ class Infrastructure:
                 self._printer.print()
                 return None
 
-        zip_output = subprocess.run('curl %s %s -o %s %s' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP'], self._config['MAD_DB']), shell=True, stderr=subprocess.PIPE)
+        env = os.environ.copy()
+        env['CURL_CA_BUNDLE'] = env.get('CURL_CA_BUNDLE', '/etc/ssl/certs/cacert.pem')
+        
+        zip_output = subprocess.run('curl %s %s -o %s %s' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['TMP_DATA_ZIP'], self._config['MAD_DB']), shell=True, stderr=subprocess.PIPE, env=env)
 
         if zip_output.returncode != 0 or not self._tmp_data_zip_path.is_file():
             self._printer.print(f"An error occurred: {zip_output.stderr.decode()}")
@@ -391,7 +394,7 @@ class Infrastructure:
             self._printer.print()
             return None
 
-        md5_output = subprocess.run('curl %s %s %s.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['MAD_DB']), shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        md5_output = subprocess.run('curl %s %s %s.md5' % (self._config['CURL_RETRY'], self._config['SSL_SECURITY_OPTION'], self._config['MAD_DB']), shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE, env=env)
         if md5_output.returncode != 0:
             self._printer.print(f"An error occurred: {md5_output.stderr.decode()}")
             self._printer.print("Couldn't download %s.md5 : Network Problem" % self._config['MAD_DB'])
