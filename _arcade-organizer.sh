@@ -1089,7 +1089,7 @@ class ArcadeOrganizer:
             self._printer.print("Different AO version detected.")
             self._printer.print()
 
-        if self._infra.check_if_orgdir_directories_are_missing():
+        if self._config['AZ_DIR'] is True and self._infra.check_if_orgdir_directories_are_missing():
             from_scatch = True
             self._printer.print("Some ORGDIR directories are missing.")
             self._printer.print()
