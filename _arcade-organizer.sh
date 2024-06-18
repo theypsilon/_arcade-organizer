@@ -561,12 +561,15 @@ class Infrastructure:
         file_path.unlink()
 
     def check_if_orgdir_directories_are_missing(self):
-        return not Path(self._config['ORGDIR_09']).is_dir() or \
-            not Path(self._config['ORGDIR_AE']).is_dir() or \
-            not Path(self._config['ORGDIR_FK']).is_dir() or \
-            not Path(self._config['ORGDIR_LQ']).is_dir() or \
-            not Path(self._config['ORGDIR_RT']).is_dir() or \
-            not Path(self._config['ORGDIR_UZ']).is_dir()
+        if self._config['AZ_DIR']:
+            return not Path(self._config['ORGDIR_09']).is_dir() or \
+                not Path(self._config['ORGDIR_AE']).is_dir() or \
+                not Path(self._config['ORGDIR_FK']).is_dir() or \
+                not Path(self._config['ORGDIR_LQ']).is_dir() or \
+                not Path(self._config['ORGDIR_RT']).is_dir() or \
+                not Path(self._config['ORGDIR_UZ']).is_dir()
+        else:
+            return not Path(self._config['ORGDIR']).is_dir()
 
     def check_if_names_txt_is_new(self):
         return self._config['ARCADE_ORGANIZER_NAMES_TXT'].is_file() \
@@ -1089,7 +1092,7 @@ class ArcadeOrganizer:
             self._printer.print("Different AO version detected.")
             self._printer.print()
 
-        if self._config['AZ_DIR'] is True and self._infra.check_if_orgdir_directories_are_missing():
+        if self._infra.check_if_orgdir_directories_are_missing():
             from_scatch = True
             self._printer.print("Some ORGDIR directories are missing.")
             self._printer.print()
